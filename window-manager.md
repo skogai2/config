@@ -36,6 +36,7 @@ Mod key is Super (Mod4).
 | `Mod+1..0`                     | Switch to workspace 1-10                    |
 | `Mod+Shift+1..0`               | Move window to workspace 1-10               |
 | `Mod+Ctrl+Left/Right`          | Previous/next workspace                     |
+| `Mod+Ctrl+h/l`                 | Previous/next workspace (h/l mirror)        |
 | `Mod+Shift+Ctrl+Left/Right`    | Move window to prev/next workspace, follow  |
 | `Mod+s`                        | Toggle/show scratchpad                      |
 | `Mod+Shift+s`                  | Move window to scratchpad                   |
@@ -71,6 +72,11 @@ held the key — those got relocated rather than dropped:
   (`Mod+[Alt/Ctrl]+Minus/Equal`) are used instead.
 - `Mod+m` (fzf app menu) and `Mod+Shift+n` (empty-workspace script) — not
   ported; they called scripts that don't exist on this machine.
+- `Mod+Ctrl+h/l` — added as an h/l mirror of `Mod+Ctrl+Left/Right`
+  (previous/next workspace), matching this config's left=h / right=l
+  convention (focus, swap, above). Took over `Mod+Ctrl+h` (was: hardware
+  menu) and `Mod+Ctrl+l` (was: lock screen); lock stays reachable via
+  Omarchy's system menu (`Mod+Escape`).
 
 ### (future machines/WMs go here)
 
