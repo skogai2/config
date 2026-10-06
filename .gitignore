@@ -1,4 +1,5 @@
 # fish writes these at runtime
-fish/fish_variables
-fish/plugins/
+/fish/fish_variables
+/fish/plugins/
+/.skogai/worktrees/
 /plugins/hook-tap/log.jsonl
