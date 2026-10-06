@@ -1,1 +1,0 @@
-/home/skogix/.local/src/gptme/scripts/completions/gptme.fish
