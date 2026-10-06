@@ -1,0 +1,2 @@
+# repo path (relative to repo root)   install path
+fish                                  ~/.config/fish
