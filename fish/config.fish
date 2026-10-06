@@ -11,11 +11,9 @@ if not functions -q fisher
     fisher update
 end
 #
-# environment
-set -gx EDITOR nvim
-set -gx VISUAL nvim
-set -gx PAGER less
-set -gx SKOGAI_CONFIG_DIR /home/skogix/skogai/config
+# environment: EDITOR, VISUAL, PAGER, SKOGAI_CONFIG_DIR and friends come from
+# atuin dotfiles vars (loaded by conf.d/00_atuin_init.fish before this file).
+# See atuin.md.
 
 # path
 fish_add_path ~/.local/bin
@@ -60,9 +58,7 @@ abbr -a lzd lazydocker
 abbr -a pc paperclipai
 abbr -a vim nvim
 
-# argc-completions
-set -gx ARGC_COMPLETIONS_ROOT "/home/skogix/.local/src/argc-completions"
-set -gx ARGC_COMPLETIONS_PATH "$ARGC_COMPLETIONS_ROOT/completions/linux:$ARGC_COMPLETIONS_ROOT/completions"
+# argc-completions (ARGC_COMPLETIONS_ROOT and ARGC_COMPLETIONS_PATH from atuin)
 fish_add_path "$ARGC_COMPLETIONS_ROOT/bin"
 # To add completions for only the specified command, modify next line e.g. set argc_scripts cargo git
 set argc_scripts (ls -1 "$ARGC_COMPLETIONS_ROOT/completions/linux" "$ARGC_COMPLETIONS_ROOT/completions" | sed -n 's/\.sh$//p')
@@ -70,9 +66,5 @@ argc --argc-completions fish $argc_scripts | source
 
 fish_add_path "/skogai/bin/"
 
-# pnpm
-set -gx PNPM_HOME '/home/skogix/.local/share/pnpm'
-if not string match -q -- "$PNPM_HOME/bin" $PATH
-  set -gx PATH "$PNPM_HOME/bin" $PATH
-end
-# pnpm end
+# pnpm (PNPM_HOME from atuin)
+fish_add_path "$PNPM_HOME/bin"
