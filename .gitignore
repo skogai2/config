@@ -1,0 +1,4 @@
+# fish writes these at runtime
+fish/fish_variables
+fish/plugins/
+/plugins/hook-tap/log.jsonl
