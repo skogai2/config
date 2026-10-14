@@ -415,3 +415,106 @@ Next in bootstrap is `firewall`.
 - Bash: `cd ~/.config/skogai && git log --oneline -4 && git status --short && git diff --cached --stat && git log origin/master..…`
 - Bash: `cd ~/.config/skogai && git show --stat 747d6d1 | tail -5 && git show 747d6d1 | grep -c 'Later: the quadlet'`
 
+## 2026-10-14 16:32 · turn feb7140a
+
+**User**
+
+> hi claude. i do believe next step is mise bootstrap firewall. not much will probably be done here i presume.
+
+**Assistant**
+
+Firewall looks like a "nothing to declare" outcome, same as services. I haven't changed anything yet.
+
+**Current state** (read from `/etc/ufw/user.rules` and `/etc/default/ufw`; `ufw status` needs sudo):
+- The backend is UFW. It's enabled; nftables and firewalld aren't in use.
+- The defaults are deny incoming, allow outgoing and drop forward. These come from Omarchy's `/usr/share/omarchy/install/config/firewall.sh`.
+- There are three rules:
+  - `allow 53317/udp` and `allow 53317/tcp`: LocalSend, from the same Omarchy install script.
+  - `limit 22/tcp` with comment `omarchy-sshd`: added by the `omarchy-setup-security-sshd` flow.
+- `mise bootstrap firewall status` reports `no bootstrap firewall configured`.
+
+**Why I'd declare nothing:**
+- Every rule and both default policies belong to Omarchy scripts. It's the same split as `sshd` and `tailscaled` under services.
+- mise only ever removes rules it created itself. So it couldn't have done the docker-dns cleanup in `containers.md`, and `exclusive = true` on UFW runs `ufw reset`, which wipes Omarchy's rules too.
+- The firewall needs root even to read it, so `mise bootstrap status` would trigger a sudo prompt for no gain.
+
+**When it would be worth adopting:** rules you add yourself, for example a port for one of the quadlet stacks. Rootless Podman (pasta) publishes ports as ordinary host sockets, so unlike Docker they go through UFW's input chain, and the deny-incoming default applies. That belongs with the quadlet chapter, not here.
+
+Should I record this under item 1's Notes in `mise.md` as "firewall — decided: nothing declared" and move on to `compose`?
+
+**Actions**
+
+- Bash: `mise bootstrap firewall --help; mise bootstrap firewall apply --help; mise bootstrap firewall status --help; ls /home/sk…`
+- Bash: `mise bootstrap firewall status 2>&1; sudo -n ufw status verbose 2>&1 | head -40`
+- Bash: `cat /home/skogix/.config/skogai/tmp/mise-docs/bootstrap/firewall.md; ls /etc/ufw/user.rules /etc/ufw/user6.rules 2>&1; s…`
+- Bash: `grep -E '^### tuple|^-A' /etc/ufw/user.rules 2>&1 | grep tuple; grep -E '^(DEFAULT|IPV6)' /etc/default/ufw; grep -rln "u…`
+- Bash: `d=$(dirname $(dirname $(readlink -f $(command -v omarchy-setup-security-sshd 2>/dev/null || command -v omarchy))) 2>/dev…`
+- Bash: `grep -ln "ufw" /usr/bin/omarchy-* /usr/share/omarchy -r 2>/dev/null | head; grep -rhn "ufw " /usr/bin/omarchy-* /usr/sha…`
+
+## 2026-10-14 16:33 · turn 57f9d6ce
+
+**User**
+
+> sounds good.
+
+**Assistant**
+
+I added a "firewall — decided: nothing declared" note under item 1 in `mise.md`. Item 1 stays `[~]`, and the "Next" line now starts at `compose`, then `files`. I haven't committed it yet.
+
+Should I commit it, or start on `compose`?
+
+**Actions**
+
+- Edit `mise.md`
+- Edit `mise.md`
+
+## 2026-10-14 16:34 · turn 590e9bbb
+
+**User**
+
+> please start with compose
+
+**Assistant**
+
+`[bootstrap.compose]` doesn't work with the podman-compose that's installed here. On top of that, there's nothing to declare right now.
+
+**It doesn't work with podman-compose.** I tested with a throwaway config in the scratchpad, since removed. mise passes `--project-directory` and reads `config --hash` to detect drift, and podman-compose supports neither. Status came back `unknown` and the dry run refused. The docs only support Docker Compose v2 as the frontend. `command = ["podman", "compose"]` just hands off to the external provider, which is podman-compose here.
+
+**There's nothing to declare anyway:**
+- `~/tmp/docker-compose.yml` is gone. termix and guacd now run as quadlets (`termix.service`, `termix-guacd.service`).
+- The gptme compose stack isn't running. No containers on this machine carry compose labels; everything running comes from quadlets.
+
+**The only way to make it work** is to install the Arch `docker-compose` package (v2) so podman uses it as the compose provider, talking to `podman.sock`. That means undoing its `absent` entry from the packages decision and part of the `containers.md` choice. It isn't worth it while the quadlet stack is where containers actually live. Quadlets are systemd units, so they fit `systemd-units`, not `compose`.
+
+There's one more thing: the "Outstanding" item in `containers.md` (both compose stacks coming up cleanly) is stale, because the `~/tmp` stack no longer exists.
+
+I'd record compose as "decided: not adopted (podman-compose incompatible; containers live in quadlets)". Should I also update the `containers.md` Outstanding item? I'd say the `~/tmp` stack moved to quadlets and only gptme is left to check.
+
+**Actions**
+
+- Bash: `cat /home/skogix/.config/skogai/tmp/mise-docs/bootstrap/compose.md; mise bootstrap compose status 2>&1`
+- Bash: `cat ~/tmp/docker-compose.yml ~/claude/projects/gptme/docker-compose.yml 2>&1; docker compose ls 2>&1 | head; docker ps -…`
+- Bash: `S=/tmp/claude-1000/-home-skogix--config-skogai/9b256eef-355f-4b6a-9fec-53635764aed1/scratchpad/composetest; mkdir -p $S;…`
+- Bash: `S=/tmp/claude-1000/-home-skogix--config-skogai/9b256eef-355f-4b6a-9fec-53635764aed1/scratchpad/composetest; mise trust -…`
+
+## 2026-10-14 16:36 · turn b7dbed99
+
+**User**
+
+> sounds good. we manage the podman quadlets setup manually in the repo itself. please go ahead.
+
+**Assistant**
+
+I've recorded both decisions. Nothing is committed yet.
+
+- **`mise.md`:** compose is marked "not adopted". The note covers why podman-compose doesn't work with mise and that the quadlet repo stays managed by hand in that repo itself. "Next" now points to `files` (cloudflared).
+- **`containers.md`:** the Outstanding item now covers only the gptme stack and says termix and guacd moved to quadlets. I also changed one line under "Later" that I hadn't mentioned: it now says the quadlet repo is managed by hand and that mise's `compose` and `systemd-units` don't take it over.
+
+Should I commit these along with the firewall note, or carry on with `files`?
+
+**Actions**
+
+- Edit `mise.md`
+- Edit `containers.md`
+- Edit `containers.md`
+

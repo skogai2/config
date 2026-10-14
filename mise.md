@@ -132,10 +132,39 @@ Notes:
     though the tailscale flow enables it. Emil chose to enable it, and it
     is enabled and running as of 2026-10-14. That's an Omarchy-owned piece,
     so mise doesn't declare it either.
-- Next: `firewall`, `compose` (the rest of `containers.md`; the quadlet
-  stack in `~/.config/containers/systemd` is out of scope here, see
-  `containers.md` "Later"), then `files`
-  (cloudflared).
+- **firewall — decided: nothing declared** (2026-10-14). The backend is
+  UFW (enabled; nftables/firewalld unused). Everything on it belongs to
+  Omarchy: the defaults (deny in, allow out, drop forward) and LocalSend
+  `53317/tcp+udp` come from `/usr/share/omarchy/install/config/firewall.sh`,
+  and `limit 22/tcp` (comment `omarchy-sshd`) from
+  `omarchy-setup-security-sshd`. Reference:
+  `tmp/mise-docs/bootstrap/firewall.md`.
+  - mise only removes rules it created (UFW comment `mise:<name>`), so it
+    couldn't have done the `allow-docker-dns` cleanup in `containers.md`.
+    `exclusive = true` on UFW runs `ufw reset`, which would wipe Omarchy's
+    rules too, so don't use it.
+  - It needs root even for `status`, so declaring it makes every
+    `mise bootstrap status` ask for sudo.
+  - Adopt it later for rules Emil adds directly. Likely candidates are
+    ports for the quadlet stack: rootless Podman (pasta) publishes ports as
+    ordinary host sockets, so unlike Docker they go through UFW's input
+    chain and the deny-incoming default applies.
+- **compose — decided: not adopted** (2026-10-14). mise's compose
+  support needs Docker Compose v2. It passes `--project-directory` and
+  reads `config --hash` to detect drift. podman-compose (what `docker
+  compose`/`podman compose` resolve to here) supports neither. Tested with
+  a throwaway config: status `unknown`, dry run refused. Reference:
+  `tmp/mise-docs/bootstrap/compose.md`.
+  - Nothing to declare anyway: the `~/tmp` stack is gone (termix/guacd now
+    run as quadlets), the gptme stack isn't running, and no container on
+    the machine has compose labels.
+  - The only fix would be the Arch `docker-compose` package (v2) as
+    podman's compose provider. That undoes its `absent` entry above, which
+    isn't worth it.
+  - Containers live in the quadlet repo (`~/.config/containers/systemd`),
+    and it's managed by hand in that repo itself. Neither `compose` nor
+    `systemd-units` should take it over.
+- Next: `files` (cloudflared).
 
 ### [ ] 2. `mise dotfiles` — deploy, track, sync
 

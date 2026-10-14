@@ -97,8 +97,10 @@ Executed 2026-10-07. What actually happened, in order:
 Confirmed clean: `grep -n "ufw-docker\|DOCKER-USER" /etc/ufw/after.rules`
 after the strip + `ufw reload` prints nothing.
 
-Outstanding: final confirmation that both compose stacks (`~/tmp`,
-`~/claude/projects/gptme`) come up cleanly under `docker compose up`.
+Outstanding: final confirmation that the gptme stack
+(`~/claude/projects/gptme`) comes up cleanly under `docker compose up`. The
+`~/tmp` stack (termix + guacd) no longer exists. As of 2026-10-14 both run
+as quadlets (`termix.service`, `termix-guacd.service`).
 
 ## Later: the quadlet stack
 
@@ -113,5 +115,6 @@ Docker → Podman runtime switch. It does not cover that stack.
 
 A big chapter for a later session: walk through that repo the way
 `window-manager.md` walks the Hyprland bindings. Record what each stack is,
-whether it's still wanted, and how it relates to the compose files above
-and to mise's `[bootstrap.compose]` / `systemd-units`.
+whether it's still wanted, and how it relates to the compose files above.
+The repo is managed by hand in the repo itself. mise's `[bootstrap.compose]`
+and `systemd-units` don't take it over (decided 2026-10-14, see `mise.md`).
