@@ -655,3 +655,180 @@ None of this is committed in either repo yet, and the next part is still `repos`
 - Bash: `cd /skogai && sed -i 's/^| `bin\/`, `tools\/`| `755`  | launchers/| `bin\/`, `tools\/`| `2755` | launchers/' README.md &…`
 - Edit `mise.md`
 
+## 2026-10-14 16:48 · turn 39246114
+
+**User**
+
+> great. i will commit the changes made. should we jump ahead directly to accounts over repos?
+
+**Assistant**
+
+Yes, I'd do `accounts` next. It's first in bootstrap's own run order, so we skipped past it to get to packages, not ahead of it. It also follows straight on from the `/skogai` work: the `skogai` group, the agent users (claude, dot, amy, goose) and the memberships are exactly what `create-agents.sh` and `setup-coordination.sh` handle today. If accounts can declare those, the only job left for the scripts is creating `coord.db`.
+
+`repos` doesn't touch any of that, so it can wait. I'll mark `accounts` as next in `mise.md` once you've committed, or we can go straight into it now.
+
+## 2026-10-14 16:49 · turn a9268399
+
+**User**
+
+> please go ahead with accounts then :)
+
+**Assistant**
+
+The `skogai` group and the four agent users are now declared in mise, and the declarations match what's on the machine: `mise bootstrap plan` shows 22 items, all unchanged, so applying would change nothing.
+
+Added to `~/.config/mise/config.toml`:
+- **Group `skogai`:** created as a system group.
+- **Agent users claude, dot, amy and goose:** system users with primary group `skogai`, home at `/home/<name>`, and login shell `/usr/bin/nologin`. That's the same setup `create-agents.sh` makes.
+- **skogix:** declared as a member of `skogai`. Your other groups (like `wheel`) are left alone.
+
+I didn't pin user or group IDs, so on a new machine they'd come from the system range. Pinning them would only matter if files ever move between machines by numeric ID.
+
+**Applying needs sudo, checking doesn't.** `mise bootstrap accounts status` runs without sudo; only an apply that actually changes something asks for it.
+
+This replaces `create-agents.sh` and the account half of `setup-coordination.sh`. The one thing only a script still does is create `coord.db` when it's missing. Whether to trim those scripts down to that is open; I noted it in `mise.md`.
+
+`mise.md` has the accounts notes, and the next part is `repos`. These changes aren't committed yet.
+
+**Actions**
+
+- Bash: `cd /home/skogix/.config/skogai; cat tmp/mise-docs/bootstrap/accounts.md; mise bootstrap accounts --help | head -20`
+- Bash: `cat /skogai/admin/create-agents.sh; ls /skogai/admin; for u in skogix claude dot amy goose; do getent passwd $u; id $u; …`
+- Bash: `cat >> ~/.config/mise/config.toml <<'EOF'`
+- Bash: `python3 - <<'EOF'`
+- Edit `mise.md`
+
+## 2026-10-14 16:52 · turn a4e84e0f
+
+**User**
+
+> now what does "nologin" mean in practice in a case like this?
+
+**Assistant**
+
+`nologin` means nobody can get an interactive session as these users, but processes can still run as them. When anything tries to start the user's login shell, `/usr/bin/nologin` prints "This account is currently not available." and exits.
+
+**Blocked:**
+- Logging in on a TTY or a display manager.
+- `ssh claude@host`, including `ssh claude@host some-command`, because sshd runs remote commands through the user's shell.
+- `su claude` and `sudo -u claude -i`, because both start the target user's shell.
+
+**Still works:**
+- `sudo -u claude some-command`. sudo runs the command directly without a login shell. This is how the README tests the agents (`sudo -u dot env COORDINATION_DB=... gptme-coordination ...`).
+- systemd units with `User=claude`, cron jobs, and anything else that starts a process as that user.
+- `su -s /bin/bash claude` or `sudo -u claude bash`. These name a shell explicitly, so root (or anyone with the right sudo rights) can still get a shell as the agent.
+
+So these accounts are identities only. Each agent gets its own UID for file ownership and the `skogai` group permissions, but nobody signs in as them. The real boundary is Unix permissions (the `2755` on `bin/` and `tools/` and so on). `nologin` only removes the login paths into the account.
+
+## 2026-10-14 16:55 · turn 1ede373a
+
+**User**
+
+> you can document that the end goal is to actually have real login shells for agents as well. in practice this would mean "the agent logs in via ssh claude@skogix-workstation/localhost/server address". not something we have to go over in detail now but should be documented, maybe even in the mise.toml itself or at least in your documentation in this repo
+
+**Assistant**
+
+I've documented the goal in both places:
+
+- **`~/.config/mise/config.toml`:** the comment above the agent accounts now says `nologin` is temporary. The goal is for each agent to log in over SSH as itself (`ssh claude@<workstation|localhost|server>`), and the comment points to `mise.md`.
+- **`mise.md`, accounts notes:**
+  - What `nologin` blocks today and what still works.
+  - The end goal, marked as not designed yet.
+  - What switching will touch: the `shell` field on each agent user, a per-agent `authorized_keys` file under `files`, the sshd config, and Omarchy's `limit 22/tcp` firewall rule.
+
+**Actions**
+
+- Bash: `python3 - <<'EOF'`
+- Edit `mise.md`
+
+## 2026-10-14 16:57 · turn ff2581b6
+
+**User**
+
+> great. if everything/the basics are done we can probably move to the next one?
+
+**Assistant**
+
+The four config/infra checkouts are declared in mise, with no `ref`. On a new machine mise clones whichever are missing; on this one it leaves existing checkouts where they are. `mise bootstrap repos update` fast-forwards them when you ask.
+
+| Path | Repo | Status |
+|---|---|---|
+| `~/.config/skogai` | skogai2/config | dirty |
+| `~/.config/containers/systemd` | skogai/podman | dirty (`termix/termix.container` is modified) |
+| `~/.skogai` | skogai2/dot-skogai | current |
+| `/skogai` | skogai2/dash-skogai | dirty |
+
+**Uncommitted work blocks `mise bootstrap`.** mise never touches local work, so any checkout with uncommitted changes makes `repos apply` and a full `mise bootstrap` fail, even with no `ref` set. That's why the dry run errored just now: three of the four repos have uncommitted changes. `--skip-dirty` (also accepted by `mise bootstrap`) skips those repos instead of failing.
+
+**Fresh-machine order works out.** Repos run after files, so `/skogai` is created empty with the right owner, group and setgid first, and then the repo is cloned into it.
+
+**Not checked:** whether mise also clones submodules. That affects `/skogai/gptme-contrib`; I noted it in `mise.md`.
+
+`mise.md` is updated. Next are the shell parts (`mise-shell-activate`, `user`), then `systemd-units`.
+
+**Actions**
+
+- Bash: `cd /home/skogix/.config/skogai; cat tmp/mise-docs/bootstrap/repos.md; mise bootstrap repos --help | sed -n 1,20p; mise b…`
+- Bash: `for d in $(find ~ /skogai -maxdepth 4 -name .git \( -type d -o -type f \) -not -path '*/node_modules/*' -not -path '*/.c…`
+- AskUserQuestion
+- Bash: `cat >> ~/.config/mise/config.toml <<'EOF'` (failed)
+- Bash: `mise bootstrap --help | grep -n -i -A2 "skip-dirty\|--skip \|--only"; git -C ~/.config/containers/systemd status -s | he…`
+- Edit `mise.md`
+
+## 2026-10-14 17:00 · turn 71c46887
+
+**User**
+
+> we can continue. not sure what any of those does except what I assume systemd would manage.
+
+**Assistant**
+
+Both shell parts are small. One sets your login shell; the other adds the line that turns mise on in your shell's startup files. Neither has anything declared yet.
+
+**`user`: your login shell.** `login_shell = "/usr/bin/fish"` makes sure the account uses fish, running `chsh` if it doesn't. Your account already uses fish, so here it would change nothing. On a fresh Omarchy install, which defaults to bash, it would switch you to fish. To make that work in one run, fish should also go into `[bootstrap.packages]`, since it's one of your choices rather than Omarchy's. I'd adopt both.
+
+**`mise-shell-activate`: the line that turns mise on.** This adds `mise activate` to your shell's startup file. It's already set up three ways:
+- **Your desktop session:** Omarchy puts mise's shims on PATH (`uwsm/env.d/10-omarchy`), so every program you launch already resolves mise tools.
+- **Interactive bash:** Omarchy's `bash/init` activates mise fully.
+- **Interactive fish:** `~/.config/fish/conf.d/00_mise_activate.fish` activates mise fully. That file was hand-placed on Oct 7, along with the other `conf.d` files.
+
+Declaring `fish = "auto"` would add a second activation block to `config.fish`, so the `conf.d` file would have to go. The only difference would be shims in non-interactive fish, and those already get shims from the session's PATH. I'd declare nothing here, and decide who owns the fish config when we get to dotfiles (item 2).
+
+`atuin.md` is out of date: it says this machine's shell is bash with `atuin init bash`. Atuin is actually set up for fish (`conf.d/00_atuin_init.fish`), and the bash line stays in `.bashrc`. I'll correct that too.
+
+Should I add `pacman:fish` and `login_shell`, correct `atuin.md`, and then move on to `systemd-units`?
+
+**Actions**
+
+- Bash: `cd /home/skogix/.config/skogai; cat tmp/mise-docs/bootstrap/shell.md; mise bootstrap user status 2>&1; mise bootstrap mi…`
+- Bash: `grep -rn "mise" ~/.config/fish/ ~/.bashrc ~/.bash_profile ~/.profile 2>/dev/null | head; ls -la ~/.config/fish/config.fi…`
+- Bash: `cat ~/.config/fish/conf.d/00_mise_activate.fish; ls -la ~/.config/fish/conf.d/; grep -n mise /usr/share/omarchy/default/…`
+- Bash: `pacman -Qi fish | grep -E "Version|Install Reason"; grep -rn "conf.d\|mise" /home/skogix/.local/src/dash-skogai/fish 2>/…`
+
+## 2026-10-14 17:03 · turn f204041e
+
+**User**
+
+> now I use both zsh and lately have moved to trying out fish. both should probably be setup if possible in the long run. fish can be chsh for now though.
+
+**Assistant**
+
+fish is now your declared login shell, and the `fish` package is declared too. Both already matched this machine, so applying would change nothing.
+
+zsh isn't on this machine yet; `~/.zshrc` only holds a line from the uv installer. I recorded zsh in `mise.md` as the long-term goal, along with the three pieces it will need: the `zsh` package, `zsh = true` under `mise-shell-activate`, and atuin's zsh setup.
+
+I declared nothing under `mise-shell-activate`. mise is already active in your session, in bash and in fish, so a declaration there would only add a second copy for fish. Who owns the fish config gets decided at dotfiles (item 2).
+
+`atuin.md` now says the login shell is fish (set up from `conf.d`), bash keeps its `.bashrc` line, and zsh is still to come.
+
+`systemd-units` is next. That's the hand-written user units (`gptme-server`, `voxtype`), and the open question from services about `history-watch`.
+
+**Actions**
+
+- Bash: `pacman -Qi zsh 2>&1 | grep -E "Version|Install Reason|error"; ls -la ~/.zshrc ~/.zprofile ~/.zshenv 2>&1; grep -n "mise\…` (failed)
+- Bash: `cat ~/.zshrc`
+- Bash: `python3 - <<'EOF'`
+- Read `atuin.md`
+- Edit `atuin.md`
+- Edit `mise.md`
+

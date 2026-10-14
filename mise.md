@@ -192,7 +192,65 @@ Notes:
     `coord.db` and the group/users; revisit at `accounts`.
   - `~/.config/mise` is not a git repo, so `config.toml` and `files/` are
     not versioned yet. Revisit at item 2.
-- Next: `repos`.
+- **accounts — decided: adopt for the skogai agents** (2026-10-14).
+  `[bootstrap.groups]`/`[bootstrap.users]` run first in bootstrap, before
+  files, so files can name the accounts as owners. Only the fields that
+  are set get managed. `groups` adds memberships without removing others
+  unless `exclusive_groups = true`. Applying needs sudo, but status
+  doesn't. Reference: `tmp/mise-docs/bootstrap/accounts.md`.
+  - Declared: group `skogai` (system), the agent users claude, dot, amy and
+    goose (system, primary group `skogai`, `/home/<name>`, `nologin`), and
+    skogix's membership in `skogai`. IDs aren't pinned. `bootstrap plan`:
+    22 unchanged, nothing to do.
+  - mise counts the primary group as membership, so the agents need no
+    `groups` list.
+  - `nologin` (as of now): agents are identities, not logins. Login,
+    `ssh`, `su` and `sudo -i` are refused. `sudo -u <agent> <cmd>`,
+    systemd `User=` and cron still run as them.
+  - **End goal: real login shells for agents.** An agent works by logging
+    in over SSH as itself (`ssh claude@skogix-workstation`, `localhost`, or
+    a server address). Not designed yet. When it is, it touches `shell`
+    here, per-agent `authorized_keys` (files), sshd config, and the
+    `limit 22/tcp` UFW rule Omarchy owns (see services/firewall).
+  - This replaces `/skogai/admin/create-agents.sh` and the account half of
+    `setup-coordination.sh`. Creating `coord.db` is the one thing left
+    only the script does. Whether to trim the scripts is still open.
+- **repos — decided: adopt for config/infra checkouts** (2026-10-14).
+  `[bootstrap.repos]` maps a path to a `url` (plus an optional `ref`).
+  Missing checkouts are cloned. Without `ref`, existing ones are left
+  where they are; `repos update` fast-forwards them. mise never deletes a
+  checkout and never touches local work: a dirty checkout or one whose
+  origin doesn't match fails apply/update (`--skip-dirty` skips instead,
+  on `mise bootstrap` too). Repos run after files, so a fresh machine gets
+  `/skogai` (2775, setgid) from files first and then clones into the empty
+  dir. Reference: `tmp/mise-docs/bootstrap/repos.md`.
+  - Declared, no `ref`: `~/.config/skogai`, `~/.config/containers/systemd`,
+    `~/.skogai` (dot-skogai) and `/skogai` (dash-skogai). Status
+    at the time: `~/.skogai` current, the other three dirty (uncommitted
+    work), so a plain `mise bootstrap` on this machine needs
+    `--skip-dirty` while work is in progress.
+  - Not declared: the home workspaces (`~/skogai`, `~/skogix`, `~/claude`,
+    `~/dot`, ...), the 29 clones in `~/.local/src`, and `~/old/*`.
+  - Unverified: whether mise clones submodules (`/skogai/gptme-contrib`).
+    Check on a fresh machine or with a throwaway clone.
+- **shell (`user`, `mise-shell-activate`) — decided** (2026-10-14).
+  Reference: `tmp/mise-docs/bootstrap/shell.md`.
+  - `user`: adopted. `[bootstrap.user] login_shell = "/usr/bin/fish"` plus
+    `"pacman:fish"` in packages, since fish is a choice and Omarchy's
+    default is bash. Both already matched.
+  - `mise-shell-activate`: nothing declared. mise is already active
+    everywhere: Omarchy's uwsm env gives the session shims, Omarchy's
+    `bash/init` activates interactive bash, and
+    `~/.config/fish/conf.d/00_mise_activate.fish` (hand-placed Oct 7)
+    activates fish. `fish = "auto"` would add a second block to
+    `config.fish`, and its only gain (shims for non-interactive fish) is
+    already covered by the session PATH. Who owns the fish config gets
+    decided at item 2 (dotfiles).
+  - Long-term goal: zsh set up alongside fish. Not installed here yet
+    (`~/.zshrc` is only a uv-installer stub). When it is: `"pacman:zsh"`,
+    `zsh = true` under `mise_shell_activate` (writes `~/.zprofile` shims
+    and `~/.zshrc` activation), and `atuin init zsh`.
+- Next: `systemd-units`.
 
 ### [ ] 2. `mise dotfiles` — deploy, track, sync
 
