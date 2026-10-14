@@ -945,3 +945,107 @@ What's left of item 1 is `plugins`, `secrets status`, `remote` and `unapply`. Th
 - Bash: `cat >> ~/.config/mise/config.toml <<'EOF'`
 - Bash: `python3 - <<'EOF'`
 
+## 2026-10-14 17:19 · turn 2dfe6882
+
+**User**
+
+> great. now we can start with remote and unapply since i can figure out what they mean and remote is probably "inventory" i presume? if so they can both be checked as done directly if im not missing anything basic?
+
+**Assistant**
+
+Yes, both can be marked done. You're right that `remote` is the inventory, but each command has one catch that only matters later.
+
+**`remote`** works much like Ansible:
+- **What it does:** `[bootstrap.remote.hosts.<name>]` lists the machines (host, user, tags). `mise bootstrap remote` copies a project directory to each one over SSH, puts a temporary mise there and runs `mise bootstrap`.
+- **The catch:** it copies a project directory, not your global config. All of our bootstrap config lives in `~/.config/mise/config.toml`, so using `remote` means moving that config into a repo first.
+
+**`unapply`** is not a general "undo":
+- **What it does:** `mise bootstrap unapply <env>` removes what one config environment declared, meaning a separate `mise.<env>.toml` file. It removes files, directories, user services, systemd units and dotfiles.
+- **What it skips:** packages, repos and Compose, where it only prints how to clean them up. It also leaves accounts, system services and the firewall alone.
+- **The catch:** everything here sits in the global config with no environment, so right now there's nothing it could target. It only becomes useful if the config gets split into modules.
+
+Both are recorded in `mise.md` as "not now", with those reasons. What's left of item 1 is `plugins` and `secrets status`.
+
+**Actions**
+
+- Bash: `cd /home/skogix/.config/skogai; sed -n 1,80p tmp/mise-docs/bootstrap/remote.md; echo =====; mise bootstrap unapply --hel…`
+- Bash: `python3 - <<'EOF'`
+
+## 2026-10-14 17:20 · turn 2cedd9cc
+
+**User**
+
+> great. now i dont actually know what plugins even would do in this case so it may be worth going over with some help from the docs
+
+**Assistant**
+
+Plugins have nothing to manage on this machine, so there's nothing to declare.
+
+**What they do:** a plugin is a git repo listed under `[bootstrap.plugins]`. It adds a new kind of entry to `[bootstrap.packages]` for things another program installs into its own state, rather than system packages. The docs' examples are:
+- VS Code extensions: `"vscode:ms-python.python"`
+- `gh` CLI extensions
+- Helm and krew (kubectl) plugins
+
+Plugins run after `[tools]`, so a host program like `gh` can itself come from mise. They never use sudo.
+
+**What I found here:**
+- `gh` has no extensions installed.
+- VS Code, Cursor, Helm and kubectl aren't installed.
+
+**AUR doesn't need a plugin.** `aur:` is built in (through yay or paru), the same as `pacman:`. That's what the open item about your 7 AUR packages would use when we get to it.
+
+`mise.md` is updated. The last part of item 1 is `secrets status`.
+
+**Actions**
+
+- Bash: `cd /home/skogix/.config/skogai; ls tmp/mise-docs/bootstrap/packages/; cat tmp/mise-docs/bootstrap/packages/plugins.md | …`
+- Bash: `gh extension list 2>&1 | head; command -v code cursor helm kubectl krew 2>&1; mise plugins ls 2>&1 | head; sed -n 1,25p …`
+- Bash: `python3 - <<'EOF'`
+
+## 2026-10-14 17:27 · turn 857ab1f5
+
+**User**
+
+> i installed a gh extension i have used in the past as a "example" we can use. `gh f` or `gh extension list`. i also ran `mise plugin install gh` locally to test it out. not sure how one would do what i assume is something like "mise use -g gh:gennaro-tedesco/gh-f"?
+
+**Assistant**
+
+The syntax would be `[bootstrap.packages] "gh:gennaro-tedesco/gh-f" = "latest"`, not `mise use`. But it only works once a package plugin for gh extensions is installed, and none exists: the docs list gh extensions as an example of what a plugin could do but never name a real one. So for `gh-f` there are two choices: write a small plugin or install it from the bootstrap task.
+
+**`mise plugin install gh` installed a different kind of plugin.** It added `asdf-github-cli`, an old-style plugin that installs the `gh` binary itself. It does nothing for extensions. `gh` in `[tools]` still comes from `aqua:cli/cli`, so the asdf plugin isn't used. You can remove it with `mise plugins uninstall gh`, which I haven't run.
+
+**How it would look with a plugin:**
+```toml
+[bootstrap.plugins]
+ghx = "https://github.com/<you>/mise-gh-extensions"   # name chosen here becomes the prefix
+
+[bootstrap.packages]
+"ghx:gennaro-tedesco/gh-f" = "latest"
+```
+The prefix can't be `gh`, because `[tools]` already has a `gh` entry; that's why it says `ghx`. That might clash, I haven't checked.
+
+**Writing the plugin is small.** The docs' VS Code example maps almost line for line onto gh:
+
+| Plugin step | Command |
+|---|---|
+| check what's installed | `gh extension list` (tab-separated: `gh f`, `gennaro-tedesco/gh-f`, commit) |
+| install | `gh extension install owner/repo` |
+| upgrade | `gh extension upgrade <name>` |
+| uninstall, for prune | `gh extension remove <name>` |
+
+That's about four short Lua files plus `mise.plugin.toml` with `requires = ["gh"]`, kept in its own repo. Locally you'd link it with `mise plugins link ghx ./mise-gh-extensions`.
+
+**The simpler alternative** is one guarded line in the existing `[tasks.bootstrap]`:
+```
+gh extension list | grep -q gennaro-tedesco/gh-f || gh extension install gennaro-tedesco/gh-f
+```
+That gives no status, upgrade or prune, but it's zero code.
+
+I'd write the plugin, since you wanted a worked example of what plugins do, and it would also fit any other gh extensions later. Should I build it, and where should the repo live? `~/.local/src/mise-gh-extensions` would be my default.
+
+**Actions**
+
+- Bash: `gh extension list; mise plugins ls -u 2>&1; ls ~/.local/share/mise/plugins/; for d in ~/.local/share/mise/plugins/*; do …`
+- Bash: `mise tool gh 2>&1 | head -12; cd /home/skogix/.config/skogai/tmp/mise-docs; grep -rn -i "gh extension\|gh-extension\|mis…`
+- Bash: `sed -n 60,200p /home/skogix/.config/skogai/tmp/mise-docs/package-plugin-development.md`
+

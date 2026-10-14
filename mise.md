@@ -287,8 +287,33 @@ Notes:
     `mise bootstrap` (interactively). On this machine it's a no-op
     (checked with `mise run bootstrap`).
   - No hooks declared.
-- Next: `plugins`, `secrets status`, `remote`, `unapply` (quick checks),
-  then item 1 is done.
+- **remote — decided: not now** (2026-10-14). Ansible-style push:
+  `[bootstrap.remote.hosts.<name>]` is an inventory (host, user, tags,
+  `mise_env`). `mise bootstrap remote` sends a project dir over SSH,
+  stages mise there (temporarily unless `--install-mise`) and runs
+  `mise bootstrap` on the host. Catch: it sends a project (`source`),
+  not the global config, and everything here lives in
+  `~/.config/mise/config.toml`. Using it means moving the bootstrap config
+  into a repo first. Reference: `tmp/mise-docs/bootstrap/remote.md`.
+- **unapply — decided: not now** (2026-10-14). `mise bootstrap unapply
+  <env>` removes what a config environment/module (`mise.<env>.toml`)
+  declared: files, directories, user services, systemd units, dotfiles.
+  It plans from the current config, so keep the config until cleanup is
+  done. It doesn't touch packages, repos or Compose (it prints guidance),
+  or accounts, system services or the firewall. Everything here is in the
+  global config with no env, so there's nothing it could target. It only
+  becomes useful if the config gets split into modules. Reference:
+  `tmp/mise-docs/bootstrap/modules.md`.
+- **plugins — decided: nothing to declare** (2026-10-14). A package
+  manager plugin (`[bootstrap.plugins]`, a git URL) adds a new prefix to
+  `[bootstrap.packages]` for state that some other program owns: VS Code
+  extensions, `gh` extensions, Helm or krew plugins. They install after
+  `[tools]`, so the host command can come from mise, and never use sudo.
+  No such host state here: no `gh` extensions, and no VS Code, Cursor,
+  Helm or kubectl. Not needed for AUR either, since `aur:` is a built-in
+  manager (yay/paru), the same as `pacman:`. Reference:
+  `tmp/mise-docs/bootstrap/packages/plugins.md`.
+- Next: `secrets status`, then item 1 is done.
 
 ### [ ] 2. `mise dotfiles` — deploy, track, sync
 
