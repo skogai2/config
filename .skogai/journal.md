@@ -1049,3 +1049,54 @@ I'd write the plugin, since you wanted a worked example of what plugins do, and 
 - Bash: `mise tool gh 2>&1 | head -12; cd /home/skogix/.config/skogai/tmp/mise-docs; grep -rn -i "gh extension\|gh-extension\|mis…`
 - Bash: `sed -n 60,200p /home/skogix/.config/skogai/tmp/mise-docs/package-plugin-development.md`
 
+## 2026-10-14 17:30 · turn da77f781
+
+**User**
+
+> great. now anything we should document before going into secrets in general?
+
+**Assistant**
+
+Item 1 is closed in `mise.md`. I added three things to it:
+
+- **Marked `[x]`.** I moved `bootstrap secrets status` into item 4, since secrets get covered there as a whole.
+- **A summary** of everything `~/.config/mise/config.toml` now declares. `mise bootstrap plan` reports nothing to change; the only exception is repos with uncommitted work.
+- **The open threads** that came out of item 1:
+  - `~/.config/mise` isn't versioned, and it now holds real machine state. It's also what blocks `remote`. This is the most important one.
+  - Going through `pacman -Qqe` for your other packages, including the AUR ones.
+  - zsh still has no mise or atuin setup.
+  - Real login shells over SSH for the agents.
+  - Trimming the `/skogai/admin` scripts.
+  - Checking whether mise clones submodules.
+  - The cloudflared token and gptme's `server.env`, which wait for secrets.
+
+One process note: the session protocol starts at the first unchecked item, which is item 2 (dotfiles), not secrets. If we do secrets now, I'll mark item 4 `[~]` so the next session picks it up correctly.
+
+**Actions**
+
+- Bash: `cd /home/skogix/.config/skogai; grep -n "^### \|^- \*\*\|Next:\|Still open\|not a git\|Revisit" mise.md; git status -s; …`
+- Bash: `python3 - <<'EOF'`
+
+## 2026-10-14 17:32 · turn f73af391
+
+**User**
+
+> mark it as ~ so we can continue with secrets in a new session
+
+**Assistant**
+
+Item 4 (secrets) is now marked `[~]`, so the next session will start there.
+
+I also changed step 1 of the session protocol. The old rule started at the first item that wasn't `[x]`, which would have been item 2 (dotfiles). It now says: if an item is `[~]`, continue with that one; otherwise take the first unchecked item.
+
+Item 4's notes now hold a starting point for that session:
+- **Docs to read first:** the `--help` output for `mise secrets`, `mise bootstrap secrets` and `fnox`, plus `tmp/mise-docs/bootstrap/secrets.md`.
+- **Real cases to work through:** the cloudflared token, gptme's `server.env`, and the API tokens that were cleared out of atuin's variables on 2026-09-30.
+
+The edits to `mise.md` are not committed yet.
+
+**Actions**
+
+- Bash: `grep -n "Find the first item" -A2 mise.md`
+- Bash: `python3 - <<'EOF'`
+

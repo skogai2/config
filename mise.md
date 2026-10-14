@@ -21,8 +21,9 @@ for each one: adopt it, ignore it, or adopt it in place of something else.
 This walkthrough spans several sessions, with `/clear` in between. At the
 start of each session:
 
-1. Find the first item under **Walkthrough** that isn't `[x]`. That's the
-   current topic. If it's `[~]`, read its notes and continue from there.
+1. If an item under **Walkthrough** is `[~]`, that's the current topic:
+   read its notes and continue from there. Otherwise take the first item
+   that isn't `[x]` (items can be taken out of order).
 2. Run `mise <command> --help` for that topic (and `--help` on its
    subcommands as needed), then go through it with Emil: what it does, and
    how it relates to what's already in place on this machine.
@@ -47,7 +48,7 @@ asking. It may contain secrets.
 
 ## Walkthrough
 
-### [~] 1. `mise bootstrap` — declarative machine setup
+### [x] 1. `mise bootstrap` — declarative machine setup
 
 Describes a whole machine in config and applies it.
 
@@ -313,7 +314,26 @@ Notes:
   Helm or kubectl. Not needed for AUR either, since `aur:` is a built-in
   manager (yay/paru), the same as `pacman:`. Reference:
   `tmp/mise-docs/bootstrap/packages/plugins.md`.
-- Next: `secrets status`, then item 1 is done.
+- `secrets status` moved to item 4, where secrets are covered as a whole.
+- **Summary (item 1 closed 2026-10-14).** `~/.config/mise/config.toml`
+  now declares: packages (Podman switch, fish, zsh), accounts (skogai
+  group + agents), files (cloudflared, `/skogai`), the cloudflared system
+  service, repos (config/infra), the login shell, the gptme-server user
+  unit, and a guarded `bootstrap` task. `mise bootstrap plan` converges
+  to "nothing to change", except repos while they have uncommitted work.
+- **Open threads from item 1:**
+  - `~/.config/mise` (config + `files/`) isn't versioned, and it now holds
+    real machine state. Settle it first at item 2. It also blocks
+    `remote`, which needs a project dir.
+  - Packages: go through `pacman -Qqe` for Emil's other additions (atuin,
+    herdr, bitwarden, tailscale, the 7 AUR packages, ...).
+  - zsh: installed but no mise/atuin setup (see shell).
+  - Agents: real login shells over SSH (see accounts).
+  - `/skogai/admin` scripts: trim down to `coord.db` creation (see
+    accounts).
+  - Repos: check whether mise clones submodules.
+  - The cloudflared token's content and gptme's `server.env` stay
+    outside mise until item 4.
 
 ### [ ] 2. `mise dotfiles` — deploy, track, sync
 
@@ -350,10 +370,10 @@ complement it (per-project `[env]` vs global), or stay out of it?
 
 Notes:
 
-### [ ] 4. Secrets — `secrets`, `bootstrap secrets`, fnox
+### [~] 4. Secrets — `secrets`, `bootstrap secrets`, fnox
 
 - `secrets ls` (experimental) — list secret names from the project's source
-- `bootstrap secrets status` — check declared secret inputs are present
+- `bootstrap secrets status` — check declared secret inputs are present (deferred here from item 1)
 - `fnox` (installed as a mise tool) — jdx's secret manager, which mise
   integrates with
 
@@ -362,6 +382,15 @@ names none. Is fnox that manager? Where do the keys live, and how do they
 reach mise `[env]`?
 
 Notes:
+
+- Picked ahead of item 2 (2026-10-14), straight after closing item 1.
+  Nothing done yet: start with `mise secrets --help`,
+  `mise bootstrap secrets --help`, `fnox --help` and
+  `tmp/mise-docs/bootstrap/secrets.md`. Concrete cases from item 1: the
+  cloudflared token (`/etc/cloudflared/token`, root 0600, hand-placed),
+  gptme's `~/.config/gptme/server.env` (the `dev.mise.gptme-server`
+  `environment_file`), and the API tokens cleared out of atuin vars on
+  2026-09-30 (`atuin.md`).
 
 ### [ ] 5. Extras (lower priority)
 
