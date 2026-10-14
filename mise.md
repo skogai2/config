@@ -246,10 +246,11 @@ Notes:
     `config.fish`, and its only gain (shims for non-interactive fish) is
     already covered by the session PATH. Who owns the fish config gets
     decided at item 2 (dotfiles).
-  - Long-term goal: zsh set up alongside fish. Not installed here yet
-    (`~/.zshrc` is only a uv-installer stub). When it is: `"pacman:zsh"`,
-    `zsh = true` under `mise_shell_activate` (writes `~/.zprofile` shims
-    and `~/.zshrc` activation), and `atuin init zsh`.
+  - Long-term goal: zsh set up alongside fish. `"pacman:zsh"` was added
+    and applied (zsh 5.9.2 installed, 2026-10-14). Still to do:
+    `~/.zshrc` is only a uv-installer stub. It needs `zsh = true` under
+    `mise_shell_activate` (writes `~/.zprofile` shims and `~/.zshrc`
+    activation) and `atuin init zsh`.
 - Next: `systemd-units`.
 
 ### [ ] 2. `mise dotfiles` — deploy, track, sync

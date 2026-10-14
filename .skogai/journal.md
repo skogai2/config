@@ -832,3 +832,22 @@ I declared nothing under `mise-shell-activate`. mise is already active in your s
 - Edit `atuin.md`
 - Edit `mise.md`
 
+## 2026-10-14 17:07 · turn 23fbd148
+
+**User**
+
+> i also added zsh to packages and then ran apply for testing purposes. worked as expected.
+
+**Assistant**
+
+zsh is confirmed: `pacman:zsh` is in packages, zsh 5.9.2 is installed, and mise shows it as installed next to fish.
+
+I updated `mise.md` and `atuin.md` to say zsh is installed but not set up yet. Two pieces are still missing: the `mise activate` block (`zsh = true` under `mise-shell-activate`) and atuin's zsh setup (`atuin init zsh`). For now `~/.zshrc` only holds the uv installer's line, so a zsh session has neither mise nor atuin until we add them.
+
+Next is `systemd-units`, unless you want to set up zsh first.
+
+**Actions**
+
+- Bash: `grep -n zsh ~/.config/mise/config.toml; pacman -Qi zsh | grep -E "Version|Install Reason"; mise bootstrap packages statu…`
+- Bash: `python3 - <<'EOF'`
+

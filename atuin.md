@@ -33,7 +33,7 @@ agreement changes — not derived from any single dotfiles file.
 - Shell integration: the login shell is fish, which runs
   `atuin init fish | source` from `~/.config/fish/conf.d/00_atuin_init.fish`.
   bash keeps `eval "$(atuin init bash --disable-up-arrow --disable-ctrl-r)"`
-  in `~/.bashrc`. zsh is planned but not installed yet; it will need its own
+  in `~/.bashrc`. zsh is installed but not set up yet; it will need its own
   `atuin init zsh`.
 - Login: `atuin login -u skogix`, encryption key at
   `~/.ssh/atuin.key.encrypted`.
