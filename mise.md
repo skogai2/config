@@ -118,7 +118,7 @@ Notes:
     `tailscale up`, operator, the bar plugin and the webapp. Declaring only
     the unit would cover a fragment, and some steps are interactive. To
     reconsider at the bootstrap `task`/final-hook part: a task that calls
-    these scripts.
+    these scripts. Done, see task/hooks below.
   - `cloudflared`: hand-placed at `/etc/systemd/system/cloudflared.service`
     (no owning package; token in `/etc/cloudflared/token`). It can be
     declared once `files` manages the unit (`notify` → service). Done,
@@ -251,7 +251,44 @@ Notes:
     `~/.zshrc` is only a uv-installer stub. It needs `zsh = true` under
     `mise_shell_activate` (writes `~/.zprofile` shims and `~/.zshrc`
     activation) and `atuin init zsh`.
-- Next: `systemd-units`.
+- **systemd-units — decided: adopt for own user units** (2026-10-14).
+  `[bootstrap.linux.systemd.units.<name>]` is written to
+  `~/.config/systemd/user/dev.mise.<name>.service` (or `.timer`), then
+  enabled and restarted. mise only touches `dev.mise.*` files, so adopting
+  an existing unit means a rename and migration. `state = "absent"`
+  removes only mise's own units. Units get no mise activation: use
+  absolute paths and set `PATH`. Secrets go in an `environment_file`, never
+  in `environment`. Reference: `tmp/mise-docs/bootstrap/systemd.md`.
+  - `gptme-server` migrated as the example: old unit disabled and deleted,
+    `dev.mise.gptme-server` active and enabled, port 5700 answers 200. The
+    env file `~/.config/gptme/server.env` stays outside the config.
+  - Removed: `gptme-agent-claude`/`-dot` (.service + .timer). They were
+    disabled, so the files were deleted by hand.
+  - Left alone: `voxtype` (Omarchy's `omarchy-voxtype-install` runs
+    `voxtype setup systemd`; the override in `~/.config/systemd/user` is
+    older than the package's `/usr/lib/systemd/user/voxtype.service`) and
+    `collie` (herdr plugin).
+  - `history-watch` (from services): decide at item 2, since it belongs
+    to dotfiles.
+- **tools — nothing to change** (2026-10-14). Step 16 of the run is
+  `mise install` for `[tools]`, which is already how the 27 tools are
+  managed. `bootstrap --only tools --dry-run`: all installed.
+- **task/hooks — decided: a guarded `bootstrap` task** (2026-10-14).
+  Hooks run commands at named points (`pre-/post-packages`, `-repos`,
+  `-dotfiles`, `-user`, `-tools`, `final`). `[tasks.bootstrap]` runs
+  after everything else, with `[tools]` on PATH. Both run on every
+  `mise bootstrap`, so they must be safe to repeat. Reference:
+  `tmp/mise-docs/bootstrap.md` (Hooks, The bootstrap task).
+  - `[tasks.bootstrap]` in the global config runs
+    `omarchy-setup-security-sshd` and `omarchy-install-service-tailscale`
+    only when `sshd`/`tailscaled` aren't enabled (`systemctl is-enabled
+    -q ... || ...`). This settles the services question: Omarchy's full
+    flows stay in charge, and a fresh machine gets them from one
+    `mise bootstrap` (interactively). On this machine it's a no-op
+    (checked with `mise run bootstrap`).
+  - No hooks declared.
+- Next: `plugins`, `secrets status`, `remote`, `unapply` (quick checks),
+  then item 1 is done.
 
 ### [ ] 2. `mise dotfiles` — deploy, track, sync
 

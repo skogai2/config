@@ -851,3 +851,97 @@ Next is `systemd-units`, unless you want to set up zsh first.
 - Bash: `grep -n zsh ~/.config/mise/config.toml; pacman -Qi zsh | grep -E "Version|Install Reason"; mise bootstrap packages statu…`
 - Bash: `python3 - <<'EOF'`
 
+## 2026-10-14 17:08 · turn 642ac551
+
+**User**
+
+> systemd-units sounds great
+
+**Assistant**
+
+Of the five hand-placed user units, gptme-server is the only one mise should take over. The other four belong to something else or aren't in use.
+
+**What `systemd-units` does:** you declare a user service or timer in the mise config. mise writes it to `~/.config/systemd/user/dev.mise.<name>.service` (or `.timer`), then runs `daemon-reload`, enables the unit and restarts it. It only ever touches files whose names start with `dev.mise.`. So adopting a unit you already have means migrating it to a new name, not taking over the existing file.
+
+| Unit | State | Suggestion |
+|---|---|---|
+| `gptme-server` | enabled, running | **Migrate** to `dev.mise.gptme-server`. All of its settings have a matching mise key (working directory, PATH, `EnvironmentFile`, restart on failure, `UMask=0077`). The env file stays where it is, so no secrets end up in mise's config. |
+| `voxtype` | enabled, running | **Leave alone.** It comes from `omarchy-voxtype-install` (`voxtype setup systemd`). |
+| `gptme-agent-claude`/`-dot` (.service + .timer) | disabled, written Sep 30/Oct 2 | **Ask you.** They run an autonomous agent every 30 minutes. If they're dead, declaring them `absent` won't remove them, because they don't have the `dev.mise.` prefix; that would be a manual `rm`. |
+| `collie` | enabled | Leave alone (herdr plugin). |
+
+**voxtype is running an outdated copy of its unit.** The file in `~/.config/systemd/user` overrides the package's own unit, and it lacks the package version's newer details: the `-q` flag, ordering after pipewire, and `Wants=ydotool`. Deleting the override would let the package unit take over. That's Omarchy's territory, so it's only a suggestion.
+
+Migrating gptme-server would:
+1. Declare it in `~/.config/mise/config.toml` and run a dry run.
+2. Run `systemctl --user disable --now gptme-server`.
+3. Run the apply, which starts `dev.mise.gptme-server`.
+4. Remove the old file.
+
+That means a few seconds of downtime on port 5700.
+
+Should I migrate gptme-server? And are the gptme-agent timers still wanted, or can they go?
+
+**Actions**
+
+- Bash: `cd /home/skogix/.config/skogai; cat tmp/mise-docs/bootstrap/systemd.md`
+- Bash: `ls -la ~/.config/systemd/user/; systemctl --user list-unit-files --state=enabled --no-pager; for u in gptme-server voxty…`
+- Bash: `cd ~/.config/systemd/user; cat gptme-agent-claude.service gptme-agent-claude.timer gptme-agent-dot.timer; systemctl --us…`
+- Bash: `diff /usr/lib/systemd/user/voxtype.service ~/.config/systemd/user/voxtype.service && echo IDENTICAL; ls -la ~/.config/sy…`
+- Bash: `grep -n "systemd\|service" /usr/bin/omarchy-voxtype-install /usr/bin/omarchy-voxtype-remove`
+
+## 2026-10-14 17:13 · turn 85380655
+
+**User**
+
+> we can use gptme-server as a example for now if nothing else. the rest can go/actively be removed
+
+**Assistant**
+
+gptme-server now runs as a mise-managed unit, `dev.mise.gptme-server`: active, enabled at login, and port 5700 answers with HTTP 200. The unit mise wrote matches the old hand-written one setting for setting, and the env file `~/.config/gptme/server.env` stays outside mise's config.
+
+**Removed:**
+- the old `gptme-server.service`, after disabling it
+- the four disabled `gptme-agent-claude`/`-dot` units (each had a `.service` and a `.timer`)
+
+**Not touched:** `voxtype` and `collie`. I read "the rest can go" as the gptme-agent units, since that's what I asked about. voxtype belongs to Omarchy and collie to herdr, and both are running. If you meant those too, I can remove them, but voxtype should go through `omarchy-voxtype-remove` instead.
+
+`mise.md` has the notes. Next is `tools`, then the bootstrap `task` and final hook, which is where the `sshd`/`tailscale` question comes back.
+
+**Actions**
+
+- Bash: `cat >> ~/.config/mise/config.toml <<'EOF'`
+- Bash: `set -e; systemctl --user disable --now gptme-server.service gptme-agent-claude.timer gptme-agent-dot.timer gptme-agent-c…`
+- Edit `mise.md`
+
+## 2026-10-14 17:15 · turn cd6b2f0a
+
+**User**
+
+> we can move to the next step
+
+**Assistant**
+
+Two more parts of `mise bootstrap` are covered: tools needed nothing, and there's a new `bootstrap` task for the sshd and Tailscale setup.
+
+- **tools:** nothing to change. This step just runs `mise install` for `[tools]`, which is already how your 27 tools are managed, and all of them are installed.
+- **task/hooks:** I added a `[tasks.bootstrap]` task to the global mise config, which runs at the end of every `mise bootstrap`:
+  ```toml
+  run = [
+    "systemctl is-enabled -q sshd.service || omarchy-setup-security-sshd",
+    "systemctl is-enabled -q tailscaled.service || omarchy-install-service-tailscale",
+  ]
+  ```
+  This settles the sshd/Tailscale question from `services`. Omarchy's own setup scripts still do the whole job: the firewall rule, SSH keys, `tailscale up`, the bar plugin. A fresh machine gets them in one `mise bootstrap`, which will ask questions along the way. The checks skip both here, and running `mise run bootstrap` confirmed that.
+- **Hooks:** I declared none. Hooks are commands that run at fixed points in a bootstrap, and nothing here needs one yet.
+
+What's left of item 1 is `plugins`, `secrets status`, `remote` and `unapply`. Those should be quick checks, and then item 1 is done.
+
+**Actions**
+
+- Bash: `cd /home/skogix/.config/skogai; ls tmp/mise-docs | head -50; grep -n -i "tools\|task\|hook" tmp/mise-docs/bootstrap.md 2…`
+- Bash: `cd /home/skogix/.config/skogai; sed -n 126,165p tmp/mise-docs/bootstrap.md; sed -n 270,345p tmp/mise-docs/bootstrap.md; …`
+- Bash: `cat /usr/bin/omarchy-setup-security-sshd 2>/dev/null | head -60; echo ======; cat /usr/bin/omarchy-install-service-tails…`
+- Bash: `cat >> ~/.config/mise/config.toml <<'EOF'`
+- Bash: `python3 - <<'EOF'`
+
