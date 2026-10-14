@@ -391,6 +391,38 @@ Notes:
   gptme's `~/.config/gptme/server.env` (the `dev.mise.gptme-server`
   `environment_file`), and the API tokens cleared out of atuin vars on
   2026-09-30 (`atuin.md`).
+- Two separate mechanisms (2026-10-14). References:
+  `tmp/mise-docs/bootstrap/secrets.md`,
+  `tmp/mise-docs/environments/secrets/fnox.md`, and the earlier tests in
+  `tmp/mise-secrets-testing/` (who-and-mode example, gotchas). All
+  tested with throwaway values, copies kept in the session scratchpad.
+  - `[bootstrap.secrets]` names inputs (`name = "ENV_VAR"`) that
+    `[bootstrap.files]` (`template = true`) and `[dotfiles]` templates read
+    with `secret()`. It works from the global config and doesn't care
+    where the values come from. Tested: `fnox exec -- mise bootstrap files
+    apply` wrote a 0600 file. A rerun is `unchanged`, and after a rotated
+    value (`fnox set`) the plan shows `update`. Without values, `plan`
+    marks the file `unknown` ("required secret unavailable") and apply/
+    dry-run stop before writing anything. `secrets status --missing` exits
+    1. A `-v` apply log didn't contain the value.
+  - `[secrets.fnox]` + task `secrets = [...]`: per-task grants. Only
+    project `mise.toml` is read (global config is ignored), and tasks
+    started by `mise bootstrap` can't receive secrets. The who-and-mode
+    example still works on 2026.10.9: claude can't get `skogix-only`, the
+    human can, `mise env` shows nothing.
+  - Gotcha still present: a task with an identity that can't decrypt
+    runs anyway, with empty values and exit 0. Fix: `if_missing =
+    "error"` at the top of `fnox.toml`. With it the task fails (rc 1).
+  - `fnox set` on an age provider stores ciphertext. Global fnox config
+    `~/.config/fnox/config.toml` loads from any directory (currently
+    `default_provider = "keychain"` plus one example secret).
+  - Not tested: a root-owned target (cloudflared) through mise's sudo
+    helper, and `--prompt-secrets` (needs a TTY).
+  - Still to decide: provider (age recommended over keychain, since
+    keychain needs an unlocked desktop session), where the real
+    `fnox.toml` lives (versioned), and how interactive-shell secrets (the
+    old atuin tokens) are handled: `fnox exec` per command or
+    `fnox activate`.
 
 ### [ ] 5. Extras (lower priority)
 
