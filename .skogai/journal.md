@@ -201,3 +201,98 @@ A backup of the original config is in the scratchpad (`config.toml.bak`). Nothin
 - Edit `mise.md`
 - Edit `mise.md`
 
+## 2026-10-14 16:10 · turn ae3b76f3
+
+**User**
+
+> hi claude. i think next up is mise dotfiles?
+
+**Assistant**
+
+Not yet: item 1, `mise bootstrap`, is still `[~]`. Per the session protocol, that makes it the current topic. Its notes say these parts are left:
+
+- **`services`, `firewall`, `compose`**: the rest of `containers.md`. These are the Docker→Podman socket and UFW steps, plus the two compose stacks.
+- **Packages follow-up**: going through `pacman -Qqe` for your other additions (atuin, herdr, bitwarden, tailscale, the AUR packages).
+- The remaining parts in run order: repos/dotfiles, shell, systemd units/user, and the task/final-hook.
+
+Bootstrap has its own dotfiles step in its run order, so whatever we decide for #1 feeds straight into #2.
+
+Want to finish bootstrap first (I'd start with `services`/`firewall`/`compose`)? Or leave #1 at `[~]` with a note and jump to `mise dotfiles` now?
+
+## 2026-10-14 16:13 · turn 1005a670
+
+**User**
+
+> great. we can continue with services
+
+**Assistant**
+
+Your docs helped: `tmp/mise-docs/bootstrap/services.md` has the full schema.
+
+**How it works.** `[bootstrap.services]` has two modes:
+- **System:** mise only starts, stops, enables or masks units that a package already installed. Its keys are `state`, `enabled`, `masked` and `on_change`.
+- **User** (`scope = "user"`): mise writes a simple `dev.mise.<name>.service` from a `command`. Anything richer (hardening, `EnvironmentFile`, `StartLimit*`) belongs in `[bootstrap.linux.systemd.units]`, which is a separate part later on. There are also two built-ins, `history-watch` and `tool-update`.
+
+**What this means for `containers.md`:** there's nothing to declare. `docker.socket` no longer exists because the package was removed, and mise refuses to manage a missing unit: it reports it as `unknown` and apply fails. The `absent` packages already keep Docker out. One leftover I found: the user unit `podman.service` (the Podman API) is **enabled**, while `podman.socket` is disabled. That contradicts the "nothing needs the Docker-compatible API" note, unless something you set up later uses it.
+
+**Candidates on this machine:**
+
+| Unit | Where it comes from | Fits `[bootstrap.services]`? |
+|---|---|---|
+| `tailscaled` | tailscale package, enabled by you | Yes, system |
+| `sshd` | openssh package | Yes, system (if enabling it was your choice, not Omarchy's) |
+| `cloudflared` | no package owns the unit, so it's hand-placed | Only once its unit file is managed via `[bootstrap.files]` |
+| `gptme-server`, `voxtype` | hand-written user units with extras | No, they go under `systemd-units` later |
+| `collie` | written by a herdr plugin | No, the plugin owns it |
+| `history-watch` built-in | mise dotfiles | Decide at item 2 |
+
+My suggestion is to declare `tailscaled` and `sshd` now (running + enabled), and defer the rest to `files` and `systemd-units`. Questions before I write anything:
+
+1. Did you enable `sshd` and `tailscaled` yourself, or did Omarchy?
+2. Is `podman.service` meant to be enabled? If not, I'd declare it `stopped`/`enabled = false` (it's user scope, so in practice it's handled the same way as a system service).
+
+**Actions**
+
+- Bash: `mise bootstrap services --help; echo ----; mise bootstrap services apply --help; echo ----; mise bootstrap services stat…`
+- Bash: `mise bootstrap services status; echo ----; grep -n -A30 '^\[bootstrap' ~/.config/mise/config.toml; echo ----; systemctl …`
+- Bash: `ls ~/.local/share/mise 2>/dev/null; find / -path /proc -prune -o \( -name 'schema*.json' -path '*mise*' \) -print 2>/dev…`
+- Bash: `pkill -f "find / -path /proc" ; d=~/.config/skogai/tmp/mise-docs; ls $d 2>/dev/null || ls ~/tmp/mise-docs; grep -rl 'boo…` (failed)
+- Bash: `for d in ~/.config/skogai/tmp/mise-docs ~/tmp/mise-docs; do [ -d $d ] && echo "DIR $d" && grep -rl 'bootstrap.services' …` (failed)
+- Bash: `cd ~/.config/skogai/tmp/mise-docs; grep -n '^#' bootstrap.md | grep -n -i -E 'service|firewall|compose|systemd' ; awk '/…`
+- Bash: `grep -n -i 'services' /home/skogix/.config/skogai/tmp/mise-docs/bootstrap.md | head -40`
+- Bash: `cat /home/skogix/.config/skogai/tmp/mise-docs/bootstrap/services.md`
+- Bash: `for u in gptme-server collie voxtype podman; do echo "== $u"; systemctl --user cat $u.service 2>&1 | head -14; done; ech…`
+
+## 2026-10-14 16:18 · turn d2b9023b
+
+**User**
+
+> i did it via omarchy. i believe `omarchy setup security sshd` show one and pretty much "install service tailscale" via the menu show the other. cloudflared is probably setup from my end directly. collie is herdr plugin managed and history-watch is probably not setup at this point
+
+**Assistant**
+
+Services is done for now, and nothing gets declared yet. The notes are in `mise.md`.
+
+- **`sshd` and `tailscaled` stay with Omarchy.** Enabling the unit is the smallest part of what those scripts do:
+  - **sshd** also adds a UFW `limit 22/tcp` rule, sets up authorized keys, and turns off password login.
+  - **tailscale** also runs `tailscale up`, sets you as operator, and adds Taildrop, the bar plugin and the webapp.
+
+  If mise declared only the unit, it would cover a fragment. A bootstrap task that calls those scripts is worth another look when we reach the task/final-hook part.
+- **`cloudflared`** is a unit file you placed by hand in `/etc/systemd/system`. It belongs in `files` first, which can then notify the service.
+- **`gptme-server` and `voxtype`** have hardening and environment settings that `[bootstrap.services]` can't express, so they wait for `systemd-units`. **`collie`** belongs to its herdr plugin.
+
+Two things need your call:
+1. The Podman API (`podman.service`, user scope) is **enabled**, which contradicts `containers.md`. Keep it or turn it off?
+2. Taildrop receive (`omarchy-tailscale-receive.service`) is **disabled**, although Omarchy's tailscale script enables it. It may predate your install. Want it on?
+
+Next up is `firewall`. Nothing is committed yet. `tmp/mise-docs` is untracked in this repo, so should I add `tmp/` to `.gitignore`?
+
+**Actions**
+
+- Bash: `f=$(command -v omarchy); echo $f; grep -rl -E 'sshd|tailscale' /usr/share/omarchy/bin /usr/lib/omarchy 2>/dev/null | hea…`
+- Bash: `file /usr/bin/omarchy | cut -c1-120; grep -rl -E 'tailscale|enable.*sshd' /usr/share/omarchy 2>/dev/null | head`
+- Bash: `grep -n -i -E 'tailscale|sshd' /usr/share/omarchy/default/omarchy/omarchy-menu.jsonc | head; grep -rn -l -E 'sshd' /usr/…`
+- Bash: `cd /usr/share/omarchy/bin; for s in omarchy-setup-security-sshd omarchy-install-service-tailscale; do echo "=== $s"; gre…`
+- Bash: `systemctl --user is-enabled omarchy-tailscale-receive.service; ls -la /etc/systemd/system/cloudflared.service; head -12 …`
+- Edit `mise.md`
+

@@ -101,7 +101,36 @@ Notes:
     upgrades stay with `pacman -Syu`. `prune`/`import` are Homebrew-only.
   - Still open: going through `pacman -Qqe` to add Emil's other
     additions (atuin, herdr, bitwarden, tailscale, the 7 AUR packages, ...).
-- Next: `services`, `firewall`, `compose` (the rest of `containers.md`).
+- **services — decided: nothing declared yet** (2026-10-14). System mode
+  only starts/stops/enables/masks units a package or managed file already
+  provides. User mode (`scope = "user"`) writes a plain
+  `dev.mise.<name>.service` from `command`, plus the built-ins
+  `history-watch` and `tool-update`. Units with hardening or an
+  `EnvironmentFile` belong in `systemd-units`. Reference: the cloned docs at
+  `tmp/mise-docs/bootstrap/services.md`.
+  - `docker.socket`: can't be declared. The unit left with the package,
+    and mise reports a missing unit as `unknown` and fails the apply. The
+    `absent` packages already cover it.
+  - `sshd`, `tailscaled`: left to Omarchy. Both were enabled through
+    Omarchy menu flows (`omarchy-setup-security-sshd`,
+    `omarchy-install-service-tailscale`). Those flows also add a UFW
+    `limit 22/tcp` rule, authorized keys, sshd password-auth hardening,
+    `tailscale up`, operator, the bar plugin and the webapp. Declaring only
+    the unit would cover a fragment, and some steps are interactive. To
+    reconsider at the bootstrap `task`/final-hook part: a task that calls
+    these scripts.
+  - `cloudflared`: hand-placed at `/etc/systemd/system/cloudflared.service`
+    (no owning package; token in `/etc/cloudflared/token`). It can be
+    declared once `files` manages the unit (`notify` → service).
+  - `gptme-server`, `voxtype`: hand-written user units with extras →
+    `systemd-units`. `collie`: owned by its herdr plugin, so left alone.
+    `history-watch`: decide at item 2.
+  - Found along the way: the user unit `podman.service` (Podman API) is
+    enabled, which contradicts `containers.md`'s "nothing needs the API".
+    Also, `omarchy-tailscale-receive.service` (Taildrop) is disabled even
+    though the tailscale flow enables it. Both still need Emil's call.
+- Next: `firewall`, `compose` (the rest of `containers.md`), then `files`
+  (cloudflared).
 
 ### [ ] 2. `mise dotfiles` — deploy, track, sync
 
