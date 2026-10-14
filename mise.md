@@ -125,11 +125,16 @@ Notes:
   - `gptme-server`, `voxtype`: hand-written user units with extras →
     `systemd-units`. `collie`: owned by its herdr plugin, so left alone.
     `history-watch`: decide at item 2.
-  - Found along the way: the user unit `podman.service` (Podman API) is
-    enabled, which contradicts `containers.md`'s "nothing needs the API".
-    Also, `omarchy-tailscale-receive.service` (Taildrop) is disabled even
-    though the tailscale flow enables it. Both still need Emil's call.
-- Next: `firewall`, `compose` (the rest of `containers.md`), then `files`
+  - Found along the way: the user unit `podman.service` (Podman API) was
+    enabled directly and failing at every login. Now socket-only (service disabled, socket enabled); see
+    `containers.md` step 9.
+    Also, `omarchy-tailscale-receive.service` (Taildrop) was disabled even
+    though the tailscale flow enables it. Emil chose to enable it, and it
+    is enabled and running as of 2026-10-14. That's an Omarchy-owned piece,
+    so mise doesn't declare it either.
+- Next: `firewall`, `compose` (the rest of `containers.md`; the quadlet
+  stack in `~/.config/containers/systemd` is out of scope here, see
+  `containers.md` "Later"), then `files`
   (cloudflared).
 
 ### [ ] 2. `mise dotfiles` — deploy, track, sync

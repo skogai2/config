@@ -23,15 +23,21 @@ sudoless-vs-sudo Docker tradeoff.
   `docker` — this is what lets the `docker` command keep working, backed by
   Podman), `podman-compose`.
 - **`lazydocker` stays installed.** It has no hard dependency on the `docker`
-  package; it just shells out to `docker`/`docker-compose` at runtime, so it
-  keeps working once those resolve to Podman via `podman-docker`.
+  package. It talks to the Docker Engine API at `$DOCKER_HOST`, which
+  `podman-docker` points at the rootless Podman socket (see the systemd
+  bullet), so it keeps working as long as `podman.socket` is enabled.
 - **No changes needed to:** `~/.config/hypr` (`Super+Shift+D` binding),
   Docker.desktop launcher, Omarchy menu entries, or the `d=docker` atuin
   alias — all of them call `docker`, which keeps working.
 - **systemd:** disable/stop `docker.socket`. Podman doesn't need an
-  always-on root daemon; `podman.socket` (user-level) is only needed if
-  something specifically wants the Docker-compatible REST API, which nothing
-  here does.
+  always-on root daemon. The `podman` CLI itself (`podman ps`, quadlets,
+  `podman-compose`) is daemonless and reads container state directly, with
+  no socket involved. Docker-API clients are different: lazydocker, Docker
+  SDKs, and anything that mounts `docker.sock`. `podman-docker` ships
+  `/etc/profile.d/podman-docker.sh`, which exports `DOCKER_HOST` to the
+  rootless socket (`$XDG_RUNTIME_DIR/podman/podman.sock`) for non-root
+  users. So keep **`podman.socket` (user-level) enabled**. It starts
+  `podman.service` on demand; don't enable the service itself (step 9).
 - **Firewall:** remove the Docker-specific UFW rules (`allow-docker-dns`
   entries for `172.17.0.1:53`) and the `ufw-docker` iptables hook in
   `/etc/ufw/after.rules`. Podman's rootless networking (pasta) doesn't route
@@ -76,8 +82,36 @@ Executed 2026-10-07. What actually happened, in order:
    Docker.desktop, and the Omarchy menu entries needed no changes — they all
    call `docker`, which is now Podman.
 
+9. (2026-10-14) Found that the user unit `podman.service` (Podman API) had
+   been enabled directly on install day, Oct 7 (its preset is `enabled`).
+   At every login it pulled in `podman.socket`, then failed with
+   `unexpected fd received from systemd: cannot listen on it`. Fixed by
+   disabling the service and enabling **only the socket**
+   (`systemctl --user disable podman.service`,
+   `systemctl --user enable --now podman.socket`). Socket activation
+   verified: a `_ping` on `/run/user/1000/podman/podman.sock` returned
+   `OK`, with the service starting on demand. (An earlier version of this
+   page said nothing needed the API. That was wrong: `DOCKER_HOST` points
+   at this socket, see the systemd bullet above.)
+
 Confirmed clean: `grep -n "ufw-docker\|DOCKER-USER" /etc/ufw/after.rules`
 after the strip + `ufw reload` prints nothing.
 
 Outstanding: final confirmation that both compose stacks (`~/tmp`,
 `~/claude/projects/gptme`) come up cleanly under `docker compose up`.
+
+## Later: the quadlet stack
+
+`~/.config/containers/systemd/` is its own git repo (`skogai/podman` on
+GitHub) and the real home of the running containers. It holds Podman
+Quadlet units per stack: agentbot, agentchattr, basic-memory, mcphub,
+pangolin, paperclipai, skogai-tunnel, skognet-dns and termix. Alongside
+those are helper units in `units/` (`pg-backup`, `quadlet-health` and their
+timers), scripts in `bin/`, docs in `docs/` (e.g. `docs/networking.md`), and
+its own `SKOGAI.md`, `PLAN.md` and `SECRETS.md`. This page only covers the
+Docker → Podman runtime switch. It does not cover that stack.
+
+A big chapter for a later session: walk through that repo the way
+`window-manager.md` walks the Hyprland bindings. Record what each stack is,
+whether it's still wanted, and how it relates to the compose files above
+and to mise's `[bootstrap.compose]` / `systemd-units`.
