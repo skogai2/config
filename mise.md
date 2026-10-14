@@ -121,7 +121,8 @@ Notes:
     these scripts.
   - `cloudflared`: hand-placed at `/etc/systemd/system/cloudflared.service`
     (no owning package; token in `/etc/cloudflared/token`). It can be
-    declared once `files` manages the unit (`notify` → service).
+    declared once `files` manages the unit (`notify` → service). Done,
+    see the files entry below.
   - `gptme-server`, `voxtype`: hand-written user units with extras →
     `systemd-units`. `collie`: owned by its herdr plugin, so left alone.
     `history-watch`: decide at item 2.
@@ -164,7 +165,34 @@ Notes:
   - Containers live in the quadlet repo (`~/.config/containers/systemd`),
     and it's managed by hand in that repo itself. Neither `compose` nor
     `systemd-units` should take it over.
-- Next: `files` (cloudflared).
+- **files — decided: adopt, for hand-placed system files** (2026-10-14).
+  `[bootstrap.files]`/`[bootstrap.directories]` converge content, owner,
+  group and mode, and use sudo only for the changes that need it. A file
+  with no `source`/`content` manages permissions only and is never
+  created or removed. `notify` reloads a declared system service, and mise
+  runs `daemon-reload` first, so unit files can live here. Home-dir files
+  you edit belong in `[dotfiles]` (item 2). Reference:
+  `tmp/mise-docs/bootstrap/files.md`.
+  - cloudflared declared in `~/.config/mise/config.toml`: the unit
+    (`source = "./files/cloudflared.service"`, a copy of the live file,
+    root 0644, `notify = ["cloudflared"]`), `/etc/cloudflared` (root
+    0755), the token as permissions-only (root 0600; content stays
+    hand-placed until item 4), and `[bootstrap.services.cloudflared]`
+    (running, enabled). Status and dry run: all unchanged, no sudo prompt.
+  - `/skogai` (2026-10-14): the declared paths were already correct, but
+    10,055 entries were in group `skogix` and 540 dirs lacked setgid
+    (mostly `tools/mise`, the venv and `.git`). Fixed by hand as skogix,
+    no sudo: `chgrp -R skogai /skogai` and
+    `find /skogai -type d -exec chmod g+s {} +`. Then declared `/skogai` and
+    `coordination/` (2775), `bin/` and `tools/` (2755; setgid adds no group
+    write) and `coord.db` (permissions-only, 0664), all `skogix:skogai`.
+    The `/skogai` README's permissions table now says `2755`. mise checks
+    only the declared paths, so drift deeper in the tree needs the
+    `chgrp`/`find` pair again. `admin/setup-coordination.sh` still creates
+    `coord.db` and the group/users; revisit at `accounts`.
+  - `~/.config/mise` is not a git repo, so `config.toml` and `files/` are
+    not versioned yet. Revisit at item 2.
+- Next: `repos`.
 
 ### [ ] 2. `mise dotfiles` — deploy, track, sync
 

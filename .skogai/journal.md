@@ -518,3 +518,140 @@ Should I commit these along with the firewall note, or carry on with `files`?
 - Edit `containers.md`
 - Edit `containers.md`
 
+## 2026-10-14 16:37 · turn d9eb74ea
+
+**User**
+
+> hi claude. i do believe next step is mise bootstrap files
+
+**Assistant**
+
+cloudflared is now declared in mise's bootstrap config. `mise bootstrap files status` and `services status` both say it's already converged, so applying it would change nothing on the system.
+
+**What `files` does:** it makes sure a declared file or directory exists (or doesn't) with the right content, owner, group and mode. It uses `sudo` only for the changes that need it. If you leave out `source` and `content`, it manages only the permissions and never creates or deletes the file. `notify` reloads or restarts a declared system service when the file changes, and mise runs `systemctl daemon-reload` first, so hand-written unit files can be managed this way.
+
+**Added to `~/.config/mise/config.toml`:**
+- **The unit file** `/etc/systemd/system/cloudflared.service`: its content comes from `~/.config/mise/files/cloudflared.service` (a copy of the live file), owned by root, mode 0644, and a change to it restarts cloudflared.
+- **The directory** `/etc/cloudflared`: owned by root, mode 0755.
+- **The token** `/etc/cloudflared/token`: permissions only (root, 0600). The token itself is still placed by hand until we reach secrets (item 4).
+- **The service** `cloudflared`: running and enabled at boot.
+
+One gap: `~/.config/mise` isn't a git repo, so the config and the new `files/` folder aren't under version control. I noted it in `mise.md` to come back to at item 2 (dotfiles).
+
+`mise.md` is updated with these notes, and the next part is `repos`. Nothing is committed yet.
+
+**Actions**
+
+- Bash: `cd /home/skogix/.config/skogai; mise bootstrap files --help; mise bootstrap files apply --help; ls tmp/mise-docs/bootstr…`
+- Bash: `cat /etc/systemd/system/cloudflared.service; ls -la /etc/cloudflared/ /etc/systemd/system/cloudflared.service; pacman -Q…`
+- Bash: `cd /home/skogix/.config/skogai; grep -n -i "daemon-reload\|on_change\|unit file" tmp/mise-docs/bootstrap/services.md | h…`
+- Bash: `cd /home/skogix/.config/skogai; sed -n 225,262p tmp/mise-docs/bootstrap/services.md`
+- Bash: `mkdir -p ~/.config/mise/files && cp /etc/systemd/system/cloudflared.service ~/.config/mise/files/cloudflared.service && …`
+- Edit `mise.md`
+- Edit `mise.md`
+
+## 2026-10-14 16:43 · turn 58578891
+
+**User**
+
+> i do understand that files essentially is "make sure these files exist with these permissions" right (and in the case of the cloudflared-service that it matches what we put under files for now?). if so could you simply check `/skogai` overall?
+
+**Assistant**
+
+Yes, with one caveat. For the cloudflared unit, mise compares the live file against `~/.config/mise/files/cloudflared.service`. If someone edits `/etc/...` directly, the next apply puts the copy back. Edits to that unit should go into the `files/` copy from now on.
+
+## /skogai
+
+All the paths the README and `admin/setup-coordination.sh` set up are correct. I only read things and changed nothing.
+
+| Path | Intended | Actual |
+|---|---|---|
+| `/skogai` | `skogix:skogai 2775` | ✓ |
+| `coordination/` | `2775` | ✓ |
+| `coordination/coord.db` | `0664` | ✓ |
+| `bin/`, `tools/` | `755` | ✓ |
+| `skogai` group | claude, dot, skogix (plus amy, goose from `create-agents.sh`) | ✓ |
+
+Things that don't match the README's line "setgid so everything inherits the group":
+- **`bin/` and `tools/` are owned by group `skogix`, not `skogai`.** That includes the `gptme*` launchers, `tools/mise` and `tools/coordination-venv`. The 755 dirs have no setgid bit, so new files there keep the installer's group. Since 755 lets everyone read and execute, this is cosmetic.
+- **`.git/` is `skogix:skogix`** (208 entries). This only matters if agents are supposed to commit.
+- **`coordination/` still has an access ACL** (`group:skogai:rwx`). The script removes the default ACL with `setfacl -k` but leaves this one. It's harmless, because it grants the same as the mode bits.
+
+## What mise could take over
+
+- **The permissions part** of `setup-coordination.sh`: four `[bootstrap.directories]` entries and a permissions-only entry for `coord.db`.
+- **The group and users**, under `accounts` (not walked yet).
+
+Two things it can't do:
+- **Create `coord.db` when it's missing.** A permissions-only entry never creates a file, and giving it `content = ""` would overwrite the database.
+- **Fix group ownership across a whole tree.** mise only manages the paths that are declared, so it can't repair the `skogix`-group files inside `bin/` and `tools/`.
+
+So the script would still be needed for creating the DB.
+
+Should I declare those five `/skogai` entries now, or leave `/skogai` to the script until we get to `accounts`?
+
+**Actions**
+
+- Bash: `ls -la / | grep -i skogai; stat -c '%A %U:%G %n' /skogai; ls -la /skogai; findmnt -T /skogai; git -C /skogai status -s 2…`
+- Bash: `getent group skogai; getfacl -p /skogai/coordination /skogai/coordination/coord.db 2>&1; find /skogai -path /skogai/gptm…`
+- Bash: `sed -n 60,90p /skogai/README.md; cat /skogai/admin/setup-coordination.sh`
+
+## 2026-10-14 16:45 · turn 7fc11d32
+
+**User**
+
+> would simply making sure that /skogai is correctly set up as intended then most things would be fixed by a simple chmod/chown i presume?
+
+**Assistant**
+
+Yes, and no sudo is needed: skogix owns every file under `/skogai`, so the whole fix runs as you. The drift is:
+- **10,055 entries** are in group `skogix` instead of `skogai`. Most are `tools/mise`, the venv and `.git`.
+- **540 directories** have no setgid bit. That's why new files keep landing in the wrong group.
+
+Two commands fix it:
+
+```sh
+chgrp -R skogai /skogai
+find /skogai -type d -exec chmod g+s {} +
+```
+
+`g+s` only adds setgid, so `bin/` and `tools/` become `2755` and stay read-only for the group. That keeps the README's reasoning intact, though its table would need to say `2755` instead of `755`.
+
+After that, a `[bootstrap.directories."/skogai"]` entry (`skogix:skogai 2775`) and the `coordination` entries keep the top level correct. Setgid on the subdirectories keeps new files in the right group from then on. Should I run the two commands, update the README table and declare the entries?
+
+**Actions**
+
+- Bash: `find /skogai ! -user skogix | head; find /skogai ! -group skogai | wc -l; find /skogai -type d ! -perm -2000 | wc -l`
+
+## 2026-10-14 16:47 · turn c3d041c1
+
+**User**
+
+> i do believe it ran correctly. please sanity check and then update what you see fit
+
+**Assistant**
+
+Your fix worked. Everything under `/skogai` is now in group `skogai`, every directory has setgid, and git status is clean.
+
+What I updated:
+- **`/skogai/README.md`:** the permissions table now says `2755` for `bin/` and `tools/`. Setgid doesn't add group write, so the README's reasoning for those dirs still holds.
+- **`~/.config/mise/config.toml`:** five new entries, all owned by `skogix:skogai`:
+  - `/skogai` and `/skogai/coordination` at 2775
+  - `/skogai/bin` and `/skogai/tools` at 2755
+  - `coord.db` at 0664, permissions only, so mise never creates or overwrites it
+
+  `mise bootstrap files status` and the dry run both report everything unchanged.
+- **`mise.md`:** notes on the fix and its limits.
+
+Limits:
+- mise only checks the paths that are declared. If something deep in the tree goes back to the wrong group, run the `chgrp`/`find` pair again.
+- `admin/setup-coordination.sh` is still what creates `coord.db` and the group and users. That gets another look when we reach `accounts`.
+
+None of this is committed in either repo yet, and the next part is still `repos`.
+
+**Actions**
+
+- Bash: `find /skogai ! -group skogai | wc -l; find /skogai -type d ! -perm -2000 | wc -l; stat -c '%A %U:%G %n' /skogai /skogai/…`
+- Bash: `cd /skogai && sed -i 's/^| `bin\/`, `tools\/`| `755`  | launchers/| `bin\/`, `tools\/`| `2755` | launchers/' README.md &…`
+- Edit `mise.md`
+
