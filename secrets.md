@@ -118,5 +118,18 @@ in `~/.config/mise/config.toml` (was `nologin`). Set up with
 `/tmp/runwithsudo.sh`. Undo: shell back to `nologin`,
 `mise bootstrap accounts apply`, remove claude's `authorized_keys`.
 
-claude has `/usr/bin/mise` and `/usr/bin/herdr`, but no `fnox` or `age`:
-those are mise tools in skogix's global config, which claude can't read.
+claude's own global mise config is the repo `skogai2/claude-home`
+(public; submodule `claude-home/` here), with `config.toml` at the root.
+It was adopted as claude's `~/.config/mise` from skogix's side:
+
+```sh
+mise bootstrap remote --host claude@localhost -i ~/.ssh/claude-test \
+  --adopt skogai2/claude-home
+```
+
+mise bundles the repo locally and uploads it, so claude needs no GitHub
+access. claude can rerun `mise bootstrap` itself; `--update` pulls new
+commits. The pre-adopt config is at `~claude/.config/mise.bak-2026-10-14`.
+herdr reaches claude as the machine `claude-at-localhost` (needs
+`ssh-add ~/.ssh/claude-test`, lost on reboot). Never commit private keys
+to claude-home: they are created on the machine by claude's bootstrap.

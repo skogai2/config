@@ -1702,3 +1702,65 @@ Next up is still the identity-file test, and now I can run it through `herdr --m
 
 - Bash: `herdr machine list 2>&1; echo ===; mise bootstrap remote --help 2>&1 | sed -n '1,45p'`
 
+## 2026-10-14 19:22 · turn 301b4c64
+
+**User**
+
+
+
+**Assistant**
+
+The submodule isn't fully registered yet: `git status` shows `.gitmodules` and `claude-home/` as untracked (`??`), and the `+` in `git submodule` means the parent repo has no commit recorded for it. `git add .gitmodules claude-home` and a commit in `~/.config/skogai` fixes that.
+
+**The bigger point: the current layout doesn't fit `--adopt`.**
+- `--adopt` clones the repo **as** `~/.config/mise`, so `config.toml` has to be at the **root** of the repo. `claude-home` mirrors the whole home directory (`.config/mise/config.toml`), and `--adopt` can't point at a subdirectory.
+- `--from` doesn't fit either. It wants a `mise.toml` project, and `[tools]` there are only active inside that project, not globally for claude.
+- The target must be missing, empty, or a checkout of the same repo. claude's `~/.config/mise` already exists from your `mise use -g`, so it has to be moved aside first.
+
+**Two ways to go:**
+
+| Option | Layout | Home files (`.bashrc` etc.) |
+|---|---|---|
+| **A: repo = claude's mise config** (recommended) | `config.toml` at the root, plus e.g. `dotfiles/bashrc` | `[dotfiles]` entries in that `config.toml`, with sources inside the repo. One repo does tools, dotfiles and the key-generation task. |
+| B: keep the home mirror | `.config/mise/config.toml`, `.bashrc`, ... | The repo is cloned *as* `/home/claude` (git in `$HOME`), with no `--adopt`. That bypasses mise's dotfiles handling, which item 2 is about to decide on. |
+
+With A, the whole claude edition becomes one command, from you or from claude itself:
+```sh
+mise bootstrap remote --host claude@localhost --adopt skogai2/claude-home
+```
+
+Since the repo is under `skogai2` on GitHub: never commit claude's private age key or SSH keys to it. They belong to claude's machine only, created by the bootstrap task. Public keys are fine. The same allowlist `.gitignore` idea applies if home files go in.
+
+Want to go with A? Then it's: move the file to the repo root, move claude's current `~/.config/mise` aside, and do a `--dry-run` of the remote adopt.
+
+**Actions**
+
+- Bash: `cd ~/.config/skogai; cat .gitmodules; git status --short; git -C claude-home log --oneline -3; git -C claude-home remote…`
+- Bash: `cd ~/.config/skogai/tmp/mise-docs; grep -n -i -B2 -A12 "adopt" bootstrap/from-repository.md | head -90`
+
+## 2026-10-14 19:26 · turn c4410ee0
+
+**User**
+
+> please go ahead as you see fit
+
+**Assistant**
+
+claude's `~/.config/mise` is now a checkout of `skogai2/claude-home`, applied from your side with `mise bootstrap remote --adopt`. `mise bootstrap status` as claude shows all 5 tools installed (age, claude, fnox, gh, herdr).
+
+1. **The repo:** moved `config.toml` to the root of `claude-home` and removed the now-empty `.config/` directory. Committed as `9eea7d1` on `master` and pushed to GitHub (it's public).
+2. **claude's old config:** moved to `~claude/.config/mise.bak-2026-10-14`, because `--adopt` needs an empty target.
+3. **The adopt:** dry run first, then the real run. mise bundles the repo here and uploads it over SSH, so claude needs no GitHub access. The checkout's `origin` is GitHub, so claude can later run `mise bootstrap --update` itself to pull new commits.
+4. **The parent repo:** staged the new `claude-home` commit in `~/.config/skogai`, but didn't commit it. `.skogai/journal.md` is also staged there, and that wasn't me. `secrets.md` has a new section on the adopt.
+
+Next steps:
+- Add a `[tasks.bootstrap]` to `claude-home` that generates claude's machine age key if it's missing and prints the public key.
+- Then the identity-file test from both sides, now that claude has fnox, age and a working bootstrap.
+
+**Actions**
+
+- Bash: `rmdir ~/.config/skogai/claude-home/.config/mise ~/.config/skogai/claude-home/.config; ssh -o BatchMode=yes claude@localh…`
+- Bash: `cd /tmp && mise bootstrap remote --host claude@localhost -i ~/.ssh/claude-test --adopt skogai2/claude-home --yes 2>&1 | …`
+- Bash: `ssh -o BatchMode=yes claude@localhost 'cd ~/.config/mise && git remote -v | head -1 && git log --oneline -1 && git statu…`
+- Edit `secrets.md`
+
