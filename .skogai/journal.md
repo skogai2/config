@@ -398,3 +398,20 @@ Your working tree isn't clean: `.skogai/journal.md`, `containers.md` and `mise.m
 
 - Bash: `cd ~/.config/skogai && sed -i 's/^- Next: `firewall`, `compose` (the rest of `containers.md`), then `files`$/- Next: `fi…`
 
+## 2026-10-14 16:30 · turn 50f6ea42
+
+**User**
+
+> the changes i commited now was for the two first steps of mise bootstrap. ie packages and what  we just did, i think services?
+
+**Assistant**
+
+Yes, those were the two bootstrap parts done so far, packages and services. Everything is now committed and pushed, including the quadlet note I just added. `747d6d1 Document Podman socket activation setup` contains it along with the podman/services changes. The tree is clean and `master` matches `origin`, so the staged changes I asked about are no longer there.
+
+Next in bootstrap is `firewall`.
+
+**Actions**
+
+- Bash: `cd ~/.config/skogai && git log --oneline -4 && git status --short && git diff --cached --stat && git log origin/master..…`
+- Bash: `cd ~/.config/skogai && git show --stat 747d6d1 | tail -5 && git show 747d6d1 | grep -c 'Later: the quadlet'`
+

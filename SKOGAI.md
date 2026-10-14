@@ -12,3 +12,5 @@ type: router
 - @mise.md - mise tool manager + MCP server; ongoing feature walkthrough (start each session at its first unchecked item)
 
 </routes>
+
+- @tmp/mise-docs/ - while we go over mise in general this contains the documentation from mise directly
