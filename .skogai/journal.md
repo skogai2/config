@@ -1764,3 +1764,34 @@ Next steps:
 - Bash: `ssh -o BatchMode=yes claude@localhost 'cd ~/.config/mise && git remote -v | head -1 && git log --oneline -1 && git statu…`
 - Edit `secrets.md`
 
+## 2026-10-14 19:37 · turn 7ef05a78
+
+**User**
+
+> please go ahead as you see fit
+
+**Assistant**
+
+I stopped: something else is changing claude's home at the same time, and I don't want to overwrite it.
+
+**What I did:**
+- Added a `[tasks.bootstrap]` to `claude-home`. On each `mise bootstrap` it creates `~/.ssh/local-per-machine-age.txt` if it's missing (mode 0600, `.ssh` 0700) and prints the public key. `age-keygen -o` also refuses to overwrite an existing file. Pushed as `776660b`.
+- Tried to push it to claude with `mise bootstrap remote ... --adopt ... --update`. It failed with **"global configuration has uncommitted changes"**.
+
+**What I found as claude:**
+- `~/.config/mise/config.toml` was deleted at 19:35, so the checkout has no config right now. I didn't do that.
+- `/home/claude` itself is now a git repo (`~/.git`, changed at 19:34 or later, with a fetch and a checkout), and there's a `~/config.toml` at the top of claude's home.
+- claude's `.bash_history` ends with `lg`, `lazygit`, `ls`, `cat config.toml`, `exit`.
+
+So it looks like you (or something running as claude via lazygit) set up claude's home as a checkout, more like option B. Was that you? Depending on what you're going for:
+- **Keep the `--adopt` setup (A):** remove or move `~/.git` and `~/config.toml` in claude's home, then `git -C ~/.config/mise checkout config.toml`, and I rerun the remote update.
+- **Switch to the home-as-repo setup (B):** then `~/.config/mise` should be a plain directory again, and the bootstrap task would move to whatever config that layout uses.
+
+I haven't changed anything as claude since finding this.
+
+**Actions**
+
+- Bash: `cd /tmp && mise bootstrap remote --host claude@localhost -i ~/.ssh/claude-test --adopt skogai2/claude-home --update --ye…`
+- Bash: `ssh -o BatchMode=yes claude@localhost 'cd ~/.config/mise && git status --short && git diff | head -30; ls -la'`
+- Bash: `ssh -o BatchMode=yes claude@localhost 'ls -la --time-style=+%H:%M:%S ~/.config | grep -i -E "mise|^d.* \.$"; find ~ -new…`
+
