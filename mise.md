@@ -383,10 +383,15 @@ Notes:
 - `SKOGAI_OLLAMA_API_KEY` moved out of `[env]` into
   `~/.config/mise/ollama.secret.env` (0600, `_.file`). The filter skips
   `*secret*`, so it stays out of history. Move to fnox at item 4.
-- Origin disconnected (`mise dot origin --remove`). The old repo's `master`
-  has the keys and tokens above in its git history. Plan: recreate the
-  GitHub repo from scratch at the end, then `mise dot origin set <url>
-  --sync sync`. Rotating the exposed keys is Emil's call.
+- **Origin: `github.com/skogai2/.dotfiles`** (private, branch `main`,
+  `--sync sync`, declared in `config.local.toml`). The old repo, whose
+  `master` had the keys and tokens above, was deleted and recreated empty
+  on 2026-10-18. mise refused to sync into the empty repo ("setup branch
+  `main` is not at ... any more"), so it was seeded once by hand:
+  `GIT_DIR=~/.local/state/mise/history/repo.git git push <url> main:main`.
+  After that `mise dot sync` and the watcher take over. Reinstall:
+  `mise bootstrap --adopt skogai2/.dotfiles`. Rotating the exposed keys
+  is Emil's call.
 - Open: `fish_variables` is tracked and noisy (fish rewrites it); revisit if
   `mise dot paths --noisy` flags it. `capture` (e.g. around
   `omarchy-update`) not tried yet.

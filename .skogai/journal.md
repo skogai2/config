@@ -1795,3 +1795,148 @@ I haven't changed anything as claude since finding this.
 - Bash: `ssh -o BatchMode=yes claude@localhost 'cd ~/.config/mise && git status --short && git diff | head -30; ls -la'`
 - Bash: `ssh -o BatchMode=yes claude@localhost 'ls -la --time-style=+%H:%M:%S ~/.config | grep -i -E "mise|^d.* \.$"; find ~ -new…`
 
+## 2026-10-18 05:12 · turn c86434d6
+
+**User**
+
+> great. now how do this work with git etc? upkeep and so on
+
+**Assistant**
+
+It is git under the hood: mise keeps its own repo and makes the commits for you, so day to day you don't run git yourself.
+
+**How it works**
+- History lives in a bare repo at `~/.local/state/mise/history/repo.git`, on branch `main`.
+- Each checkpoint is one commit. Files are stored under `home/…` (for example `home/.config/hypr/…`), and mise's own config goes under `config/…`. Another machine restores them under its own home directory.
+- The watcher service (`dev.mise.mise-history`) commits edits on its own once a file has been quiet for a short while.
+- Once the origin is reconnected, it pushes those commits to GitHub, and fetches and pulls changes made on other machines. mise never force-pushes.
+- You can read the repo with plain git, for example `GIT_DIR=~/.local/state/mise/history/repo.git git log`. Don't commit to it by hand; let mise do the writing.
+
+**Day to day: nothing.** Edit configs as usual and they get saved. When you need something:
+
+| Want to | Command |
+|---|---|
+| See state, unsaved changes, watcher health | `mise dot status` |
+| See what changed | `mise dot history`, `mise dot history diff --patch` |
+| Mark a known-good point | `mise dot save --description "..."` |
+| Undo a bad edit | `mise dot rollback <path>` (and `mise dot undo` to reverse that) |
+| See what an update changed | `mise dot capture --label omarchy-update -- omarchy-update` |
+| Push or pull now instead of waiting | `mise dot sync`, `mise dot pull` |
+
+**Upkeep**
+- **Before tracking a new directory,** run `mise dot track --dry-run <dir>` or `mise dot paths --preview <dir>` first. The credential filter only goes by file name, and it missed your keys and tokens today. Exclude anything secret before the first save. If a secret does get saved, it stays in history (see the next point).
+- **Nothing is ever deleted.** Checkpoints never expire and are never compacted, and untracking a file doesn't remove its old versions. Deleting a leaked secret from history means rewriting it, which `encryption.md` covers ("Remove plaintext from history").
+- **Files that change constantly** get saved less often. `mise dot paths --noisy` lists them; `fish_variables` is the likely one. Either exclude them or track them with `--no-autosave` and save by hand.
+- **Health checks:** `mise doctor` and `mise dot status` show a stopped watcher or failing saves or syncs. After a mise upgrade, run `mise bootstrap services apply` to restart the watcher on the new version.
+- **Real secrets** go in with `encrypt = true` (age recipients), or into fnox (item 4), rather than being excluded.
+
+**How the other git repos fit in**
+- `~/.config/skogai`, `~/.config/containers/systemd`, `~/.skogai` and `/skogai` stay normal git repos: you commit and push them yourself. mise skips them as nested repos, and `[bootstrap.repos]` clones them on a new machine.
+- `~/.dotfiles`'s git repo is no longer needed for configs.
+
+**When the GitHub repo is recreated:** create it empty and private, then run `mise dot origin set <url> --sync sync`. On a new machine, `mise bootstrap --adopt <repo>` restores the tracked files and then runs the rest of bootstrap.
+
+**Actions**
+
+- Bash: `cd ~/.config/skogai/tmp/mise-docs/dotfiles; sed -n '/## Choose a sync mode/,/## Resolve a conflict/p;/## How shared hist…`
+- Bash: `g="git --git-dir=$HOME/.local/state/mise/history/repo.git"; $g branch -a | cat; $g ls-tree --name-only HEAD | cat; $g ls…`
+- Bash: `export GIT_DIR=$HOME/.local/state/mise/history/repo.git; rtk git branch -a | cat; git ls-tree --name-only HEAD | cat; gi…`
+
+## 2026-10-18 05:13 · turn 831b18a7
+
+**User**
+
+> hi claude! id likee to essentially look over @dotfiles-old/CLAUDE.md and match it up with what we already have. what to use, why etc
+
+**Assistant**
+
+Very little from the old dotfiles is worth porting. First, a security problem: the old `fish/config.fish` holds live plaintext secrets, and `dotfiles-old/` sits untracked and not ignored inside this repo.
+
+## ⚠️ Secrets first
+`config/fish/config.fish:330-344` has plaintext values for `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_CLAUDE_API_TOKEN`, `GOOGLE_OAUTH_CLIENT_SECRET`, `PASEO_PASSWORD`, `SKOGAI_API_CLIENT_SECRET` and both `SKOGAI_API_TOKEN*`. They are also in the history of its own remote (`SkogBackup/.dotfiles`).
+- Don't `git add` it here. Add `dotfiles-old/` to `.gitignore`, or move it out of the repo.
+- Rotate those tokens (your call), then bring the ones you still need back through fnox (mise item 4).
+
+## Per item
+
+| Item | Verdict | Why |
+|---|---|---|
+| The 4 identical files | **Drop** | Same as the new ones. `lazygit/config.yml` and `user-dirs.locale` are empty anyway. |
+| `fish/config.fish` | **Drop as fish** | It isn't fish. It's atuin's **zsh** init, plus 13 aliases and 25 exports. Details below. |
+| `mise/config.toml` | **Mostly drop** | See the tools list below. |
+| `worktrunk/config.toml` | **Port 3 lines maybe** | Old has `[list] summary = true`, `[commit] stage = "tracked"`, `[switch] cd = true`. Its aliases are a `greet` demo and a `skogcli` hook. New only has `worktree-path` + `[commit.generation]`. |
+| `tmux/tmux.conf` | **Drop** | Omarchy's config already has escape-time, history 50k, focus-events, passthrough, extended-keys and aggressive-resize. The old one's extras were the `C-t` prefix (now `C-Space`) and tpack plugins (fingers, spotlight, which-key, logging, fzf). Port plugins only if you miss one. |
+| `kitty/kitty.conf` + `current-theme.conf` | **Drop** | Hand-rolled keymaps and Catppuccin, replaced by Omarchy theming. Font is already set. Ghostty/Omarchy is the main terminal anyway. |
+| `zed/*` (settings, keymap, backup) | **Drop** | The new settings file is 1 line, so Zed isn't really in use. Keep it in the archive if you ever go back. |
+| `gita/*` | **Drop** | Old lists ~30 repos, many gone (`core`, `SParse`, `skogparse`...). New one is current. |
+| `mimeapps.list` | **Drop** | New uses chromium/HEY/nvim, old used google-chrome. Only `x-scheme-handler/bitwarden` is missing. Add it if Bitwarden browser links break. |
+| `worktrunk/approvals.toml` | **Drop** | Approvals for old `SkogBackup/`/`skogai/` remotes. They get re-approved on use. |
+| `gptme/config.toml` | **Drop** | New is a superset. |
+| `user-dirs.dirs` | **Decide** | Old had `DOCUMENTS=~/docs`, `PROJECTS=~/dev`, `XDG_SKOGAI_HOME`, `SKOGAI_CONFIG_DIR`. New points both at `~/`. The skogai vars don't belong in this file anyway (it's not a shell env). |
+| `autostart/bitwarden.desktop` | **Drop** | New one points at the current `bitwarden-desktop` binary. |
+| Old-only autostart entries | **Drop** | `com.anthropic.claude-desktop` duplicates the kept one. `paseo`'s password was in the secrets. Steam and Vesktop: keep only if you want them on login. |
+| `tmux/tmux.txt` | **Drop** | Plugin wishlist scratch file. |
+
+## Fish/zsh contents
+- **Aliases:** `lg` is already an abbr. The `claude*` aliases point at `~/skogai/config/claude-settings.json`, which no longer exists, so they're dead. `zshrc`/`zshenv`/`zplugrc` wait for the zsh setup. `cleaneverything` still calls `docker system prune`, which works through Podman. Worth keeping as a fish abbr?
+- **Non-secret exports:** atuin dotfiles vars are the place for these (per `atuin.md`). Candidates are `EDITOR=nvim`, `UV_LINK_MODE=copy`, `CLAUDE_CODE_TMPDIR=/tmp`, `MISE_PYTHON_GITHUB_ATTESTATIONS=false`, `BASIC_MEMORY_FORCE_LOCAL=true` and `SKOGCHAT_*`. Skip `BROWSER=google-chrome`.
+
+## mise old-only tools
+- **Now from pacman, drop:** atuin, cloudflared, eza, fd, jq, lazygit, make, neovim, ruby, usage.
+- **Already present some other way:** npm (comes with node), rust/rtk (`~/.cargo`), omp (`~/.local/bin`).
+- **Not installed now:** android-sdk, charm, hugo, java, just, task, mcphub ×2, podman-tui, rpk, supabase, workmux, wrangler. Add back only what you miss. `podman-tui` is the one that fits the new Podman setup. The quadlet stack already has an `mcphub` unit.
+
+## Out-of-scope list
+That list (zsh, i3/sway, local/bin...) still holds. Zsh is the one to revisit when its open item in `mise.md` comes up.
+
+Recommended order: ignore `dotfiles-old/` now, then tick the "Drop" rows in its CLAUDE.md in one pass. The real decisions left are worktrunk's 3 settings, `user-dirs.dirs`, the env vars into atuin, and which mise tools come back. Want me to start with the `.gitignore` and the drops?
+
+**Actions**
+
+- Bash: `for t in android-sdk charm atuin cloudflared eza fd hugo java jq just lazygit make nvim npm mcp-hub mcphub omp podman-tu…`
+
+## 2026-10-18 05:14 · turn 831834b1
+
+**User**
+
+> YES BUT WHAT REPOSITORY ARE WE USING!?
+>
+> GIT WITHOUT USING / STORING THE HISTORY IS NOT WORTH MUCH AFTER REINSTALL NOWW IS IT?!
+
+**Assistant**
+
+Right now we're using **none**. When I disconnected the origin, the history was left only on this disk, at `~/.local/state/mise/history/repo.git`. A reinstall would wipe it. That needs fixing now, not at the end.
+
+The local history is clean: checkpoint 45 has no secrets, and the 44 before it only hold mise's own manifest. It can be pushed as it is. The only problem is `master` on `skogai2/.dotfiles`, which still has the keys and tokens. Deleting just that branch isn't enough, because GitHub can still serve the old commits by their hash.
+
+What I'd do:
+1. Delete `skogai2/.dotfiles` on GitHub.
+2. Recreate it, empty and private, under the same name.
+3. `mise dot origin set https://github.com/skogai2/.dotfiles.git --sync sync`.
+4. `mise dot sync`, then check that `main` on GitHub has checkpoint 45.
+
+After that, the watcher pushes every saved edit within the sync interval, and a reinstall gets everything back with `mise bootstrap --adopt skogai2/.dotfiles`.
+
+Deleting the GitHub repo can't be undone. OK to run steps 1–4?
+
+## 2026-10-18 05:17 · turn c0395f15
+
+**User**
+
+> skogai2/.dotfiles is deleted since long obviously - you said you managed it via mise
+
+**Assistant**
+
+You're right: I had disconnected the origin, so the history only existed on this disk. It's now on GitHub at `github.com/skogai2/.dotfiles` (private), branch `main`, and the remote is at the same commit as the local history (`4af5dbc`, checkpoint 45). The tracked `~/.config` files show up there under `home/.config/`. That's the only repository for your configs now.
+
+- **Sync:** mise is set to sync automatically, and I restarted the watcher. It should push each saved edit and fetch changes from other machines. I haven't seen it push a new edit on its own yet. `mise dot status` shows the last publish time.
+- **One manual step:** mise refused to push into the empty new repo because it remembered the old `main` branch. I pushed the existing history to it once with git; from here mise and the watcher handle it.
+- **After a reinstall:** `mise bootstrap --adopt skogai2/.dotfiles` puts the tracked files and their history back.
+
+This is noted under item 2 in `mise.md` and committed in the skogai repo (`8d58549`).
+
+**Actions**
+
+- Bash: `gh repo view skogai2/.dotfiles --json name,visibility,createdAt,pushedAt 2>&1; git ls-remote https://github.com/skogai2/…`
+- Bash: `cd ~/.config/skogai; rtk git commit -q -m "mise.md: dotfiles history origin recreated`
+
