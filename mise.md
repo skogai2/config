@@ -335,7 +335,7 @@ Notes:
   - The cloudflared token's content and gptme's `server.env` stay
     outside mise until item 4.
 
-### [ ] 2. `mise dotfiles` — deploy, track, sync
+### [~] 2. `mise dotfiles` — deploy, track, sync
 
 Dotfile deployment plus versioned history. `config.toml` already has an
 empty `[dotfiles]` section.
@@ -355,6 +355,41 @@ Questions to answer: how does this compare with the git-tracked
 recording what an installer changed?
 
 Notes:
+
+- **Decided: track in place** (2026-10-18). mise history is the versioning
+  for `~/.config`; deploy modes (symlink/copy/template) aren't used.
+  Reference: `tmp/mise-docs/dotfiles.md`, `tmp/mise-docs/dotfiles/history.md`.
+- Before: `~/.dotfiles` was a hand-run git repo (`master`) with 52
+  `~/.config/<app>` symlinks into it. `[dotfiles]` declared only fish (as a
+  symlink), and history tracked 0 files: its 44 checkpoints were empty
+  bootstrap runs. Both the git repo and mise history pushed to
+  `skogai2/.dotfiles` (`master` and `main`, unrelated histories).
+- mise saves a symlink as a link, so tracking needs real files at the live
+  path. All 52 links were replaced by their directories (`mv` back from
+  `~/.dotfiles/.config`). `~/.dotfiles/.config/user-dirs.dirs` and
+  `~/.config/nvim.backup.20261017-113454` (the old dotfiles nvim; something
+  renamed the nvim link on 2026-10-17) are left for the dotfiles2 merge.
+- `[dotfiles]` in `~/.config/mise/config.toml` now has 50 `mode = "track"`
+  entries. Checkpoint 45 is the baseline (203 files). Not tracked:
+  `~/.config/skogai` and `~/.config/containers/systemd` (own repos, see
+  `[bootstrap.repos]`); herdr plugin checkouts are skipped as nested repos.
+- mise's credential filter goes by filename only, and missed most of the
+  real secrets here. Excluded by hand: `fnox` (include only `*.toml` and
+  `identities/*.pub`; `age.txt` and `identities/*` are private keys),
+  `gh/hosts.yml`, `anthropic/credentials`, `gptme/*.env` and `gptme/oauth`,
+  herdr's collie `.env`. herdr is include-only (`config.toml`,
+  `plugins.json`, `plugins/config/**`) to keep logs, sockets and session
+  snapshots out. Check `mise dot paths` before tracking anything new.
+- `SKOGAI_OLLAMA_API_KEY` moved out of `[env]` into
+  `~/.config/mise/ollama.secret.env` (0600, `_.file`). The filter skips
+  `*secret*`, so it stays out of history. Move to fnox at item 4.
+- Origin disconnected (`mise dot origin --remove`). The old repo's `master`
+  has the keys and tokens above in its git history. Plan: recreate the
+  GitHub repo from scratch at the end, then `mise dot origin set <url>
+  --sync sync`. Rotating the exposed keys is Emil's call.
+- Open: `fish_variables` is tracked and noisy (fish rewrites it); revisit if
+  `mise dot paths --noisy` flags it. `capture` (e.g. around
+  `omarchy-update`) not tried yet.
 
 ### [ ] 3. Aliases and env vars — `shell-alias`, `set`/`unset`, `vars`
 
