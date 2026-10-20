@@ -40,6 +40,10 @@ agreement changes — not derived from any single dotfiles file.
 - Sync also runs via the background daemon (`[daemon] enabled = true` in
   `~/.config/atuin/config.toml`), roughly every 5 minutes, in addition to
   syncing after each command.
+- Output capture stays off. It needs `[pty_proxy] enabled = true`
+  (`atuin config enable output-capture`), which on 2026-10-20 locked up
+  every terminal, so it was reverted. The MCP's `atuin_output` and
+  `atuin_output_search` therefore return nothing here.
 
 ## Caution: secrets
 
