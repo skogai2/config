@@ -420,6 +420,36 @@ Notes:
     checkpoint matters.
   - Now: 49 entries, 324 files, `bootstrap plan` converged except repos
     with local work (`~/.config/containers/systemd`).
+- **Fresh-machine test 2026-10-25** (throwaway Arch container, host mise
+  2026.10.18, a local bare copy of the history as origin):
+  `mise bootstrap --adopt <url> --only dotfiles --yes` wrote 350 files plus
+  `~/.config/mise/config.toml` and `files/`, and wrote `[history.origin]`
+  into `config.local.toml` on its own. The watcher only starts with the
+  services part (`mise bootstrap services apply`). Untested in it: packages,
+  accounts, repos (submodule question still open), tools.
+  - Found along the way and fixed: `~/.config/obsidian` tracked the whole
+    Electron profile (82 files, caches, `Cookies`, `Trust Tokens`); now
+    include-only (`obsidian.json`, `user-flags.conf`). The cookies stay in
+    already-pushed history. `**/*.bak` excluded (omarchy/omacontrol/opencode
+    upgrade backups).
+  - Not fixed: `[tasks.bootstrap]` calls Omarchy scripts, so it fails on a
+    machine without Omarchy. `hypr/monitors.lua` is machine-specific and
+    wants a `machine` variant once there is a second machine.
+- **Changing dotfiles upstream (tested 2026-10-25).** The origin repo is a
+  plain git repo an agent can clone, edit, commit and push. Layout:
+  `home/<path under ~>` for tracked files, `config/` for
+  `~/.config/mise` (`config.toml`, `files/`), `.mise-history/` is mise's
+  own (leave it). Anything else (a README) stays in git, never restored.
+  - An edit to a tracked file, or a new file under a tracked dir: the
+    next sync/pull writes it. The commit message becomes the checkpoint
+    description.
+  - A file under an untracked path is silently ignored. Declare it in
+    `config/config.toml` `[dotfiles]` in the same push; the pull writes
+    the config first, the file arrives on the following sync/pull.
+  - Same file edited on the machine and upstream: whole-file conflict
+    (no line merge), and sharing pauses for every file until
+    `mise dot pull --take-remote/--keep-local`. So: pull right before
+    committing, keep pushes small, never force-push.
 - Open: `fish_variables` is tracked and noisy (fish rewrites it); revisit if
   `mise dot paths --noisy` flags it. `capture` (e.g. around
   `omarchy-update`) not tried yet.

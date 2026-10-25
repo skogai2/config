@@ -2392,3 +2392,60 @@ Your uncommitted changes to `.skogai/journal.md` were left out of the commit.
 - Edit `tmux.md`
 - Bash: `cd ~/.config/skogai && rtk git add tmux.md herdr.md mappings.md && rtk git commit -q -m "Add tmux.md and herdr keybindin…`
 
+## 2026-10-25 19:51 · turn 240f9006
+
+**User**
+
+> looks like most things are working correctly. now how is version control meant to work? mside dot origin etc?
+
+**Assistant**
+
+You don't make commits with `mise dot`. mise saves versions on its own, and the origin is just a shared copy of those versions for your other machines.
+
+## On one machine
+
+- **Store:** `~/.local/state/mise/history/repo.git` is an ordinary git repo, but only mise writes to it. Never run raw git on it.
+- **Checkpoints:** a checkpoint is one commit holding every tracked file. They're created three ways:
+  - the watcher (`dev.mise.mise-history`) saves one when a tracked file changes, at most once every 24h for files that change often, like `mise/config.toml`;
+  - `mise dot save` saves one by hand;
+  - every operation that writes tracked files (`bootstrap`, `pull`, `rollback`, `undo`, `apply`) saves one first, before writing anything.
+- **Going back:**
+  - `mise dot rollback <path> [--to N]` restores a single file;
+  - `mise dot undo [N]` reverses one whole operation, such as a bad pull or bootstrap;
+  - `mise dot history ls / show / diff` browses the history;
+  - `mise dot history describe N` gives a checkpoint a meaningful name (messages are automatic otherwise).
+
+## Between machines (origin)
+
+- **Origin:** set with `mise dot origin set <url>`. It's one repo and one branch shared by every machine. Yours is `skogai2/.dotfiles` on `main`, declared in `config.local.toml`.
+- **`sync`** pushes your checkpoints and fetches theirs. It never changes your files.
+- **`pull`** writes what was fetched. It refuses if a file has unsaved edits or changed on both sides.
+- **Conflicts:** a file that changed on both sides is a conflict, and it blocks pushing and applying for everything until you resolve it: `mise dot conflicts` to compare, then `pull --keep-local` or `pull --take-remote`.
+- **Your mode is `sync`,** so the watcher syncs and pulls on its own whenever there are no conflicts. Day to day you do nothing, and `mise dot status` is the place to check.
+- **New machine:** `mise bootstrap --adopt skogai2/.dotfiles` clones the history and writes the files. Because `~/.config/mise` is tracked, `config.toml` comes along with them, and the same bootstrap then applies packages, accounts, repos and so on.
+
+## How it differs from your git repos
+
+| | `~/.config/skogai`, `/skogai`, … | `mise dot` history |
+|---|---|---|
+| Commits | deliberate, with a message | automatic snapshots |
+| Unit | one repo | every tracked path, as one snapshot |
+| Branches | yes | no, one branch shared by all machines |
+| Owner | you | mise |
+
+So meaning lives in the git repos. Dotfile history is a safety net plus sync.
+
+## Holes this leaves open
+
+1. **Every machine gets the same files.** Anything machine-specific (monitors in `hypr`, hostnames) needs a local file that's excluded from history, the way `config.local.toml` is, or a `mise.<env>.toml`.
+2. **`config.local.toml` is excluded, so the origin itself isn't in history.** I assume `--adopt` writes it on a new machine, but that's unverified.
+3. **`--adopt` has never been tested** on a fresh machine or a container. That's the test that shows whether the whole setup works from scratch.
+
+Want me to try point 3 in a throwaway podman container? It would also settle the submodule question still open from item 1.
+
+**Actions**
+
+- Bash: `cd ~/.config/skogai; ls tmp/ tmp/*/ 2>&1 | head; f=$(find tmp -path '*dotfiles*' -name '*.md' | head -20); echo "$f"`
+- Bash: `cd ~; for c in "history" "origin" "origin set" "sync" "pull" "conflicts" "rollback" "undo" "recover"; do echo "===== mis…`
+- Bash: `cd ~; mise dot origin 2>&1; mise bootstrap --help 2>&1 | rtk grep -A6 -- '--adopt'`
+
