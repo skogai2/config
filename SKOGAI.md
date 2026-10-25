@@ -5,7 +5,7 @@ type: router
 
 <routes>
 
-- @TODO.md
+- @.skogai/TODO.md
 - @PROJECT.md
 
 </routes>
