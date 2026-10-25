@@ -6,11 +6,11 @@ type: reference
 # mise
 
 mise (https://mise.jdx.dev) is installed as the tool-version manager
-(`~/.config/mise/config.toml`, 27 tools, all `latest`), with an Omarchy
+(`~/.config/mise/config.toml`, 33 tools, mostly `latest`), with an Omarchy
 layer at `/etc/mise/conf.d/omarchy.toml` (only a `cursor-agent` tool alias).
 It is also wired up as an MCP server (`mise mcp`).
 
-The build here (2026.10.9) does far more than manage tool versions. Several
+The build here (2026.10.17 as of 2026-10-25) does far more than manage tool versions. Several
 of its features overlap with things this repo already handles another way
 (atuin for env vars/aliases, hand-run steps in `containers.md`, etc.). This
 page tracks a guided walk through those features, one at a time, to decide
@@ -392,6 +392,34 @@ Notes:
   After that `mise dot sync` and the watcher take over. Reinstall:
   `mise bootstrap --adopt skogai2/.dotfiles`. Rotating the exposed keys
   is Emil's call.
+- **Review 2026-10-25** (mise 2026.10.17). Holes found and fixed:
+  - Sync had failed since 14:35 (nothing published since 14:21). Cause:
+    `[history].exclude` covered herdr's plugin checkouts but nothing
+    covered `~/.config/omarchy/plugins/`. mise skips nested repos and its
+    warning says "track it directly", so the three omarchy plugins
+    (third-party git checkouts, ~470 files) were tracked by hand. One line
+    (`ENTRY_KEY = "apps.omaplug"`) tripped the secret scan. Fix: the three
+    entries removed, `~/.config/omarchy/plugins/**` excluded, and one
+    `mise dot sync --allow-plaintext-history` (a false positive, so no
+    rotation). Rule: a nested-repo warning means exclude it, not track it.
+  - The global exclude `~/.config/herdr/plugins/**` also overrode herdr's
+    `include = ["plugins/config/**"]`, so its plugin config was never
+    saved. The exclude was dropped since the include list already keeps
+    the checkouts out. herdr: 2 → 12 files.
+  - Removed: the dead `~/.cloudflared/token` entry (`allow_plaintext`, file
+    doesn't exist; real tokens sit next to it), the duplicate
+    `~/.config/mise/config.toml` entry, `config.skogai.toml` (second
+    origin + a test env var; origin stays in `config.local.toml`),
+    duplicate tools `rg` (= `ripgrep`) and `pipx:ruff` (= `ruff`), and
+    excludes for paths that aren't tracked or don't exist.
+  - `dev.mise.mise-history` unit was out of date after the mise upgrade;
+    `mise bootstrap services apply` rewrote it. After a mise upgrade, run
+    `mise bootstrap plan`.
+  - Left as is: the watcher throttles `mise/config.toml` to one save per
+    24h when it changes often. `mise dot save` after a config edit if the
+    checkpoint matters.
+  - Now: 49 entries, 324 files, `bootstrap plan` converged except repos
+    with local work (`~/.config/containers/systemd`).
 - Open: `fish_variables` is tracked and noisy (fish rewrites it); revisit if
   `mise dot paths --noisy` flags it. `capture` (e.g. around
   `omarchy-update`) not tried yet.
