@@ -377,9 +377,10 @@ Notes:
   real secrets here. Excluded by hand: `fnox` (include only `*.toml` and
   `identities/*.pub`; `age.txt` and `identities/*` are private keys),
   `gh/hosts.yml`, `anthropic/credentials`, `gptme/*.env` and `gptme/oauth`,
-  herdr's collie `.env`. herdr is include-only (`config.toml`,
-  `plugins.json`, `plugins/config/**`) to keep logs, sockets and session
-  snapshots out. Check `mise dot paths` before tracking anything new.
+  herdr's collie `.env`. herdr is tracked as file entries (`config.toml`,
+  `plugins.json`, `plugins/config`) to keep logs, sockets, session
+  snapshots and plugin checkouts out (see the 2026-10-26 trim below).
+  Check `mise dot paths` before tracking anything new.
 - `SKOGAI_OLLAMA_API_KEY` moved out of `[env]` into
   `~/.config/mise/ollama.secret.env` (0600, `_.file`). The filter skips
   `*secret*`, so it stays out of history. Move to fnox at item 4.
@@ -450,6 +451,27 @@ Notes:
     (no line merge), and sharing pauses for every file until
     `mise dot pull --take-remote/--keep-local`. So: pull right before
     committing, keep pushes small, never force-push.
+- **Watch trim 2026-10-26** (after a crash with a lot of files watched).
+  The watcher holds an inotify watch on every subdirectory of a tracked
+  dir, excluded or not: an `include`/`exclude` list limits what is saved,
+  not what is watched. herdr's plugin checkouts (~5000 dirs) and
+  opencode's `node_modules` made it 5592 watches.
+  - herdr, obsidian and opencode are now file entries (plus
+    `herdr/plugins/config` and `opencode/{plugins,herdr-opencode}` as
+    small dirs) instead of the whole dir. Rule: a dir with a big ignored
+    subtree is tracked by its files, not by the dir.
+  - `herdr/plugins/config` was never actually saved (the "2 → 12" above
+    didn't hold). Now its own entry, minus `.env` and the generated
+    lazygit layouts: 8 files.
+  - Runtime files excluded in `[history].exclude`: `**/*.bak.*`,
+    `**/*.lock`, `**/*.log`, `**/Singleton*` (Electron), `hunk/state.json`,
+    `fcitx5/conf/cached_layouts`. The `pulse` entry is gone (only its auth
+    cookie and a runtime link were in it).
+  - A config change doesn't drop old watches; restart the unit
+    (`systemctl --user restart dev.mise.mise-history`) to see the new
+    count. Now: 60 entries, 219 files, 293 watches. Most of what's left
+    is `omarchy/{plugins,themes}`; split omarchy the same way if it grows.
+  - Check: count the `inotify` lines in `/proc/<watcher pid>/fdinfo/*`.
 - Open: `fish_variables` is tracked and noisy (fish rewrites it); revisit if
   `mise dot paths --noisy` flags it. `capture` (e.g. around
   `omarchy-update`) not tried yet.

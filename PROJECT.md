@@ -10,8 +10,9 @@ The first step of 3.0 (see SKOGAI.md, history).
   way stow did it.
 - **SKOGAI.md beside the dotfiles.** A tracked `~/.config/<app>/` that
   has skogai knowledge gets its own `SKOGAI.md`, versioned and synced
-  with the app's config by mise history. Include-only dirs (fnox, herdr)
-  need it added to their include list.
+  with the app's config by mise history. Include-only dirs (fnox) need
+  it added to their include list, file-entry apps (herdr, obsidian,
+  opencode) their own entry for it.
 - **This repo is the main entry point, grouped by concern, then by
   tool.** For example `./secrets/{fnox,ssh,ssh-agent,mise}/`:
   `secrets/fnox/` holds most of the knowledge and tooling for fnox, and
@@ -36,7 +37,7 @@ Status as of 2026-10-25. `[x]` done, `[~]` in progress, `[ ]` not started.
 
 ### 1. the base: dotfiles and bootstrap
 
-- [x] `~/.config` tracked in place (49 entries), synced to
+- [x] `~/.config` tracked in place (60 entries), synced to
   `skogai2/.dotfiles`; holes from the first tests fixed (`mise.md` item 2)
 - [x] bootstrap declares packages (divergences only), accounts, files,
   repos, login shell, user units (`mise.md` item 1)
@@ -81,7 +82,8 @@ Not tracked yet, to sort into track / exclude / owner's:
 - [ ] split `mise.md` along the same lines; keep the walkthrough's
   decisions, drop the session protocol once the walkthrough is done
 - [ ] `SKOGAI.md` beside the dotfiles: pick the first apps (herdr,
-  fnox, atuin, fish), add it to include lists where needed
+  fnox, atuin, fish), add it to include lists or as its own entry
+  where needed
 - [ ] settle the open question above (knowledge here or beside the app)
 - [ ] `.skogai/SKOGAI.md` is empty: give it a route or remove it
 
