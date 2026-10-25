@@ -2512,3 +2512,90 @@ Both test write-ups are in `mise.md` (commits `0c2d4cb` and `71bd5d1`).
 - Bash: `python3 -I - <<'EOF'`
 - Bash: `cd ~/.config/skogai; python3 -I - <<'EOF'`
 
+## 2026-10-25 20:58 · turn e58bd88d
+
+**User**
+
+> in other words we can essentially build agent-environment, helpers and so on, in the dotfiles repo itself. and if not actively added as dotfiles they wouldn't even affect the machine itself. if so, could we get a basic workflow created for how we should do changes in this manner?
+
+**Assistant**
+
+Yes. You can build agent tooling inside the dotfiles repo, and nothing outside `home/` and `config/` ever reaches a machine. A second container test confirmed it: the machine made 4 commits of its own (a bootstrap, a pull and a local edit) and pushed them, and `README.md` and `.skogai/helpers/` survived every one without being written to `~`.
+
+The workflow is in `dotfiles.md`, linked from `SKOGAI.md` (commit `25aa95b`):
+
+- **Two ways to change things:**
+  - **Live:** edit the file in `~` and the watcher saves and syncs it.
+  - **Upstream:** clone the origin, commit, push, and every machine pulls it.
+- **Origin layout:** `home/` and `config/` are live. `.skogai/` holds the agent environment, helpers and drafts, and is never live. `README.md` is the guide for whoever checks the repo out.
+- **Steps:**
+  1. Pull just before starting.
+  2. Edit under `home/`, or add a `[dotfiles]` entry in `config/config.toml` to make a new path live.
+  3. Make one commit per change, with a message that reads well in `mise dot history ls`.
+  4. `git pull --rebase`, then push. Never force-push.
+- **Making a draft live:** move it from `.skogai/` into `home/`, adding the `[dotfiles]` entry if the path is new. That single commit is when it starts affecting machines.
+- **Don't park drafts under `home/` on an untracked path.** Declaring that path later would suddenly make them live.
+- **No secrets in hand-made commits.** mise's secret check only runs inside its own commands, so a plain `git push` skips it.
+
+The real origin doesn't have a `README.md` or `.skogai/` yet. Pushing a short README that points to this workflow would be the first real run of it. It's a push to GitHub, so shall I do it?
+
+**Actions**
+
+- Bash: `S=/tmp/claude-1000/-home-skogix--config-skogai/42b0c1bc-08cc-47c5-b006-de80818fdcaa/scratchpad; cd $S; rm -rf origin.git…`
+- Bash: `podman exec mise-adopt-test su - tester -c 'mise dot sync -v 2>&1 | grep -iE "error|refus|reject|cannot" | head; mise do…`
+- Bash: `S=/tmp/claude-1000/-home-skogix--config-skogai/42b0c1bc-08cc-47c5-b006-de80818fdcaa/scratchpad; chmod -R a+rwX $S/origin…` (failed)
+- Write `dotfiles.md`
+- Bash: `podman rm -f -t 0 mise-adopt-test >/dev/null; cd ~/.config/skogai; cat SKOGAI.md | sed -n 1,8p`
+- Bash: `cd ~/.config/skogai; python3 -I - <<'EOF'`
+
+## 2026-10-25 21:46 · turn 07e5e4ea
+
+**User**
+
+> focus on planning and documenting what needs to be done for 3.1 instead. we need to also create a regular readme which explain generally what we do in this repo. Will be used as a generic description shown to other agents
+
+**Assistant**
+
+I wrote the README and the 3.1 plan and committed both (`6a92908`).
+
+**`README.md`** is the generic description for other agents. It explains that the repo describes the setup and routes to it, but holds no dotfiles or machine state itself. It has a short table of what lives where (dotfiles, machine state, knowledge, secrets), mise as the base, a list of the pages, and three rules for working here. `SKOGAI.md` now routes to it.
+
+**`PROJECT.md`** keeps your principles and the `eza` preparation lines, and adds:
+- **When 3.1 is done:**
+  - one `mise bootstrap --adopt` turns a fresh machine into this one, plus only the steps written down as manual;
+  - every `~/.config/<app>/` is tracked, excluded or left to its owner, and that choice is written down;
+  - this repo is grouped by concern, and every route in it is true.
+- **The plan, in 4 sections:**
+  1. **Dotfiles and bootstrap:** the tested parts are marked done. Still open:
+     - a full fresh-machine run (packages, accounts, repos with submodules, tools, services);
+     - making `[tasks.bootstrap]` safe on machines without Omarchy;
+     - separate commit identities for machines and agents;
+     - the Obsidian cookies;
+     - per-machine files;
+     - the origin README and `.skogai/`.
+  2. **Coverage:** the untracked `~/.config` dirs, sorted into likely config, app profiles and caches to never track, and leftovers to merge or delete (`~/.dotfiles`, `.todo/dotfiles-old`, `*.bak`). Also the pass over `pacman -Qqe`.
+  3. **Repo structure:**
+     - a first cut of concern groups (`machine/`, `dotfiles/`, `secrets/`, `shell/`, `containers/`, `desktop/`, `agents/`);
+     - splitting `mise.md` along those lines;
+     - which apps get a `SKOGAI.md` first;
+     - the open question of whether knowledge lives here or beside the app;
+     - the empty `.skogai/SKOGAI.md`.
+  4. **The rest of the mise walkthrough:** items 3–5, plus zsh and agent logins over SSH.
+
+**`.skogai/TODO.md`:** I marked the dotfiles item done, and bootstrap as in progress until the full fresh-machine run passes.
+
+The concern groups in section 3 are only a proposal. Settling them first would be a good next step, because the moves and the `SKOGAI.md`-per-app work both depend on them.
+
+**Actions**
+
+- Bash: `cd ~/.config/skogai; for f in atuin.md containers.md herdr.md mappings.md secrets.md window-manager.md .gitignore; do ec…`
+- Bash: `cd ~/.config/skogai; cat .gitmodules; ls -A .skogai .todo .claude 2>&1; git ls-files | head -40; echo ---; tracked=$(gre…`
+- Bash: `cd ~/.config/skogai; cat .skogai/SKOGAI.md; echo ====; tail -40 .skogai/journal.md; echo ===; cat tmux.md | head -15; ls…` (failed)
+- Bash: `cd ~/.config/skogai; cat .skogai/SKOGAI.md; echo "----"; tail -40 .skogai/journal.md; echo "----"; head -15 tmux.md; for…`
+- Write `README.md`
+- Read `.skogai/TODO.md`
+- Read `PROJECT.md`
+- Edit `PROJECT.md`
+- Write `.skogai/TODO.md`
+- Bash: `cd ~/.config/skogai; python3 -I - <<'EOF'`
+

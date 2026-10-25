@@ -6,6 +6,7 @@ type: router
 <routes>
 
 - @.skogai/TODO.md
+- @README.md - what this repo is, for any agent
 - @PROJECT.md
 - @dotfiles.md - how dotfiles change: live on a machine, or upstream in the origin
 

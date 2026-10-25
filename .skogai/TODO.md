@@ -1,6 +1,6 @@
-- [ ] mise; go over and make sure this is setup: 
-  - [ ] mise; bootstrap
+- [~] mise; go over and make sure this is setup (plan: PROJECT.md):
+  - [~] mise; bootstrap (full fresh-machine run still untested)
   - [ ] mise; config
-  - [ ] mise; daemons 
-  - [ ] mise; dotfiles with origin and deeper knowledge of how it works
+  - [ ] mise; daemons
+  - [x] mise; dotfiles with origin and deeper knowledge of how it works (dotfiles.md, mise.md item 2)
   - [ ] mise; env
