@@ -1,0 +1,3 @@
+[submodule "dotfiles-old"]
+	path = .todo/dotfiles-old
+	url = https://github.com/SkogBackup/.dotfiles.git
