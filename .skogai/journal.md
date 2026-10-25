@@ -2363,3 +2363,32 @@ What's still exposed: herdr and tmux binds are only written down in their config
 - Bash: `cd ~ && mise dot capture --label "restore herdr personal binds from omarchy refresh backup" -- cp /tmp/claude-1000/-home…`
 - Bash: `herdr server reload-config 2>&1 | sed '/Are you an AI/,$d' | tail -5; tail -5 ~/.config/herdr/herdr-server.log | rtk gre…`
 
+## 2026-10-25 18:40 · turn 1fac4d61
+
+**User**
+
+> please create a tmux.md and herdr.md with the changes
+
+**Assistant**
+
+I wrote both files and committed them as `1a7f1a4`.
+
+- **`tmux.md`** (new): your tmux changes compared with Omarchy's defaults. That covers the `-`/`|` splits, `M-hjkl` focus, `M-HJKL` resize and `prefix h/l` to switch windows. It ends with a `diff` command that should show exactly those changes, so you can tell if a refresh has wiped them again.
+- **`herdr.md`**: there was already a herdr.md with setup notes and agent conventions. I overwrote it by mistake, then restored it from git. Your keybindings are now a new "Keybindings" section inside it. It lists your key changes and plugin keys, plus your other settings, how the Oct 24 refresh happened, and the same `diff` check. I also corrected the "Config" line, which still described the old setup.
+- **`mappings.md`**: the `[@TODO:tmux]` placeholder now routes to `@tmux.md` and `@herdr.md`.
+
+Your uncommitted changes to `.skogai/journal.md` were left out of the commit.
+
+**Actions**
+
+- Bash: `rtk diff ~/.local/share/omarchy/config/tmux/tmux.conf ~/.config/tmux/tmux.conf; echo "=== HERDR"; rtk diff ~/.local/shar…` (failed)
+- Write `tmux.md`
+- Write `herdr.md`
+- Edit `mappings.md`
+- Bash: `cd ~/.config/skogai && rtk git status --short; rtk git log --oneline -3 -- herdr.md; rtk git show HEAD:herdr.md 2>&1 | h…`
+- Bash: `cd ~/.config/skogai && rtk git checkout -- herdr.md && rtk read herdr.md --head-lines 3; rtk ls mise.md`
+- Edit `herdr.md`
+- Edit `herdr.md`
+- Edit `tmux.md`
+- Bash: `cd ~/.config/skogai && rtk git add tmux.md herdr.md mappings.md && rtk git commit -q -m "Add tmux.md and herdr keybindin…`
+
