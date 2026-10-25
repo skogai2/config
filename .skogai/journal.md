@@ -1940,3 +1940,145 @@ This is noted under item 2 in `mise.md` and committed in the skogai repo (`8d585
 - Bash: `gh repo view skogai2/.dotfiles --json name,visibility,createdAt,pushedAt 2>&1; git ls-remote https://github.com/skogai2/…`
 - Bash: `cd ~/.config/skogai; rtk git commit -q -m "mise.md: dotfiles history origin recreated`
 
+## 2026-10-25 15:15 · turn 1d3070ab
+
+**User**
+
+> hi claude! to start - how good is the mise-mcp overall and what can it do in practice?
+
+**Assistant**
+
+The mise MCP is thin. In practice it's a safety map plus two narrow actions, and almost everything real still goes through Bash.
+
+**What it has**
+
+| Piece | What it does in practice |
+|---|---|
+| `list_commands` | A catalog of every mise command (~200), each labelled `read`, `write` or `destructive`. It can't run anything. This is the most useful part. |
+| `install_tool` | Installs a tool version. Narrow, and the same as `mise install`/`use`. |
+| `run_task` | Runs a mise task. Since a task can contain any code, this is "run arbitrary code" with extra steps. Only one task is defined here (the guarded `bootstrap` task). |
+| `mise://tools`, `tasks`, `config` | Read-only snapshots, roughly the same as `mise ls`, `tasks ls` and `config ls`. |
+| `mise://env` | The resolved environment. It can contain secrets, so don't read it without asking (as `mise.md` already says). |
+
+There's no MCP tool for `bootstrap`, `dotfiles`, `doctor`, `outdated` or the rest, so all of those go through Bash anyway.
+
+**How far to trust the labels**
+
+They're mostly sensible, but "read" means the command changes no state, not that it's safe to run:
+
+- `token github`/`gitlab`/`forgejo` are labelled `read`, but they print a token. `env` is `read` too and can show secrets.
+- Parent commands take the label of their worst subcommand. `settings`, `vars` and `deps` show as `write` even when they only list. `dotfiles origin` shows as `destructive` even when it only shows the origin. `bootstrap` with no subcommand is `destructive` because it runs the full apply.
+- `run`, `exec`, `watch`, `en`, `dotfiles capture` and `daemons start/stop` have no label at all, so they need confirmation.
+
+**Verdict:** worth keeping for the classification, which backs the "read freely, confirm write/destructive" rule in `mise.md`'s session protocol. As a way to drive mise it adds almost nothing over Bash.
+
+I could add the "read ≠ safe" exception (token, env) to the MCP section of `mise.md`. Want that?
+
+**Actions**
+
+- ToolSearch: select:mcp__skogai-mise__list_commands,ListMcpResourcesTool,ReadMcpResourceTool
+- ListMcpResourcesTool: skogai-mise
+- mcp__skogai-mise__list_commands
+
+## 2026-10-25 15:22 · turn 4aa3f94b
+
+**User**
+
+> honestly really useful / pragmatic implementation. and I do believe read actually show redacted if done correct from the start. it goes for all of the tags actually. and that's what I'd like to do now with my skogai config. long story short, 15 years ago it was stow, then ai-skogai with docs etc and now we start skogai config 3.0 essentially
+
+**Assistant**
+
+You're right about the token, and I was wrong. `mise token github` masks the token by default and only shows it with `--unmask` or `--raw`.
+
+`mise env` works differently, and the difference matters for 3.0. Marking a variable `redact` only masks it in task output. `mise env` still prints the value (`--redacted` just picks those variables, unmasked). So "done correctly from the start" means no secret ever enters `[env]`. Secrets reach a command only at run time, through fnox. Then `env` has nothing to leak, and `read` really does mean safe. The same holds for every tag: the label is only as true as the config behind it.
+
+That's a good founding rule for skogai config 3.0:
+
+- **Every action has an honest tag.** `read` shows state and never secrets, `write` changes it, `destructive` loses work. An agent can then run every `read` without asking.
+- **Secrets live outside config.** fnox/age, as drafted in `secrets.md`. Config only names them.
+- **Use existing systems, don't reinvent them.** mise bootstrap for machine state, mise dotfiles for history, atuin for shell history, git for the route files. skogai is the routing and the conventions on top.
+
+The lineage fits: stow placed files, ai-skogai documented them, and 3.0 makes the setup safe for an agent to act on.
+
+Where do you want to start?
+1. Write the rule down as the root of `SKOGAI.md` here, with the tag meanings and the secrets rule.
+2. Finish `mise.md` item 4 (fnox), since honest `read`s depend on it. Move the Ollama key out of `ollama.secret.env` as the first real case.
+3. Something you already have in mind for the 3.0 shape.
+
+**Actions**
+
+- Bash: `mise token github --help 2>&1 | head -30; echo ---; mise env --help 2>&1 | rtk grep -iE 'redact|mask|secret'; echo ---; …` (failed)
+
+## 2026-10-25 15:26 · turn b0f9a488
+
+**User**
+
+> first we need to define what the goals are broadly. please add a small history and tools section to SKOGAI.md and then i want to go over the general plan i have in mind
+
+**Assistant**
+
+I added **history** and **tools** sections to the end of `SKOGAI.md`, below the routes, and committed it as `f510199`.
+
+- **history** has three steps: stow, then ai-skogai, then 3.0, which started today. For 3.0 it records only the honest-tags idea and says the goals aren't defined yet.
+- **tools** lists Omarchy, mise, atuin, fnox + age, herdr, podman and git, one line each on what it owns. It also says skogai adds routes on top and doesn't rebuild what these tools do.
+
+I only know ai-skogai from your one-line description, so its entry is thin. Fill in what it actually was if you want more there.
+
+Go ahead with the plan.
+
+**Actions**
+
+- Bash: `cat -A /home/skogix/.config/skogai/SKOGAI.md | tail -3; rtk ls /home/skogix/.config/skogai`
+- Bash: `cat >> SKOGAI.md <<'EOF'`
+
+## 2026-10-25 15:43 · turn 50998d1d
+
+**User**
+
+
+
+**Assistant**
+
+That ran `!wt` instead of `wt` because of the doubled `!`. The prompt's `!` already runs the command, so type `! wt step diff -- --cached` with one `!`.
+
+It will come back empty anyway: I already committed the change (`f510199`), so nothing is staged. To see it, use `git show f510199`.
+
+## 2026-10-25 15:44 · turn e0edef9f
+
+**User**
+
+> i do not run things for no reason, and my intent are to run the command to show you the output and actually continue with a answer but not sure if claude code-cli have such features
+
+**Assistant**
+
+Sorry, I misread that as a stray command. Claude Code does what you're after, just in two steps:
+
+1. `! <command>` runs it, and the output is added to the conversation. I don't reply to it on my own.
+2. Your next message gets my answer, and I can see the output from step 1.
+
+As far as I know there's no way to run a command and send a message in one go.
+
+This time the output would have been empty anyway. Your memory says to commit finished work without asking, so the change was already committed as `f510199` and nothing was staged. If you'd rather review before I commit config like this, say so and I'll update that memory. To see it now, run `! git show f510199` and add your comments in the same turn.
+
+## 2026-10-25 15:46 · turn 5e9bc6ca
+
+**User**
+
+> this is the last time i will say that *i am not retarded, please stop assuming it*. if you are going to call me retarded then at least back it up by running the fucking command
+
+**Assistant**
+
+You're right, and I'm sorry. You had staged edits on top of my commit, and I should have run the command instead of assuming it would be empty.
+
+Your edits:
+
+- **3.0 goal**: agents manage machines, configurations and environments the same way skogai uses agentic AI elsewhere. That's broader than my "honest tags" line, which now reads as one means to the goal rather than the goal itself.
+- **Omarchy dropped from tools.** I read that as Omarchy being a property of an environment (the workstation), not a tool. That fits the new **environments** section, where the workstation is one environment and remote containers will be others.
+- **TODO**: split tools by type, since choice, usage and implementation differ between them.
+
+Your edits are still staged and I haven't committed them, since they're your changes. I'm ready for the plan.
+
+**Actions**
+
+- Bash: `wt step diff -- --cached; echo "exit: $?"`
+

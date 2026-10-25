@@ -19,20 +19,32 @@ type: router
 1. **stow** (~15 years ago): dotfiles in one repo, symlinked into place.
 2. **ai-skogai**: the same config plus docs written for and with AI
    agents.
-3. **skogai config 3.0** (started 2026-10-25): an agent can act on the
-   machine safely. Every action is tagged honestly, so `read` never
-   reveals secrets and runs without asking. Goals are still being
-   defined.
+3. **skogai config 3.0** (started 2026-10-25): implement new tools and workflows to let agents manage machines, configurations and environments the same way skogai use "agentic ai" in other areas.
 
 ## tools
 
 Each one owns its own area. skogai adds the routes and conventions on
 top and doesn't reinvent any of them.
 
-- Omarchy (Arch, Hyprland): the base system and its defaults
 - mise: tool versions, machine state (`bootstrap`), dotfile history
 - atuin: shell history; env vars and aliases for now (see `mise.md` item 3)
 - fnox + age: secrets (draft, see `secrets.md`)
 - herdr: workspaces and panes for agents
 - podman: containers, run as quadlets
 - git: this repo and the other config repos
+
+[@TODO:"split this into types of tools since many will differ both in choice of tools, usage and implementation"]
+
+## environments
+
+### skogix workstation
+
+```toml
+hostname: skogix-workstation
+[@TODO:"add descriptions"]
+```
+
+
+### remote containers
+
+[@TODO:"add more environments as we encounter them"]
