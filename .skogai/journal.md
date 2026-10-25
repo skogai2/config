@@ -2166,3 +2166,51 @@ The `~/skogai` diff shows the context for the eza runs: your new TODO, "shell; t
 - Bash: `rtk git -C ~/skogai diff --stat; rtk git -C ~/skogai diff | head -150`
 - Bash: `cd ~/.config/skogai; cat > /tmp/claude-1000/-home-skogix--config-skogai/3e34afc2-4d5f-48a4-bd75-3e260d9b4f88/scratchpad/…`
 
+## 2026-10-25 16:55 · turn 6b8fc61f
+
+**User**
+
+> hi claude time for some updates, could you give me a general rundown of this repo?
+
+**Assistant**
+
+This repo is the root router for skogai config 3.0. It's a flat set of topic docs that record decisions about how the workstation is set up, with mise as the base everything builds on.
+
+**Entry points**
+- `AGENTS.md` routes to `SKOGAI.md`, which routes to `TODO.md` and `PROJECT.md`.
+- `SKOGAI.md` covers the history (stow, then ai-skogai, then 3.0), the tool list (mise, atuin, fnox+age, herdr, podman, git) and the environments, which are still mostly `@TODO`.
+- `PROJECT.md` holds the config 3.1 plan:
+  - mise is the base.
+  - Files are tracked by path rules instead of symlinks.
+  - Each tracked `~/.config/<app>/` gets its own `SKOGAI.md`.
+  - The repo is grouped by concern, then by tool (`secrets/{fnox,ssh,…}/`).
+  - The plan is followed by about 340 lines of directory trees.
+
+**Topic docs and where each stands**
+
+| File | Status |
+|---|---|
+| `mise.md` | The main thread, a guided walk through mise's features. Item 1, bootstrap, is decided. Item 2, dotfiles: ~/.config is tracked in place, the origin is `skogai2/.dotfiles`, and `capture` hasn't been tried. Item 3, aliases/env, not started. Item 4, secrets, in progress. Item 5, extras, not started. |
+| `secrets.md` | Draft from 2026-10-14 of the fnox+age key model: which user can decrypt what. None of it has been created on the machine yet. |
+| `atuin.md` | Done. Atuin syncs shell history and holds env vars and aliases. Output capture stays off because the pty proxy locked terminals. |
+| `containers.md` | Done. Docker was replaced by rootless Podman on 2026-10-07. |
+| `herdr.md` | Setup plus the rules agents follow when using herdr panes. |
+| `window-manager.md` | The agreed i3-style keybindings on Dvorak. `mappings.md` routes to it; the tmux and nvim pages are still TODO. |
+
+**Other contents**
+- `.skogai/journal.md` is the session log.
+- `.todo/dotfiles-old` is a submodule pointing at the old `SkogBackup/.dotfiles`, kept for merging later.
+- `scripts/` is empty and untracked.
+
+**Problems I found (nothing changed)**
+- `SKOGAI.md` routes to `@TODO.md`, but that file doesn't exist, so the route points at nothing. Should I create the file or remove the route?
+- `PROJECT.md` still leaves one question open: which of `secrets/fnox/` and `~/.config/fnox/SKOGAI.md` holds the knowledge and which only routes to it.
+- None of the `secrets/`-style folders from the 3.1 layout exist yet. Everything is still flat `*.md` files at the root.
+
+**Actions**
+
+- Bash: `rtk git log --oneline | head -20 && rtk ls -la scripts && rtk wc -l *.md && for f in atuin.md containers.md herdr.md map…`
+- Bash: `rtk grep -nE '^\s*[0-9]+\. \[|^#+ ' mise.md; echo ===; rtk read .skogai/journal.md --tail-lines 30; echo ===; rtk ls TOD…` (failed)
+- Bash: `cd /home/skogix/.config/skogai; sed -n 338,400p mise.md; echo ---; cat .skogai/journal.md | tail -30; echo ---; rtk ls T…`
+- Bash: `cd /home/skogix/.config/skogai; sed -n 54,70p containers.md; sed -n 413,420p mise.md; rtk grep -n '^## \|^### ' secrets.…`
+
