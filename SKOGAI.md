@@ -14,4 +14,3 @@ type: router
 
 </routes>
 
-- @tmp/mise-docs/ - while we go over mise in general this contains the documentation from mise directly
