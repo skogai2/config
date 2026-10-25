@@ -2449,3 +2449,66 @@ Want me to try point 3 in a throwaway podman container? It would also settle the
 - Bash: `cd ~; for c in "history" "origin" "origin set" "sync" "pull" "conflicts" "rollback" "undo" "recover"; do echo "===== mis…`
 - Bash: `cd ~; mise dot origin 2>&1; mise bootstrap --help 2>&1 | rtk grep -A6 -- '--adopt'`
 
+## 2026-10-25 20:01 · turn 0a7056d6
+
+**User**
+
+> please do, and one thing that seems missing is intended way to change things upstream so to speak. because I'm essentially thinking that the dotfiles origin repo itself is a great place to essentially check out for an agent to see the dotfiles meant to be changed if that makes sense?
+
+**Assistant**
+
+Your idea works: a plain clone of the origin is a good place for an agent to make dotfile changes, and mise accepts its plain git commits. I tested it in a throwaway Arch container with a local bare copy of the history as the origin, so the real GitHub repo wasn't touched.
+
+## How the upstream flow behaves
+
+The repo layout is `home/<path under ~>` for tracked files, `config/` for `~/.config/mise`, and `.mise-history/` for mise's own state (leave that alone).
+
+| What the agent pushes | What the machine does |
+|---|---|
+| An edit to a tracked file | Written on the next sync/pull. The commit message becomes the checkpoint description. |
+| A new file in a tracked directory | Created. |
+| A file under a path that isn't tracked | **Ignored, with no warning.** |
+| A new `[dotfiles]` entry in `config/config.toml` plus the file | The config arrives first and the file on the next round. The watcher handles both by itself. |
+| A README or other notes | Stay in git and never land on the machine. A README is a good place for agent guidance. |
+| The same file edited locally too | A whole-file conflict with no line merge. Sharing stops for every file until someone picks a side. |
+
+So the rules for an agent are: pull right before committing, keep pushes small, declare new paths in the same push, and never force-push.
+
+Fresh-machine adopt also works: `mise bootstrap --adopt` wrote 350 files and the origin setting on its own. The watcher only starts when the services part runs.
+
+## New problems the test found
+
+- **Obsidian session cookies are in the pushed history.** The Obsidian entry tracked the whole Electron profile, including `Cookies` and `Trust Tokens`. I made it include-only (`obsidian.json`, `user-flags.conf`), so they won't be saved again. Getting them out of the existing history means rewriting it. The simpler fix is logging Obsidian out everywhere so the cookies stop working. That's your call.
+- **`.bak` files from Omarchy upgrades were tracked.** They're excluded now.
+- **Not fixed:** `[tasks.bootstrap]` calls Omarchy scripts, so it fails on a machine without Omarchy. `hypr/monitors.lua` will need a per-machine version once a second machine exists.
+
+Both test write-ups are in `mise.md` (commits `0c2d4cb` and `71bd5d1`).
+
+## Next steps, if you want them
+
+1. Add `[history] git_email = "mise@{hostname}"`, so machine commits and agent commits are easy to tell apart in the origin.
+2. Push an agent-facing `README.md` to the real origin with the rules above. That pushes to GitHub, so I'll wait for your OK.
+
+**Actions**
+
+- Bash: `cd ~; rtk ls ~/.local/src/ | head -40; mise bootstrap --help 2>&1 | sed -n '1,200p' | rtk grep -E '^\s+(-|--)[a-z-]'`
+- Bash: `cd ~/.local/src/mise; rtk git log -1 --format='%h %cd'; rtk ls docs/dotfiles/ 2>/dev/null; grep -rlE 'checkout|edit.*ori…`
+- Bash: `cd ~/.local/src/mise/docs/dotfiles; rtk read sync.md; echo =====; rtk grep -n -iE 'checkout|edit.*origin|upstream|outsid…` (failed)
+- Bash: `cd ~/.local/src/mise/docs/dotfiles; rtk grep -n -iE 'checkout|plain git|git commit|clone|edit.*(repo|origin)|manifest|by…`
+- Bash: `cd ~/.local/src/mise/docs/dotfiles; sed -n 280,300p sync.md; echo ====; sed -n 285,320p reference.md; echo ===; rtk grep…` (failed)
+- Bash: `S=/tmp/claude-1000/-home-skogix--config-skogai/42b0c1bc-08cc-47c5-b006-de80818fdcaa/scratchpad; cd $S; rm -rf origin.git…`
+- Bash: `S=/tmp/claude-1000/-home-skogix--config-skogai/42b0c1bc-08cc-47c5-b006-de80818fdcaa/scratchpad; podman rm -f mise-adopt-…`
+- Bash: `podman exec mise-adopt-test su - tester -c 'mise bootstrap --adopt file:///origin.git --dry-run 2>&1 | tail -40'`
+- Bash: `podman exec mise-adopt-test su - tester -c 'mise bootstrap --adopt file:///origin.git --dry-run 2>&1 | grep -vE "would i…`
+- Bash: `podman exec mise-adopt-test su - tester -c 'mise bootstrap --adopt file:///origin.git --only dotfiles --yes 2>&1 | grep …`
+- Bash: `S=/tmp/claude-1000/-home-skogix--config-skogai/42b0c1bc-08cc-47c5-b006-de80818fdcaa/scratchpad; cd $S; rm -rf agent; git…`
+- Bash: `podman exec mise-adopt-test su - tester -c 'mise dot sync 2>&1 | tail -5; echo ---; mise dot pull --dry-run 2>&1 | tail …`
+- Bash: `S=/tmp/claude-1000/-home-skogix--config-skogai/42b0c1bc-08cc-47c5-b006-de80818fdcaa/scratchpad; cd $S/agent; git pull -q…`
+- Bash: `S=/tmp/claude-1000/-home-skogix--config-skogai/42b0c1bc-08cc-47c5-b006-de80818fdcaa/scratchpad; cd $S/agent; rtk git pul…`
+- Bash: `S=/tmp/claude-1000/-home-skogix--config-skogai/42b0c1bc-08cc-47c5-b006-de80818fdcaa/scratchpad; podman exec mise-adopt-t…`
+- Bash: `S=/tmp/claude-1000/-home-skogix--config-skogai/42b0c1bc-08cc-47c5-b006-de80818fdcaa/scratchpad; podman exec mise-adopt-t…`
+- Bash: `podman rm -f mise-adopt-test >/dev/null; cd ~; G=~/.local/state/mise/history/repo.git; git --git-dir=$G ls-tree -r --nam…`
+- Bash: `git --git-dir=$HOME/.local/state/mise/history/repo.git ls-tree -r --name-only HEAD | rtk grep -E '^home/.config/obsidian…`
+- Bash: `python3 -I - <<'EOF'`
+- Bash: `cd ~/.config/skogai; python3 -I - <<'EOF'`
+

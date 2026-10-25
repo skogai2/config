@@ -7,6 +7,7 @@ type: router
 
 - @.skogai/TODO.md
 - @PROJECT.md
+- @dotfiles.md - how dotfiles change: live on a machine, or upstream in the origin
 
 </routes>
 

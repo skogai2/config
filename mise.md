@@ -435,7 +435,7 @@ Notes:
   - Not fixed: `[tasks.bootstrap]` calls Omarchy scripts, so it fails on a
     machine without Omarchy. `hypr/monitors.lua` is machine-specific and
     wants a `machine` variant once there is a second machine.
-- **Changing dotfiles upstream (tested 2026-10-25).** The origin repo is a
+- **Changing dotfiles upstream (tested 2026-10-25; workflow in `dotfiles.md`).** The origin repo is a
   plain git repo an agent can clone, edit, commit and push. Layout:
   `home/<path under ~>` for tracked files, `config/` for
   `~/.config/mise` (`config.toml`, `files/`), `.mise-history/` is mise's
