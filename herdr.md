@@ -11,12 +11,71 @@ command syntax.
 
 - Binary: `/usr/bin/herdr` (0.9.3 at time of writing). Server runs under
   the user; the socket is `~/.config/herdr/herdr.sock`.
-- Config: `~/.config/herdr/config.toml`. It mirrors the Omarchy tmux config
-  (`prefix = ctrl+space`, `prefix+c` new tab, `alt+h/j/k/l` focus). Apply
-  changes with `herdr server reload-config`.
+- Config: `~/.config/herdr/config.toml`, Omarchy's shipped config plus the
+  personal changes under "Keybindings" below. Apply changes with
+  `herdr server reload-config`.
 - Shell: `dash-skogai/fish/config.fish` loads `herdr completion fish`.
 - Window manager: Omarchy's "Herdr" floating terminal is the dropdown
   terminal on `Mod+grave` (see `window-manager.md`).
+
+## Keybindings
+
+Changes on top of Omarchy's shipped config
+(`~/.local/share/omarchy/config/herdr/config.toml`). Anything not listed is
+Omarchy's default. Omarchy's herdr config mirrors its tmux config
+(session -> workspace, window -> tab, pane -> pane), and the personal keys
+mirror @tmux.md the same way. Prefix is `ctrl+space`.
+
+| Keys                       | Omarchy default            | Personal                         |
+|----------------------------|----------------------------|----------------------------------|
+| `prefix+-` / `prefix+\|`   | —                          | Split stacked / side by side     |
+| `prefix+h` / `prefix+v`    | Split stacked / side by side | (freed; `h` is previous tab)   |
+| `alt+hjkl`                 | —                          | Focus pane                       |
+| `ctrl+alt+arrows`          | Focus pane                 | (unbound)                        |
+| `alt+shift+hjkl`           | —                          | Resize pane                      |
+| `ctrl+alt+shift+arrows`    | Resize pane                | (unbound)                        |
+| `prefix+h` / `prefix+l`    | —                          | Previous / next tab (added beside `prefix+p/n`) |
+| `prefix+alt+r`             | —                          | Rename pane                      |
+| `prefix+shift+o`           | Rename pane                | (unbound)                        |
+| `prefix+shift+c`           | New workspace              | worktrunk picker (below); `new_workspace` is commented out |
+
+Plugin keys:
+
+| Keys              | Action                                   |
+|-------------------|------------------------------------------|
+| `prefix+e`        | herdr-nvim: nvim sidebar                 |
+| `prefix+o`        | herdr-nvim: open file from agent output  |
+| `prefix+ctrl+s`   | resurrect: save                          |
+| `prefix+ctrl+r`   | resurrect: restore                       |
+| `prefix+S`        | resurrect: save this space as…           |
+| `prefix+O`        | resurrect: open saved space…             |
+| `prefix+shift+c`  | worktrunk: switch / create worktree from default branch |
+| `prefix+shift+m`  | worktrunk: merge into target branch      |
+
+Commented out in the config, kept for later: lazygit (`prefix+g`,
+`prefix+shift+g`), more worktrunk pickers, and the Captain's Deck plugin
+manifest.
+
+Other personal settings: `onboarding = false`, `[theme] auto_switch = true`,
+`[ui] status_indicators = "symbols"` and `agent_panel_sort = "spaces"`,
+`[ui.toast] delivery = "herdr"`, `[ui.sound] enabled = true`,
+`[update] channel = "preview"`. The see-through tab bar (`panel_bg =
+"reset"`, `surface_dim = "black"`) is Omarchy's own, from migration
+`1791722809.sh`.
+
+### Keeping it
+
+`omarchy-refresh-config herdr/config.toml` (also run by
+`omarchy-refresh-herdr`) replaces the file with the stock version and leaves
+`config.toml.bak.<epoch>`. That happened 2026-10-24 09:06 (mise checkpoint
+546) and went unnoticed until 2026-10-25; restored in checkpoint 616.
+Check with:
+
+```sh
+diff ~/.local/share/omarchy/config/herdr/config.toml ~/.config/herdr/config.toml
+```
+
+The diff should show exactly the changes above.
 
 ## Agent integration
 
