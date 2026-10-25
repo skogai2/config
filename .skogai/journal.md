@@ -2214,3 +2214,152 @@ This repo is the root router for skogai config 3.0. It's a flat set of topic doc
 - Bash: `cd /home/skogix/.config/skogai; sed -n 338,400p mise.md; echo ---; cat .skogai/journal.md | tail -30; echo ---; rtk ls T…`
 - Bash: `cd /home/skogix/.config/skogai; sed -n 54,70p containers.md; sed -n 413,420p mise.md; rtk grep -n '^## \|^### ' secrets.…`
 
+## 2026-10-25 17:29 · turn ca046518
+
+**User**
+
+> hi claude! i want to go over my tests of using mise dotfiles / bootstrap and make sure it is correct from the start / fix the holes from testing
+
+**Assistant**
+
+I went through bootstrap and dotfiles. Bootstrap is in good shape: everything matches except one user service (hole 2). Dotfiles have one real break and several smaller holes. I haven't changed anything yet.
+
+## Broken
+
+1. **Dotfiles sync has failed 10 times since 14:35, so nothing has reached GitHub since 14:21.** At 14:24–14:26 three omarchy plugins were tracked: `omaplug`, `omacontrol` and `qs-bitwarden-cli`. mise's secret scan flagged line 18 of `omaplug/menu-entry.py` in one of those saved versions, `ENTRY_KEY = "apps.omaplug"`. That's not a secret.
+   - The underlying problem is that all three plugins are third-party **git checkouts**, together about 470 files including tests and demo binaries. They're the same kind of thing as the herdr plugin checkouts, which we chose to skip as nested repos.
+   - **Fix:** stop tracking all three plugin entries (`~/.config/omarchy` stays tracked), then run `mise dot sync --allow-plaintext-history` once. That flag is safe here because the flagged line isn't a secret, but the sync does push to GitHub, so I want your OK first.
+2. **The `mise-history` watcher unit is out of date** ("installed, differs"). mise 2026.10.17 writes a newer unit than the one installed. **Fix:** `mise bootstrap services apply`, which rewrites the unit and restarts the watcher.
+
+## Holes in the config
+
+3. **`~/.cloudflared/token` is tracked with `allow_plaintext = true`, but the file doesn't exist.** The directory next to it holds real tokens and certificates. The entry is dead and invites a plaintext secret into history. **Fix:** delete the entry.
+4. **The origin is declared twice**, once in `config.local.toml` and once in `config.skogai.toml` (one URL ends in `.git`, the other doesn't). `config.skogai.toml` also still holds the test value `SKOGAI_TEST_BOOL = "foo"`. **Fix:** keep only `config.local.toml` and delete `config.skogai.toml`.
+5. **Some entries are redundant:**
+   - `~/.config/mise/config.toml` is listed on its own even though `~/.config/mise` is already tracked.
+   - `[tools]` has both `rg` and `ripgrep`, and both `ruff` and `pipx:ruff`.
+   - `[history].exclude` has excludes for `containers/systemd`, which isn't tracked at all.
+6. **`config.toml` is being throttled to one save every 24h** because it changed often today, so checkpoints of edits to it lag behind. mise's suggested fix is `--no-autosave` plus explicit saves after edits.
+7. **`~/.config/containers/systemd` has uncommitted changes and 2 unpushed commits**, so a plain `mise bootstrap` fails at repos. That's what happened at 14:22. Someone also accidentally created a directory named `--help/` in it. `~/.skogai` and `/skogai` each have 1 unpushed commit.
+
+## Docs out of date (I'll fix these in `mise.md` either way)
+
+- It says build 2026.10.9 with 27 tools and 50 entries. The real numbers are 2026.10.17, about 40 tools and 54 entries (784 files).
+- It says nothing about the plugin tracking, the sync failure or the throttling.
+
+Shall I go ahead with 1–6 as described? Hole 1 is the only step that pushes to GitHub. For 7 you need to commit or clean up the containers repo yourself.
+
+**Actions**
+
+- Bash: `cd ~/.config/skogai && eza --tree --git-ignore .; rtk git log --oneline | head -20; rtk ls ~/.config/mise; rtk read ~/.c…` (failed)
+- Bash: `cd ~/.config/skogai && rtk read mise.md; echo ----; sed -n '/^"~\/.config\/user/,/^\[bootstrap.directories/p' ~/.config/…`
+- Bash: `cd ~; mise --version; echo ---; mise bootstrap plan 2>&1 | tail -40; echo ---; mise dot status 2>&1 | tail -40`
+- Bash: `cd ~; sed -n '10,25p' ~/.config/omarchy/plugins/omaplug/menu-entry.py; echo ---; rtk ls -la ~/.cloudflared/ 2>&1; echo -…`
+- Bash: `cd ~; G=~/.local/state/mise/history/repo.git; git --git-dir=$G show 54d6963d9036 --stat 2>&1 | head; git --git-dir=$G sh…`
+- Bash: `cd ~; mise bootstrap services apply --dry-run 2>&1 | tail -15; echo ---; mise dot history show 594 2>&1 | head -30`
+- mcp__skogai-atuin__atuin_history: mise bootstrap
+- Bash: `cd ~; mise bootstrap repos status 2>&1 | tail; for r in ~/.config/skogai ~/.config/containers/systemd ~/.skogai /skogai;…`
+
+## 2026-10-25 17:37 · turn cb6376fd
+
+**User**
+
+> that is the symptom fixed, the cause is probably a exclude in the path herdr checks out plugins? and go ahead 
+>
+> remove cloudflared token reference 
+>
+> remove skogai toml
+>
+> cleanup overall looks good
+
+**Assistant**
+
+Your guess was right: the cause was the plugin excludes. Everything is fixed, dotfiles sync publishes again, and `mise bootstrap plan` shows nothing left to change.
+
+- **Cause:** `[history].exclude` had a rule for herdr's plugin checkouts but none for `~/.config/omarchy/plugins/`. mise skips nested repos and its warning says "track it directly", so the three omarchy plugins got tracked by hand. One harmless line in them looked like a secret to mise, and every sync since 14:35 stopped there.
+- **Fix:** I removed the three plugin entries, added `~/.config/omarchy/plugins/**` to the excludes, and ran one `mise dot sync --allow-plaintext-history`, which published `66ff947`. Rotating anything isn't needed because the flagged line isn't a secret.
+- **A second hole from the same rule:** the herdr exclude `~/.config/herdr/plugins/**` also overrode herdr's own `include = ["plugins/config/**"]`, so herdr's plugin config was never saved. I dropped that exclude, since the include list already keeps the checkouts out. herdr now tracks 12 files instead of 2.
+- **Removed:**
+  - the `~/.cloudflared/token` entry
+  - `config.skogai.toml` (the origin stays in `config.local.toml`)
+  - the duplicate `~/.config/mise/config.toml` entry
+  - the duplicate tools `rg` and `pipx:ruff`
+  - excludes for paths that aren't tracked or don't exist
+- **Watcher unit:** updated with `mise bootstrap services apply`. It had gone stale after the mise upgrade.
+- **Docs:** `mise.md` has a 2026-10-25 review note covering the above, including the rule that a nested-repo warning means exclude, not track. Committed as `0c2d4cb`.
+
+Two things I left alone:
+- **24h throttle on `config.toml`:** it's still on. Run `mise dot save` after an edit when you want a checkpoint right away.
+- **`~/.config/containers/systemd`:** it still has uncommitted changes and a stray `--help/` directory, so a plain `mise bootstrap` keeps failing at repos until you sort that repo out.
+
+Backups of the old `config.toml` and `config.skogai.toml` are in `/tmp/claude-1000/-home-skogix--config-skogai/42b0c1bc-08cc-47c5-b006-de80818fdcaa/scratchpad/`.
+
+**Actions**
+
+- Bash: `cd ~; rtk ls -la ~/.config/omarchy/plugins/ ~/.config/herdr/plugins/ | head -40; mise dot paths 2>&1 | grep -iE 'nested|…`
+- mcp__skogai-atuin__atuin_history: omarchy/plugins
+- Bash: `cd ~; rtk ls -A ~/.config/omarchy/plugins/; echo ---; mise dot paths 2>&1 | grep -E 'herdr|omarchy' | head -20; echo ---…`
+- Bash: `cd ~; rtk find ~/.config/herdr/plugins/config -type f | head; echo ---; rtk ls -d ~/.config/fish/fish ~/.config/fish/fis…`
+- Bash: `cd ~; S=/tmp/claude-1000/-home-skogix--config-skogai/42b0c1bc-08cc-47c5-b006-de80818fdcaa/scratchpad; mkdir -p $S; cp ~/…`
+- Bash: `cd ~; python3 -I - <<'EOF'`
+- Bash: `cd ~; mise dot save -m "untrack omarchy plugin checkouts, drop cloudflared entry, fix herdr plugins/config" 2>&1 | tail …`
+- Bash: `cd ~; mise dot history ls 2>&1 | head -3; cd ~/.config/skogai; rtk grep -n 'mise (https\|27 tools\|2026.10.9\|50 `mode\|…`
+- Bash: `cd ~/.config/skogai; n=$(sed -n '/^\[tools\]/,/^\[/p' ~/.config/mise/config.toml | grep -c ' = '); echo $n; python3 -I -…`
+- Bash: `cd ~/.config/skogai; sed -i 's/  - Now: 47 entries, ~324 files/  - Now: 49 entries, 324 files/' mise.md; rtk git add mis…`
+
+## 2026-10-25 17:42 · turn 303d41eb
+
+**User**
+
+> hi claude. id like to look over "my personal mappings" overall since herdr/tmux-changes i think have dissapeared. check @mappings.md and @window-manager.md for starting context
+
+**Assistant**
+
+I've restored your herdr binds and reloaded herdr. The reload went through with no errors. Your tmux and Hyprland binds were never lost: the 04:13 rollback last night had already put them back.
+
+**What happened to herdr:** on Oct 24 at 09:06, Omarchy's `omarchy-refresh-config` replaced `~/.config/herdr/config.toml` with its stock version. That's mise checkpoint 546, and the `.bak.<timestamp>` file it left is the format that script writes. Your shell history shows no command from that minute, so it was probably triggered from the Omarchy menu or an update. Last night's rollback went back to checkpoint 568, which was after this, so it couldn't bring the herdr binds back.
+
+**Back from the backup:**
+- Splits: `prefix+-` / `prefix+|`
+- Pane focus: `alt+hjkl`; pane resize: `alt+shift+hjkl`
+- Tabs: `prefix+h/l` for previous/next; rename pane is `prefix+alt+r`
+- Plugin keys:
+  - `prefix+e`: nvim sidebar
+  - `prefix+o`: open a file from agent output
+  - `prefix+ctrl+s` / `prefix+ctrl+r`: resurrect save/restore
+  - `prefix+S` / `prefix+O`: save/open a named space
+  - `prefix+shift+c`: worktrunk switch/create
+  - `prefix+shift+m`: worktrunk merge
+- `[update] channel = "preview"` and `agent_panel_sort = "spaces"`
+
+**Kept from after the refresh:** `onboarding = false`, `auto_switch = true` (your edit today at 17:04), the see-through tab bar, `status_indicators`, sound on, and toast delivery set to `herdr`.
+
+I made the change through mise as a capture, checkpoint 616, so `mise dot undo` reverses it.
+
+What's still exposed: herdr and tmux binds are only written down in their config files, and `mappings.md` still has `[@TODO:tmux]`. If they had their own record like `window-manager.md`, the next stock refresh would show up as a mismatch instead of going unnoticed for a day. Want me to write it?
+
+**Actions**
+
+- Bash: `cd ~/.config/skogai && rtk git log --oneline --all -- mappings.md window-manager.md | head; rtk git log --all --oneline …` (failed)
+- ToolSearch: select:mcp__skogai-atuin__atuin_threads_search,mcp__skogai-atuin__atuin_history
+- Bash: `cd ~/.config/herdr && rtk read config.toml; echo ======; rtk diff config.toml.bak.1792825569 config.toml; echo ======; r…` (failed)
+- mcp__skogai-atuin__atuin_threads_search: herdr keybindings
+- Bash: `cd ~/.config/herdr; date -d @1792825569; rtk diff config.toml.bak.1792825569 config.toml; echo "-----TMUX"; rtk read tmu…`
+- mcp__skogai-atuin__atuin_threads_search: herdr config.toml
+- Bash: `rtk ls -la --time-style=full-iso ~/.config/tmux 2>&1; mise dotfiles --help 2>&1 | head -40`
+- ToolSearch: select:mcp__skogai-atuin__atuin_threads_read
+- mcp__skogai-atuin__atuin_threads_read: 01a1710789027ca0b1212487a6ccef44
+- Bash: `cd ~; mise dot history -n 25 2>&1 | head -40; echo; echo "--- herdr"; mise dot history --path ~/.config/herdr/config.tom…`
+- Bash: `cd ~; mise dot history diff 610 -p --path ~/.config/herdr/config.toml 2>&1 | head -150; echo "=== tmux now vs 568"; mise…`
+- Bash: `cd ~; for c in 552 553 554 555 580 581 583; do echo "=== $c"; mise dot history diff $c -p --path ~/.config/herdr/config.…`
+- Bash: `cd ~; mise dot history show 546 2>&1 | head; mise dot history diff 546 -p --path ~/.config/herdr/config.toml | grep -E '…`
+- mcp__skogai-atuin__atuin_threads_search: herdr panel_bg reset Glassy
+- Bash: `sed -n 95,130p ~/.config/herdr/config.toml.bak.1792825569; sed -n 186,196p ~/.config/herdr/config.toml.bak.1792825569; e…`
+- Bash: `grep -rl 'Mirrors the Omarchy tmux config' ~/.local/share/omarchy /usr/share/omarchy 2>/dev/null | head; grep -rln 'herd…`
+- Bash: `cd ~/.local/share/omarchy/migrations; rtk read 1786273938.sh; echo ----; rtk read 1791722809.sh; echo ----; ls | sort -n…` (failed)
+- Bash: `rtk grep -n 'bak' ~/.local/share/omarchy/bin/omarchy-refresh-config; grep -rln 'refresh-herdr\|refresh-config herdr' ~/.…`
+- Bash: `cd ~/.config/herdr && s=scratch; f=/tmp/claude-1000/-home-skogix--config-skogai/4508132e-afdd-4572-8f88-33d4283b23f4/scr…`
+- Bash: `f=/tmp/claude-1000/-home-skogix--config-skogai/4508132e-afdd-4572-8f88-33d4283b23f4/scratchpad/herdr.toml; sed -i '1d' $…`
+- Bash: `cd ~ && mise dot capture --label "restore herdr personal binds from omarchy refresh backup" -- cp /tmp/claude-1000/-home…`
+- Bash: `herdr server reload-config 2>&1 | sed '/Are you an AI/,$d' | tail -5; tail -5 ~/.config/herdr/herdr-server.log | rtk gre…`
+
