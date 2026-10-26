@@ -9,14 +9,45 @@ command syntax.
 
 ## Per-machine setup
 
-- Binary: `/usr/bin/herdr` (0.9.3 at time of writing). Server runs under
-  the user; the socket is `~/.config/herdr/herdr.sock`.
+- Binary: mise's `herdr` (`~/.config/mise/config.toml`, `latest`; 0.9.5 on
+  2026-10-26), first on PATH. Omarchy's package `omarchy-herdr` also ships
+  `/usr/bin/herdr` (0.8.0); anything that hardcodes that path gets the old
+  one. Server runs under the user; the socket is
+  `~/.config/herdr/herdr.sock`.
 - Config: `~/.config/herdr/config.toml`, Omarchy's shipped config plus the
   personal changes under "Keybindings" below. Apply changes with
   `herdr server reload-config`.
 - Shell: `dash-skogai/fish/config.fish` loads `herdr completion fish`.
 - Window manager: Omarchy's "Herdr" floating terminal is the dropdown
   terminal on `Mod+grave` (see `window-manager.md`).
+
+## What herdr adds over tmux
+
+Source: the docs at `https://herdr.dev/llms.txt` (versioned per release).
+
+- **Agent**: a coding-agent process herdr recognises in a pane (claude,
+  codex, opencode, pi, ...). A plain shell is not one. herdr finds the
+  process, then classifies the live bottom of the pane with a per-agent
+  detection manifest (or the integration's own reports) into `working`,
+  `blocked` (needs input/approval), `done` (finished, not yet looked at),
+  `idle` (finished, seen) or `unknown`. `herdr agent list` shows them;
+  `herdr agent explain <pane>` shows which rule matched.
+- **Rollup**: a blocked agent makes its tab and workspace look blocked in
+  the sidebar. The intended workflow: several agents in parallel, one
+  workspace per repo, the sidebar says which one needs you.
+- **Goto picker** (`prefix+g`): every agent and terminal across
+  workspaces. `b`/`w`/`i`/`d` filter blocked/working/idle/done, `a` all,
+  `/` search, Enter jumps. The main way to find the agent that needs you.
+- **Names**: `herdr agent rename <pane> <name>` (display + target). Then
+  `herdr agent attach <name>` (just that pane, `prefix+q` detaches) and
+  `herdr agent prompt <name> "..." --wait`.
+- **Restore**: detach keeps everything running. A server restart brings
+  back layout and cwd; agent conversations resume only through an
+  installed integration (native session restore).
+
+Not used yet: `next_agent` / `previous_agent` / `[keys.quick] agents`
+bindings (all unbound by default), `prefix+o` notification target and
+`prefix+e` edit scrollback (both shadowed by herdr-nvim, see below).
 
 ## Keybindings
 
@@ -88,9 +119,8 @@ Claude Code reports pane state through a hook, installed by herdr:
 - Check: `herdr integration status`. Upgrade the Claude hook with
   `herdr integration install claude` (v8 → v10 on 2026-10-07).
 
-Other agents on this machine, as of the same check: pi and opencode are
-outdated (`herdr integration install pi` / `opencode`); codex and hermes are
-current; the rest are not installed.
+Other agents, as of 2026-10-26: pi, codex, copilot, opencode, hermes,
+cursor, antigravity-cli and grok are current; the rest are not installed.
 
 ## Conventions for skogai
 
