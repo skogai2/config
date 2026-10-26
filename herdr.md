@@ -110,7 +110,9 @@ The diff should show exactly the changes above.
 
 ## Agent integration
 
-Claude Code reports pane state through a hook, installed by herdr:
+The Claude integration adds native session restore (the same conversation
+comes back after a server restart). Claude's state still comes from screen
+detection, not the hook (`herdr agent explain` shows the matched rule):
 
 - Hook: `~/.claude/hooks/herdr-agent-state.sh`, a symlink directory to
   `/skogai/scripts/claude/hooks/`. The file is herdr-managed and is
