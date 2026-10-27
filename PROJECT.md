@@ -53,8 +53,13 @@ Status as of 2026-10-25. `[x]` done, `[~]` in progress, `[ ]` not started.
   or rewrite history (skogix's call)
 - [ ] machine-specific files (`hypr/monitors.lua`, ...) as `machine`
   variants, once a second machine exists
-- [ ] noisy files (`fish/fish_variables`, the `mise/config.toml`
-  24h throttle): keep, exclude or save by hand
+- [~] noisy files: 2026-10-27 untracked `ibus`, `fcitx` (runtime
+  socket files only) and `dconf` (binary db; a `dconf dump` export if
+  settings matter), excluded herdr `*.panes` state and the theme files
+  Omarchy generates (`zed/themes/omazed.json`,
+  `spotifast/themes/omarchy.json`). Left: `fish/fish_variables`, the
+  `mise/config.toml` 24h throttle (its edits are real; `--no-autosave`?),
+  `systemd/user/no-mistakes-daemon-<hash>.service` (declare or exclude)
 - [ ] origin `README.md` + `.skogai/` (agent workspace, `dotfiles.md`)
 
 ### 2. coverage: every `~/.config/<app>/` decided
