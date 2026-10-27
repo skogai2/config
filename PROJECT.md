@@ -64,11 +64,11 @@ Status as of 2026-10-25. `[x]` done, `[~]` in progress, `[ ]` not started.
   all `spotifast/themes`, btop `current.theme`, bootstrap's `dev.mise.*`
   units and `no-mistakes-daemon-*`, openknowledge telemetry, the dangling
   `git/hooks` link. Left: the `mise/config.toml` 24h throttle (its edits
-  are real; `--no-autosave`?); `fish_user_paths` into a conf.d file;
-  hand-written user units enabled only by tracked `*.wants` links
-  (declare in bootstrap, then exclude the links); leftovers
-  `kitty/kitty.conf2`, `fish/bkg.config.fish`; generated
-  `fish/completions/*` (bootstrap could generate them)
+  are real; `--no-autosave`?); `fish_user_paths` and the main fish
+  config split into conf.d files (later); leftovers `kitty/kitty.conf2`,
+  `fish/bkg.config.fish`. Checkpoint 699 (169 files): systemd `*.wants`
+  links excluded, herdr plugins, omarchy and bootstrap set them up.
+  `fish/completions/*` stay tracked, many are added by hand.
 - [ ] origin `README.md` + `.skogai/` (agent workspace, `dotfiles.md`)
 
 ### 2. coverage: every `~/.config/<app>/` decided
