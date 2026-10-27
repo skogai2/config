@@ -37,7 +37,7 @@ Status as of 2026-10-25. `[x]` done, `[~]` in progress, `[ ]` not started.
 
 ### 1. the base: dotfiles and bootstrap
 
-- [x] `~/.config` tracked in place (60 entries), synced to
+- [x] `~/.config` tracked in place (54 entries, 169 files as of 2026-10-27), synced to
   `skogai2/.dotfiles`; holes from the first tests fixed (`mise.md` item 2)
 - [x] bootstrap declares packages (divergences only), accounts, files,
   repos, login shell, user units (`mise.md` item 1)
@@ -47,6 +47,12 @@ Status as of 2026-10-25. `[x]` done, `[~]` in progress, `[ ]` not started.
   repos (do submodules clone?), tools, services
 - [ ] `[tasks.bootstrap]` assumes Omarchy; guard it so other machines
   can run bootstrap
+- [ ] `dev.mise.gptme-server` runs but is no longer declared (no
+  `[bootstrap.linux.systemd.units]`): declare it again or remove it
+- [ ] fish activates mise twice (bootstrap's `config.fish` block +
+  `conf.d/00_mise_activate.fish`): delete the conf.d file
+- [ ] `mise-history` user service `installed, differs`:
+  `mise bootstrap services apply`
 - [ ] `[history] git_email = "mise@{hostname}"`, so machine and agent
   commits can be told apart
 - [ ] Obsidian cookies in pushed history: log Obsidian out everywhere,

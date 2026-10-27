@@ -6,11 +6,12 @@ type: reference
 # mise
 
 mise (https://mise.jdx.dev) is installed as the tool-version manager
-(`~/.config/mise/config.toml`, 33 tools, mostly `latest`), with an Omarchy
-layer at `/etc/mise/conf.d/omarchy.toml` (only a `cursor-agent` tool alias).
-It is also wired up as an MCP server (`mise mcp`).
+(`~/.config/mise/config.toml`, 36 tools, mostly `latest`), with an Omarchy
+layer at `/etc/mise/conf.d/omarchy.toml` (a `cursor-agent` tool alias and
+`upgrade.auto_prune = false`). It is also wired up as an MCP server
+(`skogai-mise`, running `mise mcp`).
 
-The build here (2026.10.17 as of 2026-10-25) does far more than manage tool versions. Several
+The build here (2026.10.17 as of 2026-10-27, 2026.10.20 available) does far more than manage tool versions. Several
 of its features overlap with things this repo already handles another way
 (atuin for env vars/aliases, hand-run steps in `containers.md`, etc.). This
 page tracks a guided walk through those features, one at a time, to decide
@@ -29,13 +30,16 @@ start of each session:
    how it relates to what's already in place on this machine.
 3. Run only `read` subcommands (`status`, `ls`, `diff`, `plan`, ...)
    without asking. Confirm any `write` or `destructive` subcommand first.
-   `mcp__mise__list_commands` gives the classification for each one.
+   `mcp__skogai-mise__list_commands` gives the classification for each one.
 4. Before ending, record the outcome under the topic's **Notes** (what was
    decided and why, what was changed) and update its marker:
    `[ ]` = not started, `[~]` = in progress, `[x]` = decided, `[-]` = skipped.
 
 Don't read `mise env` or `mise://env` output into the conversation without
 asking. It may contain secrets.
+
+References like `tmp/mise-docs/...` point into a clone of mise's docs that
+lived in this repo's gitignored `tmp/`. It's gone; re-clone to follow them.
 
 ## MCP server
 
@@ -126,7 +130,11 @@ Notes:
     see the files entry below.
   - `gptme-server`, `voxtype`: hand-written user units with extras →
     `systemd-units`. `collie`: owned by its herdr plugin, so left alone.
-    `history-watch`: decide at item 2.
+  - `history-watch`: declared at item 2 as
+    `[bootstrap.services.mise-history] builtin = "history-watch"` (unit
+    `dev.mise.mise-history`). 2026-10-27: status `installed, differs`, the
+    same drift as after the 2026-10-25 upgrade;
+    `mise bootstrap services apply` rewrites it.
   - Found along the way: the user unit `podman.service` (Podman API) was
     enabled directly and failing at every login. Now socket-only (service disabled, socket enabled); see
     `containers.md` step 9.
@@ -201,8 +209,10 @@ Notes:
   doesn't. Reference: `tmp/mise-docs/bootstrap/accounts.md`.
   - Declared: group `skogai` (system), the agent users claude, dot, amy and
     goose (system, primary group `skogai`, `/home/<name>`, `nologin`), and
-    skogix's membership in `skogai`. IDs aren't pinned. `bootstrap plan`:
-    22 unchanged, nothing to do.
+    skogix (primary group `skogai`, `groups = ["skogai", "wheel"]`, shell
+    fish). IDs aren't pinned. `bootstrap plan`: 22 unchanged, nothing to do.
+  - 2026-10-14, later: claude got `/usr/bin/bash` for `ssh claude@localhost`
+    tests (`secrets.md`). dot, amy and goose are still `nologin`.
   - mise counts the primary group as membership, so the agents need no
     `groups` list.
   - `nologin` (as of now): agents are identities, not logins. Login,
@@ -226,10 +236,9 @@ Notes:
   `/skogai` (2775, setgid) from files first and then clones into the empty
   dir. Reference: `tmp/mise-docs/bootstrap/repos.md`.
   - Declared, no `ref`: `~/.config/skogai`, `~/.config/containers/systemd`,
-    `~/.skogai` (dot-skogai) and `/skogai` (dash-skogai). Status
-    at the time: `~/.skogai` current, the other three dirty (uncommitted
-    work), so a plain `mise bootstrap` on this machine needs
-    `--skip-dirty` while work is in progress.
+    `~/.skogai` (dot-skogai) and `/skogai` (dash-skogai). A dirty checkout
+    fails a plain `mise bootstrap`; use `--skip-dirty` while work is in
+    progress. All four `current` on 2026-10-27.
   - Not declared: the home workspaces (`~/skogai`, `~/skogix`, `~/claude`,
     `~/dot`, ...), the 29 clones in `~/.local/src`, and `~/old/*`.
   - Unverified: whether mise clones submodules (`/skogai/gptme-contrib`).
@@ -239,14 +248,15 @@ Notes:
   - `user`: adopted. `[bootstrap.user] login_shell = "/usr/bin/fish"` plus
     `"pacman:fish"` in packages, since fish is a choice and Omarchy's
     default is bash. Both already matched.
-  - `mise-shell-activate`: nothing declared. mise is already active
+  - `mise-shell-activate`: first nothing declared. mise was already active
     everywhere: Omarchy's uwsm env gives the session shims, Omarchy's
     `bash/init` activates interactive bash, and
     `~/.config/fish/conf.d/00_mise_activate.fish` (hand-placed Oct 7)
-    activates fish. `fish = "auto"` would add a second block to
-    `config.fish`, and its only gain (shims for non-interactive fish) is
-    already covered by the session PATH. Who owns the fish config gets
-    decided at item 2 (dotfiles).
+    activates fish.
+  - Since then `[bootstrap.mise_shell_activate] fish = true` was declared
+    and applied: `config.fish` has the managed `mise:activate` block. The
+    conf.d file is still there too, so fish activates mise twice. Open:
+    delete `00_mise_activate.fish` and let bootstrap own it.
   - Long-term goal: zsh set up alongside fish. `"pacman:zsh"` was added
     and applied (zsh 5.9.2 installed, 2026-10-14). Still to do:
     `~/.zshrc` is only a uv-installer stub. It needs `zsh = true` under
@@ -263,17 +273,19 @@ Notes:
   - `gptme-server` migrated as the example: old unit disabled and deleted,
     `dev.mise.gptme-server` active and enabled, port 5700 answers 200. The
     env file `~/.config/gptme/server.env` stays outside the config.
+  - 2026-10-27: no `[bootstrap.linux.systemd.units]` left in the config,
+    but `dev.mise.gptme-server.service` is still on disk and active. It's
+    an orphan: `dev.mise.*` is excluded from history, so a fresh machine
+    doesn't get it. Open: declare it again, or stop and delete it.
   - Removed: `gptme-agent-claude`/`-dot` (.service + .timer). They were
     disabled, so the files were deleted by hand.
   - Left alone: `voxtype` (Omarchy's `omarchy-voxtype-install` runs
     `voxtype setup systemd`; the override in `~/.config/systemd/user` is
     older than the package's `/usr/lib/systemd/user/voxtype.service`) and
     `collie` (herdr plugin).
-  - `history-watch` (from services): decide at item 2, since it belongs
-    to dotfiles.
 - **tools — nothing to change** (2026-10-14). Step 16 of the run is
-  `mise install` for `[tools]`, which is already how the 27 tools are
-  managed. `bootstrap --only tools --dry-run`: all installed.
+  `mise install` for `[tools]`, which is already how the tools (27 then,
+  36 now) are managed. `bootstrap --only tools --dry-run`: all installed.
 - **task/hooks — decided: a guarded `bootstrap` task** (2026-10-14).
   Hooks run commands at named points (`pre-/post-packages`, `-repos`,
   `-dotfiles`, `-user`, `-tools`, `final`). `[tasks.bootstrap]` runs
@@ -319,15 +331,16 @@ Notes:
   now declares: packages (Podman switch, fish, zsh), accounts (skogai
   group + agents), files (cloudflared, `/skogai`), the cloudflared system
   service, repos (config/infra), the login shell, the gptme-server user
-  unit, and a guarded `bootstrap` task. `mise bootstrap plan` converges
+  unit (gone since, see systemd-units), and a guarded `bootstrap` task. `mise bootstrap plan` converges
   to "nothing to change", except repos while they have uncommitted work.
 - **Open threads from item 1:**
-  - `~/.config/mise` (config + `files/`) isn't versioned, and it now holds
-    real machine state. Settle it first at item 2. It also blocks
-    `remote`, which needs a project dir.
+  - ~~`~/.config/mise` isn't versioned~~: tracked by item 2. `remote` still
+    needs a project dir.
   - Packages: go through `pacman -Qqe` for Emil's other additions (atuin,
     herdr, bitwarden, tailscale, the 7 AUR packages, ...).
   - zsh: installed but no mise/atuin setup (see shell).
+  - fish activates mise twice (see shell).
+  - `gptme-server` unit is an undeclared orphan (see systemd-units).
   - Agents: real login shells over SSH (see accounts).
   - `/skogai/admin` scripts: trim down to `coord.db` creation (see
     accounts).
@@ -337,8 +350,7 @@ Notes:
 
 ### [~] 2. `mise dotfiles` — deploy, track, sync
 
-Dotfile deployment plus versioned history. `config.toml` already has an
-empty `[dotfiles]` section.
+Dotfile deployment plus versioned history.
 
 - `status`, `paths`, `diff` — read state
 - `add`, `track`, `untrack`, `edit`, `exclude`, `include` — choose what's
@@ -472,9 +484,14 @@ Notes:
     count. Now: 60 entries, 219 files, 293 watches. Most of what's left
     is `omarchy/{plugins,themes}`; split omarchy the same way if it grows.
   - Check: count the `inotify` lines in `/proc/<watcher pid>/fdinfo/*`.
-- Open: `fish_variables` is tracked and noisy (fish rewrites it); revisit if
-  `mise dot paths --noisy` flags it. `capture` (e.g. around
-  `omarchy-update`) not tried yet.
+- **Noise trim 2026-10-27** (details in `PROJECT.md` §1). Untracked
+  `ibus`, `fcitx`, `dconf`, `uv`, `tailscale`, `menus`; excluded
+  `fish_variables`, per-machine trust files, generated themes, bootstrap's
+  `dev.mise.*` units, systemd `*.wants` links. Now: 54 entries, 169 files,
+  checkpoint 704.
+- Open: `mise dot paths --noisy` flags only `mise/config.toml` (24h
+  throttle; its edits are real, so `--no-autosave` + `mise dot save` is the
+  candidate). `capture` (e.g. around `omarchy-update`) not tried yet.
 
 ### [ ] 3. Aliases and env vars — `shell-alias`, `set`/`unset`, `vars`
 
