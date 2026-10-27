@@ -57,9 +57,18 @@ Status as of 2026-10-25. `[x]` done, `[~]` in progress, `[ ]` not started.
   socket files only) and `dconf` (binary db; a `dconf dump` export if
   settings matter), excluded herdr `*.panes` state and the theme files
   Omarchy generates (`zed/themes/omazed.json`,
-  `spotifast/themes/omarchy.json`). Left: `fish/fish_variables`, the
-  `mise/config.toml` 24h throttle (its edits are real; `--no-autosave`?),
-  `systemd/user/no-mistakes-daemon-<hash>.service` (declare or exclude)
+  `spotifast/themes/omarchy.json`). Second pass (checkpoint 698, 185
+  files): untracked `uv` (installer receipt), `tailscale` (tailnet host
+  keys), `menus` (generated); excluded `fish/fish_variables`, worktrunk
+  `approvals.toml` and gptme `project-trust.toml` (per-machine trust),
+  all `spotifast/themes`, btop `current.theme`, bootstrap's `dev.mise.*`
+  units and `no-mistakes-daemon-*`, openknowledge telemetry, the dangling
+  `git/hooks` link. Left: the `mise/config.toml` 24h throttle (its edits
+  are real; `--no-autosave`?); `fish_user_paths` into a conf.d file;
+  hand-written user units enabled only by tracked `*.wants` links
+  (declare in bootstrap, then exclude the links); leftovers
+  `kitty/kitty.conf2`, `fish/bkg.config.fish`; generated
+  `fish/completions/*` (bootstrap could generate them)
 - [ ] origin `README.md` + `.skogai/` (agent workspace, `dotfiles.md`)
 
 ### 2. coverage: every `~/.config/<app>/` decided
