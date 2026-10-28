@@ -17,24 +17,6 @@ and routes to them.
 | knowledge, decisions, conventions | this repo, one page per concern | git |
 | secrets | fnox + age (in progress) | ciphertext only |
 
-## the base
-
-- **mise** is the base: `mise dotfiles` tracks `~/.config`, and
-  `mise bootstrap` declares and converges machine state. skogai builds
-  on top of them and replaces neither.
-- Each tool owns its own area (atuin: shell history, herdr: agent
-  workspaces, podman: containers, Omarchy: the base system). skogai adds
-  routes and conventions on top and doesn't reinvent any of them.
-
-## pages
-
-- `SKOGAI.md`: the root router; start here
-- `PROJECT.md`: the current version's goals and plan
-- `mise.md`: the mise walkthrough, decisions per feature
-- `dotfiles.md`: how dotfiles change, live or upstream
-- `secrets.md`, `atuin.md`, `containers.md`, `herdr.md`: one concern each
-- `mappings.md`: keybindings (window manager, tmux, herdr)
-
 ## working here
 
 - Read the page for a concern before changing anything in it. A page

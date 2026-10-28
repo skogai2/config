@@ -8,7 +8,7 @@ type: router
 - @.skogai/TODO.md
 - @README.md - what this repo is, for any agent
 - @PROJECT.md
-- @dotfiles.md - how dotfiles change: live on a machine, or upstream in the origin
+- dotfiles.md - read before changing a dotfile: live on a machine, or upstream in the origin. Never commit secrets there.
 
 </routes>
 
@@ -24,6 +24,7 @@ type: router
 Each one owns its own area. skogai adds the routes and conventions on
 top and doesn't reinvent any of them.
 
+- Omarchy: the base system
 - mise: tool versions, machine state (`bootstrap`), dotfile history
 - atuin: shell history; env vars and aliases for now (see `mise.md` item 3)
 - fnox + age: secrets (draft, see `secrets.md`)
