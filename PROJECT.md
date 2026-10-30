@@ -58,8 +58,8 @@ Status as of 2026-10-25. `[x]` done, `[~]` in progress, `[ ]` not started.
 - [ ] Obsidian cookies in pushed history: log Obsidian out everywhere,
   or rewrite history (skogix's call)
 - [ ] `~/.cloudflared/token` in history (checkpoints 208-210,
-  2026-10-19, removed but not erased): rotate the token if those were
-  pushed, and the same history call as the cookies
+  2026-10-19, removed but not erased): token already rotated; only the
+  history call left, same as the cookies
 - [ ] machine-specific files (`hypr/monitors.lua`, ...) as `machine`
   variants, once a second machine exists
 - [~] noisy files: 2026-10-27 untracked `ibus`, `fcitx` (runtime
@@ -82,7 +82,8 @@ Status as of 2026-10-25. `[x]` done, `[~]` in progress, `[ ]` not started.
 
 ### 2. coverage: every `~/.config/<app>/` decided
 
-Not tracked yet, to sort into track / exclude / owner's:
+Not tracked yet, to sort into track / exclude / owner's. When unsure:
+track, then trim the noise within the hour (decided 2026-10-30).
 
 - likely config: `aichat`, `argc`, `cactus`, `environment.d`,
   `fontconfig`, `goose`, `rtk`, `uwsm`, `voxtype`, `cloudflare` (check
@@ -103,8 +104,8 @@ Not tracked yet, to sort into track / exclude / owner's:
   `.todo/dotfiles-old` (the old stow repo: merge what's still wanted,
   then remove). `~/.dotfiles` is not one: it's the mise history
   checkout of `skogai2/.dotfiles`.
-- [ ] outside `~/.config`: does mise track anything in `~` at all?
-  Candidates: `.bashrc` (+ 7 backups to clean), `.bash_profile`,
+- [ ] outside `~/.config`: tracked in place too, same path rules
+  (decided 2026-10-30). Candidates: `.bashrc` (+ 7 backups to clean), `.bash_profile`,
   `.profile`, `.zshenv`, `.inputrc`, `.XCompose`, `.gemrc`,
   `.ssh/config`, `.gnupg` config, `.git-templates`, `~/bin`,
   `~/.local/bin`, `~/.local/share/applications`, and the agent homes
