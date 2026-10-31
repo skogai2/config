@@ -37,12 +37,18 @@ Status as of 2026-10-25. `[x]` done, `[~]` in progress, `[ ]` not started.
 
 ### 1. the base: dotfiles and bootstrap
 
-- [x] `~/.config` tracked in place (54 entries, 169 files as of 2026-10-27), synced to
-  `skogai2/.dotfiles`; holes from the first tests fixed (`mise.md` item 2)
-- [x] bootstrap declares packages (divergences only), accounts, files,
-  repos, login shell, user units (`mise.md` item 1)
+- [x] `~/.config` tracked in place (54 entries, 174 files as of 2026-10-31), synced to
+  `skogai2/.dotfiles`; holes from the first tests fixed (`mise/dotfiles.md`)
+- [x] bootstrap declares packages (divergences only), the skogai group,
+  services, repos, fish activation, the bootstrap task
+  (`mise/bootstrap.md`). 2026-10-31: the commented-out files, `/skogai`
+  dirs, agent users and login shell were removed from the config;
+  `plan` is 13 unchanged, 0 to do
+- [ ] `~/.skogai` and `/skogai` back into `[bootstrap.repos]` once
+  they're set up again (commented out 2026-10-31: not a checkout /
+  origin is `skogai2/skogix` now)
 - [x] fresh-machine adopt tested for dotfiles; upstream edits through an
-  origin clone tested (`dotfiles.md`)
+  origin clone tested (`mise/dotfiles-upstream.md`)
 - [ ] full fresh-machine run in a container or VM: packages, accounts,
   repos (do submodules clone?), tools, services
 - [ ] `[tasks.bootstrap]` assumes Omarchy; guard it so other machines
@@ -51,8 +57,10 @@ Status as of 2026-10-25. `[x]` done, `[~]` in progress, `[ ]` not started.
   `[bootstrap.linux.systemd.units]`): declare it again or remove it
 - [ ] fish activates mise twice (bootstrap's `config.fish` block +
   `conf.d/00_mise_activate.fish`): delete the conf.d file
-- [ ] `mise-history` user service `installed, differs`:
-  `mise bootstrap services apply`
+- [x] `mise-history` user service `installed, differs`: `unchanged` as
+  of 2026-10-31
+- [ ] `mise self-update` (2026.10.17 → 2026.10.23), then
+  `mise bootstrap plan`
 - [ ] `[history] git_email = "mise@{hostname}"`, so machine and agent
   commits can be told apart
 - [ ] Obsidian cookies in pushed history: log Obsidian out everywhere,
@@ -60,6 +68,9 @@ Status as of 2026-10-25. `[x]` done, `[~]` in progress, `[ ]` not started.
 - [ ] `~/.cloudflared/token` in history (checkpoints 208-210,
   2026-10-19, removed but not erased): token already rotated; only the
   history call left, same as the cookies
+- [ ] `fnox/age.txt`, `gh/hosts.yml`, gptme oauth/`server.env`, collie
+  `.env` in history (checkpoints 808-825, 2026-10-29): burned; only the
+  history call left
 - [ ] machine-specific files (`hypr/monitors.lua`, ...) as `machine`
   variants, once a second machine exists
 - [~] noisy files: 2026-10-27 untracked `ibus`, `fcitx` (runtime
@@ -78,7 +89,7 @@ Status as of 2026-10-25. `[x]` done, `[~]` in progress, `[ ]` not started.
   `fish/bkg.config.fish`. Checkpoint 699 (169 files): systemd `*.wants`
   links excluded, herdr plugins, omarchy and bootstrap set them up.
   `fish/completions/*` stay tracked, many are added by hand.
-- [ ] origin `README.md` + `.skogai/` (agent workspace, `dotfiles.md`)
+- [ ] origin `README.md` + `.skogai/` (agent workspace, `mise/dotfiles-upstream.md`)
 
 ### 2. coverage: every `~/.config/<app>/` decided
 
@@ -119,8 +130,9 @@ track, then trim the noise within the hour (decided 2026-10-30).
   first cut: `machine/` (bootstrap, accounts, packages), `dotfiles/`,
   `secrets/`, `shell/` (atuin, fish, zsh), `containers/`, `desktop/`
   (window manager, mappings, tmux), `agents/` (herdr, agent accounts)
-- [ ] split `mise.md` along the same lines; keep the walkthrough's
-  decisions, drop the session protocol once the walkthrough is done
+- [x] mise bundled into `mise/` (2026-10-31): `SKOGAI.md` router,
+  `bootstrap.md`, `dotfiles.md`, `dotfiles-upstream.md`, `secrets.md`.
+  Drop the walkthrough protocol once the walkthrough is done
 - [ ] `SKOGAI.md` beside the dotfiles: pick the first apps (herdr,
   fnox, atuin, fish), add it to include lists or as its own entry
   where needed
@@ -130,11 +142,11 @@ track, then trim the noise within the hour (decided 2026-10-30).
 ### 4. the rest of the mise walkthrough
 
 - [ ] item 3: aliases and env vars, mise vs atuin
-- [ ] item 4: secrets (fnox + age, `secrets.md`): cloudflared token,
+- [ ] item 4: secrets (fnox + age, `secrets.md`, `mise/secrets.md`): cloudflared token,
   gptme `server.env`, `ollama.secret.env`, the old atuin tokens
 - [ ] item 5: extras (daemons, tasks, generate, maintenance)
 - [ ] zsh beside fish (mise and atuin activation)
-- [ ] agents with real login shells over SSH (`mise.md`, accounts)
+- [ ] agents with real login shells over SSH (`mise/bootstrap.md`, accounts)
 
 # preparations for 3.1
 

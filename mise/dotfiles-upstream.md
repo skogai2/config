@@ -1,9 +1,9 @@
-# dotfiles
+# dotfiles upstream
 
 How dotfiles change. mise's history of the tracked files (`[dotfiles]`
 in `~/.config/mise/config.toml`) is shared through the origin
 `github.com/skogai2/.dotfiles`, branch `main`. Background and test
-results: `mise.md`, item 2.
+results: `dotfiles.md`.
 
 ## two ways to change a dotfile
 

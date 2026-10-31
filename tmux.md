@@ -39,4 +39,4 @@ diff ~/.local/share/omarchy/config/tmux/tmux.conf ~/.config/tmux/tmux.conf
 ```
 
 The diff should show exactly the rows above. Anything less means a refresh
-ran; restore from `mise dot history` (see @mise.md).
+ran; restore from `mise dot history` (see `mise/dotfiles.md`).

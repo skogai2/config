@@ -3,8 +3,8 @@
 A living record of how secrets are encrypted and which user can decrypt
 them, updated directly as the agreement changes. **Status: draft
 (2026-10-14).** Nothing below has been created on the machine yet. The
-mise side (how secrets reach `mise bootstrap` and tasks) is in `mise.md`,
-item 4.
+mise side (how secrets reach `mise bootstrap` and tasks) is in
+`mise/secrets.md`.
 
 ## Model
 

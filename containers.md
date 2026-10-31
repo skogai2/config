@@ -117,4 +117,4 @@ A big chapter for a later session: walk through that repo the way
 `window-manager.md` walks the Hyprland bindings. Record what each stack is,
 whether it's still wanted, and how it relates to the compose files above.
 The repo is managed by hand in the repo itself. mise's `[bootstrap.compose]`
-and `systemd-units` don't take it over (decided 2026-10-14, see `mise.md`).
+and `systemd-units` don't take it over (decided 2026-10-14, see `mise/bootstrap.md`).

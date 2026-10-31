@@ -2,5 +2,6 @@
   - [~] mise; bootstrap (full fresh-machine run still untested)
   - [ ] mise; config
   - [ ] mise; daemons
-  - [x] mise; dotfiles with origin and deeper knowledge of how it works (dotfiles.md, mise.md item 2)
+  - [x] mise; dotfiles with origin and deeper knowledge of how it works (mise/dotfiles.md, mise/dotfiles-upstream.md)
+  - [x] mise; bundled into mise/ (2026-10-31)
   - [ ] mise; env
