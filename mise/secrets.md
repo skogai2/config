@@ -6,7 +6,7 @@ type: reference
 # mise secrets: how secret values reach mise
 
 The mise side of secrets. Keys, recipients and who can read what are in
-`../secrets.md` (fnox + age). Status: tested with throwaway values, nothing
+`../secrets/fnox.md` (fnox + age). Status: tested with throwaway values, nothing
 real moved yet.
 
 ## commands
@@ -53,7 +53,7 @@ real moved yet.
   `environment_file`)
 - `SKOGAI_OLLAMA_API_KEY` in `~/.config/mise/ollama.secret.env` (its
   `_.file` line in `[env]` is commented out)
-- the API tokens cleared out of atuin vars on 2026-09-30 (`../atuin.md`)
+- the API tokens cleared out of atuin vars on 2026-09-30 (`../shell/atuin.md`)
 
 ## open
 

@@ -1,5 +1,5 @@
 ---
-permalink: config/atuin
+permalink: config/shell/atuin
 type: reference
 ---
 

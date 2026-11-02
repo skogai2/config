@@ -3,7 +3,7 @@
 This is a living record of the container-runtime setup, updated directly as
 the agreement changes — not derived from any single dotfiles file. It
 documents a deliberate divergence from Omarchy's stock Docker setup, the same
-way `window-manager.md` tracks divergence from Omarchy's default bindings.
+way `../desktop/window-manager.md` tracks divergence from Omarchy's default bindings.
 
 ## Why
 
@@ -114,7 +114,7 @@ its own `SKOGAI.md`, `PLAN.md` and `SECRETS.md`. This page only covers the
 Docker → Podman runtime switch. It does not cover that stack.
 
 A big chapter for a later session: walk through that repo the way
-`window-manager.md` walks the Hyprland bindings. Record what each stack is,
+`../desktop/window-manager.md` walks the Hyprland bindings. Record what each stack is,
 whether it's still wanted, and how it relates to the compose files above.
 The repo is managed by hand in the repo itself. mise's `[bootstrap.compose]`
-and `systemd-units` don't take it over (decided 2026-10-14, see `mise/bootstrap.md`).
+and `systemd-units` don't take it over (decided 2026-10-14, see `../mise/bootstrap.md`).

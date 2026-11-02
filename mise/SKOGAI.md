@@ -14,7 +14,7 @@ replaces none of it.
 - bootstrap.md - declared machine state: what's declared, per-part decisions, gotchas
 - dotfiles.md - `~/.config` tracked in place: rules, excludes, watcher, history of fixes
 - dotfiles-upstream.md - read before changing a dotfile through the origin repo. Never commit secrets there.
-- secrets.md - how secret values reach mise (`[bootstrap.secrets]`, fnox); keys are in ../secrets.md
+- secrets.md - how secret values reach mise (`[bootstrap.secrets]`, fnox); keys are in ../secrets/fnox.md
 
 </routes>
 
@@ -48,7 +48,7 @@ The global config and `files/` are versioned by the dotfile history; the
 `CLAUDE_CODE_PLUGIN_STORE_DIR`, `CLAUDE_CODE_ENABLE_FUNCTION_HOOKS`,
 `SKOGAI_CONFIG_DIR`, `SKOGAI_DOCS_DIR`, `SKOGAI_CLAUDE_CODE_DOCS`,
 `SKOGAI_CLAUDE_CODE_DOCS_DIR`. atuin dotfiles vars also set env vars and
-aliases (`../atuin.md`); who owns what is walkthrough item 3.
+aliases (`../shell/atuin.md`); who owns what is walkthrough item 3.
 
 ## MCP server
 

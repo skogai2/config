@@ -19,7 +19,7 @@ command syntax.
   `herdr server reload-config`.
 - Shell: `dash-skogai/fish/config.fish` loads `herdr completion fish`.
 - Window manager: Omarchy's "Herdr" floating terminal is the dropdown
-  terminal on `Mod+grave` (see `window-manager.md`).
+  terminal on `Mod+grave` (see `../desktop/window-manager.md`).
 
 ## What herdr adds over tmux
 
@@ -55,7 +55,7 @@ Changes on top of Omarchy's shipped config
 (`~/.local/share/omarchy/config/herdr/config.toml`). Anything not listed is
 Omarchy's default. Omarchy's herdr config mirrors its tmux config
 (session -> workspace, window -> tab, pane -> pane), and the personal keys
-mirror @tmux.md the same way. Prefix is `ctrl+space`.
+mirror @../desktop/tmux.md the same way. Prefix is `ctrl+space`.
 
 | Keys                       | Omarchy default            | Personal                         |
 |----------------------------|----------------------------|----------------------------------|

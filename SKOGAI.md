@@ -9,6 +9,11 @@ type: router
 - @README.md - what this repo is, for any agent
 - @PROJECT.md
 - mise/SKOGAI.md - mise: bootstrap, dotfiles (live or upstream in the origin), secrets. Read before changing any of them.
+- secrets/SKOGAI.md - keys, who can decrypt what (fnox + age), and how secrets reach mise
+- shell/SKOGAI.md - shell history, env vars and aliases (atuin)
+- containers/SKOGAI.md - podman and the quadlet stack
+- desktop/SKOGAI.md - window manager, tmux, keybindings
+- agents/SKOGAI.md - herdr workspaces and panes for agents
 
 </routes>
 
@@ -27,7 +32,7 @@ top and doesn't reinvent any of them.
 - Omarchy: the base system
 - mise: tool versions, machine state (`bootstrap`), dotfile history
 - atuin: shell history; env vars and aliases for now (see `mise/SKOGAI.md`, walkthrough item 3)
-- fnox + age: secrets (draft, see `secrets.md`)
+- fnox + age: secrets (draft, see `secrets/`)
 - herdr: workspaces and panes for agents
 - podman: containers, run as quadlets
 - git: this repo and the other config repos

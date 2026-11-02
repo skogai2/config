@@ -20,8 +20,8 @@ The first step of 3.0 (see SKOGAI.md, history).
 - **`~/.config/skogai/SKOGAI.md` is the root router** for all skogai
   configuration.
 
-Open: how `secrets/fnox/` here and `~/.config/fnox/SKOGAI.md` split the
-work, which one holds the knowledge and which one only routes to it.
+- **Knowledge lives here.** A `~/.config/<app>/SKOGAI.md` is a short
+  route back to its page in this repo (decided 2026-11-01).
 
 ## done when
 
@@ -126,23 +126,46 @@ track, then trim the noise within the hour (decided 2026-10-30).
 
 ### 3. structure: this repo grouped by concern
 
-- [ ] pick the concern groups and move the flat pages into them. A
-  first cut: `machine/` (bootstrap, accounts, packages), `dotfiles/`,
-  `secrets/`, `shell/` (atuin, fish, zsh), `containers/`, `desktop/`
-  (window manager, mappings, tmux), `agents/` (herdr, agent accounts)
+- [x] concern groups (2026-11-01): `secrets/` (fnox), `shell/` (atuin),
+  `containers/` (podman), `desktop/` (window-manager, tmux, mappings),
+  `agents/` (herdr). Each group is a dir with a `SKOGAI.md` router; a
+  page is named after its tool, and a tool gets its own subdir once it
+  has 2+ pages. `machine/` and `dotfiles/` are created with their first
+  page (mise covers both today)
 - [x] mise bundled into `mise/` (2026-10-31): `SKOGAI.md` router,
   `bootstrap.md`, `dotfiles.md`, `dotfiles-upstream.md`, `secrets.md`.
-  Drop the walkthrough protocol once the walkthrough is done
+  Stays one group until it's split into modules. Drop the walkthrough
+  protocol once the walkthrough is done
 - [ ] `SKOGAI.md` beside the dotfiles: pick the first apps (herdr,
   fnox, atuin, fish), add it to include lists or as its own entry
-  where needed
-- [ ] settle the open question above (knowledge here or beside the app)
+  where needed. Each one only routes back to its page here
+- [x] knowledge here or beside the app: here (2026-11-01)
 - [ ] `.skogai/SKOGAI.md` is empty: give it a route or remove it
+
+#### modules and their env vars (planned, not implemented)
+
+Names only; values are never read into a conversation.
+
+- root: `SKOGAI_CONFIG_DIR`. Today it points at `~/skogai/config`, not
+  this repo: decide which one it means before modules use it
+- one `SKOGAI_<GROUP>_DIR` per module: `SECRETS`, `SHELL`,
+  `CONTAINERS`, `DESKTOP`, `AGENTS`, `MISE`
+- the current global `[env]` vars, by the module they'll belong to:
+  - shell: `EDITOR`, `VISUAL`, `PAGER`, `TMPDIR`
+  - agents: `CLAUDE_CODE_PLUGIN_STORE_DIR`,
+    `CLAUDE_CODE_ENABLE_FUNCTION_HOOKS`, `SKOGAI_CLAUDE_CODE_DOCS`,
+    `SKOGAI_CLAUDE_CODE_DOCS_DIR`, `WORKTRUNK_VERBOSE`
+  - docs (no group yet): `SKOGAI_DOCS_DIR`
+  - unsorted: `DO_NOT_TRACK`, `LOADOUT`, `FM_HOME`
+- secrets: the fnox config path (`/etc/skogai/fnox.toml`, decided in
+  `secrets/fnox.md`), once fnox is set up
+- the atuin dotfiles vars and aliases join this list at walkthrough
+  item 3 (mise vs atuin)
 
 ### 4. the rest of the mise walkthrough
 
 - [ ] item 3: aliases and env vars, mise vs atuin
-- [ ] item 4: secrets (fnox + age, `secrets.md`, `mise/secrets.md`): cloudflared token,
+- [ ] item 4: secrets (fnox + age, `secrets/fnox.md`, `mise/secrets.md`): cloudflared token,
   gptme `server.env`, `ollama.secret.env`, the old atuin tokens
 - [ ] item 5: extras (daemons, tasks, generate, maintenance)
 - [ ] zsh beside fish (mise and atuin activation)

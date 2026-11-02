@@ -91,7 +91,7 @@ file already provides. User mode (`scope = "user"`) writes a plain
   fails the apply.
 - `collie` (herdr plugin), `voxtype` (Omarchy's `voxtype setup systemd`),
   `omarchy-tailscale-receive` (enabled 2026-10-14): owned elsewhere.
-- Podman: socket enabled, service disabled (`../containers.md` step 9).
+- Podman: socket enabled, service disabled (`../containers/podman.md` step 9).
 
 ### firewall: nothing declared (2026-10-14)
 
@@ -195,7 +195,7 @@ fails elsewhere (open: guard it). No hooks declared (`pre-/post-packages`,
 
 - `remote` sends a project dir, not the global config, so using it means
   moving the bootstrap config into a repo first. It was used once to adopt
-  `skogai2/claude-home` as claude's mise config (`../secrets.md`).
+  `skogai2/claude-home` as claude's mise config (`../secrets/fnox.md`).
 - `unapply <env>` only targets config environments/modules
   (`mise.<env>.toml`); everything here is global.
 - `plugins` add package prefixes for other programs' state (VS Code, `gh`

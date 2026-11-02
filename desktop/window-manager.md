@@ -1,5 +1,5 @@
 ---
-permalink: config/window-manager
+permalink: config/desktop/window-manager
 type: reference
 ---
 
