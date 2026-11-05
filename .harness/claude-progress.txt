@@ -1,0 +1,11 @@
+# Claude Progress Log
+# Project: skogai-config
+# Created: 2026-11-02
+
+## Session 1 - Initialization
+- Created harness scaffolding with stamp.sh (vv-harness 6.2.1, mode=new)
+- Detected stack: markdown (no PostToolUse build hook)
+- Git identity: Emil Skogsund <emil@skogsund.se>, HTTPS via gh account Skogix
+- .harness/init.sh: smoke = bash -n, full = tests/*.test.sh + bin/check-routes
+- Added bin/check-routes and tests/check-routes.test.sh (5 cases)
+- Before this: repo grouped by concern (7bac9c5)

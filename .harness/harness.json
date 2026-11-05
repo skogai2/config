@@ -1,0 +1,25 @@
+{
+  "project": "skogai-config",
+  "stack": "markdown",
+  "created": "2026-11-02T15:33:53Z",
+  "harness": "vv-harness",
+  "git_identity": {
+    "user_name": "Emil Skogsund",
+    "user_email": "emil@skogsund.se",
+    "ssh_key": "none (https via gh account Skogix)",
+    "ssh_host": "github.com"
+  },
+  "plugin_version": "6.2.1",
+  "workflow": {
+    "size_guideline": "small"
+  },
+  "worker": {
+    "cli_version": "2.1.316",
+    "models": {
+      "lead": "opus",
+      "implementer": "sonnet",
+      "reviewer": "opus"
+    },
+    "recorded_at": "2026-11-02T15:35:00Z"
+  }
+}

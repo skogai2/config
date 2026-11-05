@@ -1,2 +1,5 @@
 /.skogai/worktrees/
 /tmp/
+.harness/SESSION_INCOMPLETE
+.harness/features.json.lock
+.harness/last_gate.json

@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# Checks that every route in every <routes> block resolves.
+# A route is the first word of a "- " line inside <routes>...</routes>;
+# a leading @ is dropped, and [@TODO...] placeholders are skipped.
+# Relative routes resolve from the router's own dir, ~/ from $HOME.
+# Usage: bin/check-routes [repo-root]   (default: the repo this script is in)
+# Exit 0 when every route resolves, 1 when any is missing.
+set -u
+
+root=${1:-$(cd "$(dirname "$0")/.." && pwd)}
+cd "$root" || exit 2
+
+missing=0
+while IFS= read -r router; do
+  dir=$(dirname "$router")
+  while IFS= read -r route; do
+    route=${route#@}
+    case $route in
+      "["*) continue ;;
+      "~/"*) target="$HOME/${route#\~/}" ;;
+      /*) target=$route ;;
+      *) target="$dir/$route" ;;
+    esac
+    if [[ ! -e $target ]]; then
+      echo "MISSING ${router#./} -> $route"
+      missing=1
+    fi
+  done < <(sed -n '/^<routes>/,/^<\/routes>/{s/^- \([^ ]*\).*/\1/p}' "$router")
+done < <(grep -rl --include='*.md' '^<routes>' . --exclude-dir=.git --exclude-dir=.todo --exclude-dir=tmp)
+
+exit $missing
