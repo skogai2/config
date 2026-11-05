@@ -68,6 +68,8 @@ aliases (`../shell/atuin.md`); who owns what is walkthrough item 3.
 - `mise bootstrap plan`: 13 unchanged, 0 to do. `repos status`: both
   declared repos `current`.
 - `mise dot status`: 54 entries, 174 files, up to date, published.
+  2026-11-05: 176 files (checkpoint 950), after excluding
+  `spotifast/milkdrop/**`; `bootstrap plan` still 13 unchanged.
 - `mise doctor`: one problem, `claude` (aqua:anthropics/claude-code)
   missing from Omarchy's tools layer.
 

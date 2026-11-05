@@ -37,7 +37,7 @@ Status as of 2026-10-25. `[x]` done, `[~]` in progress, `[ ]` not started.
 
 ### 1. the base: dotfiles and bootstrap
 
-- [x] `~/.config` tracked in place (54 entries, 174 files as of 2026-10-31), synced to
+- [x] `~/.config` tracked in place (54 entries, 176 files as of 2026-11-05), synced to
   `skogai2/.dotfiles`; holes from the first tests fixed (`mise/dotfiles.md`)
 - [x] bootstrap declares packages (divergences only), the skogai group,
   services, repos, fish activation, the bootstrap task
@@ -89,6 +89,13 @@ Status as of 2026-10-25. `[x]` done, `[~]` in progress, `[ ]` not started.
   `fish/bkg.config.fish`. Checkpoint 699 (169 files): systemd `*.wants`
   links excluded, herdr plugins, omarchy and bootstrap set them up.
   `fish/completions/*` stay tracked, many are added by hand.
+  2026-11-05 (checkpoint 950, 176 files): excluded
+  `spotifast/milkdrop/**` (~10.3k downloaded presets, captured in
+  checkpoints 932-935 on 2026-11-02 and published). Left:
+  `spotifast/settings.json` checkpoints every few minutes; it mixes real
+  settings (eq, bitrate, theme) with UI state and a generated
+  `system_theme_cache`, same open question as the `mise/config.toml`
+  throttle.
 - [ ] origin `README.md` + `.skogai/` (agent workspace, `mise/dotfiles-upstream.md`)
 
 ### 2. coverage: every `~/.config/<app>/` decided

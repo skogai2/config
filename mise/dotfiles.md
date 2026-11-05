@@ -9,10 +9,10 @@ How `mise dotfiles` (`mise dot`) versions the config on this machine. To
 change a dotfile through the origin repo instead of on the machine, see
 `dotfiles-upstream.md`.
 
-## state (2026-10-31)
+## state (2026-11-05)
 
 - `[dotfiles]` in `~/.config/mise/config.toml`: 54 `mode = "track"`
-  entries, 174 files, checkpoint 909.
+  entries, 176 files, checkpoint 950.
 - Origin `github.com/skogai2/.dotfiles` (private), branch `main`, mode
   `sync`, declared in `config.local.toml` (untracked). The watcher
   (`dev.mise.mise-history`, declared as
