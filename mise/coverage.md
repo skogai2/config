@@ -41,3 +41,23 @@ worked through. Only skogix's decisions go in the table.
 | ibus | exclude | runtime bus address files only (untracked 2026-10-27) |
 | fcitx | exclude | runtime dbus address file only (untracked 2026-10-27) |
 | dconf | exclude | binary settings db written by apps; a `dconf dump` export if settings ever matter |
+| chromium | owner | browser profile, 4.2G (coverage-triage batch 1, 2026-11-06); a re-usable extension/settings export is a later to-do |
+| chromium-headless | owner | headless browser profile (triage batch 1) |
+| BraveSoftware | owner | browser profile (triage batch 1) |
+| google-chrome | owner | browser profile (triage batch 1) |
+| google-chrome-beta | owner | browser profile (triage batch 1) |
+| google-chrome-for-testing | owner | browser profile (triage batch 1) |
+| google-chrome-unstable | owner | browser profile (triage batch 1) |
+| microsoft-edge-dev | owner | browser profile (triage batch 1) |
+| heroic | owner | Electron profile and cookies, 1.8G (triage batch 1) |
+| Codex | owner | app state, 527M (triage batch 1) |
+| Perplexity | owner | Electron profile (triage batch 1) |
+| t3code-v2 | owner | Electron profile (triage batch 1) |
+| backpass | owner | app state (triage batch 1) |
+| Claude-3p | owner | empty, app-created (triage batch 1) |
+| age | exclude | `phone-backup.key`, a private key; never in history (triage batch 2) |
+| hey-cli | exclude | credential storage; never in history (triage batch 2) |
+| pulse | exclude | PulseAudio auth cookie; in history checkpoints 45-655 (2026-10-18..26), removed (triage batch 2) |
+| captains-deck-web | exclude | `vapid.json`, a web-push private key; never in history (triage batch 2) |
+| containers | owner | `systemd/` is its own repo, declared in `[bootstrap.repos]` (skogai/podman); `nodocker` is an empty marker (triage batch 4) |
+| skogai | owner | this repo, declared in `[bootstrap.repos]` (skogai2/config) (triage batch 4) |
