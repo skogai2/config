@@ -100,7 +100,9 @@ Status as of 2026-10-25. `[x]` done, `[~]` in progress, `[ ]` not started.
 
 ### 2. coverage: every `~/.config/<app>/` decided
 
-Not tracked yet, to sort into track / exclude / owner's. When unsure:
+Not tracked yet, to sort into track / exclude / owner's.
+`bin/check-coverage` lists what's still undecided; decisions go in
+`mise/coverage.md` (2026-11-06: 42 tracked, 12 decided, 66 undecided). When unsure:
 track, then trim the noise within the hour (decided 2026-10-30).
 
 - likely config: `aichat`, `argc`, `cactus`, `environment.d`,

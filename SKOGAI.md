@@ -14,6 +14,7 @@ type: router
 - containers/SKOGAI.md - podman and the quadlet stack
 - machine/SKOGAI.md - machine-wide state no other concern owns (failed user units)
 - bin/health - system health checkup: runs every `<group>/health`, read-only. Exit 0 ok, 1 a check failed
+- bin/check-coverage - every `~/.config` entry tracked or decided (mise/coverage.md); lists the undecided
 - desktop/SKOGAI.md - window manager, tmux, keybindings
 - agents/SKOGAI.md - herdr workspaces and panes for agents
 

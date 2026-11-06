@@ -14,6 +14,8 @@ replaces none of it.
 - bootstrap.md - declared machine state: what's declared, per-part decisions, gotchas
 - dotfiles.md - `~/.config` tracked in place: rules, excludes, watcher, history of fixes
 - dotfiles-upstream.md - read before changing a dotfile through the origin repo. Never commit secrets there.
+- coverage.md - every `~/.config` entry tracked or decided; checked by ../bin/check-coverage
+- health - `doctor`, `bootstrap-plan`, `dot-capture`. All checks: ../bin/health
 - secrets.md - how secret values reach mise (`[bootstrap.secrets]`, fnox); keys are in ../secrets/fnox.md
 
 </routes>

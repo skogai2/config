@@ -1,0 +1,9 @@
+[Unit]
+Description=skogai health checkup (~/.config/skogai/bin/health)
+OnFailure=skogai-health-notify.service
+
+[Service]
+Type=oneshot
+# mise, atuin, herdr and jq come from mise; the user manager's PATH has no shims.
+Environment=PATH=%h/.local/share/mise/shims:/usr/local/bin:/usr/bin:/bin
+ExecStart=%h/.config/skogai/bin/health

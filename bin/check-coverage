@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+# Checks that every entry in ~/.config is either tracked by mise dotfiles
+# (`mise dot paths --json`, mode track) or has a decision in mise/coverage.md
+# (`| <name> | exclude|owner | <why> |`). See mise/coverage.md.
+#
+# Prints CONFLICT lines (tracked and decided), then UNDECIDED lines, then
+# `<t> tracked, <d> decided, <u> undecided, <c> conflicts`.
+# Usage: bin/check-coverage
+#   CONFIG_DIR     dir to check (default: $HOME/.config)
+#   COVERAGE_FILE  decisions (default: mise/coverage.md in this repo)
+# Exit 0 all covered, 1 any undecided or conflict, 2 mise/jq missing or failing.
+set -u
+export LC_ALL=C
+
+here=$(cd "$(dirname "$0")/.." && pwd)
+config=${CONFIG_DIR:-$HOME/.config}
+decisions=${COVERAGE_FILE:-$here/mise/coverage.md}
+
+die() {
+  echo "check-coverage: $1" >&2
+  exit 2
+}
+
+# entries: names directly in $config, skipping dot names, *.bak, *.bak.* and
+# anything that isn't (or doesn't link to) a directory or regular file.
+entries() {
+  local path name
+  for path in "$config"/*; do
+    name=${path##*/}
+    case $name in *.bak | *.bak.*) continue ;; esac
+    [[ -d $path || -f $path ]] && echo "$name"
+  done
+}
+
+# tracked: first path segment under ~/.config of every track-mode entry.
+tracked() {
+  local json rc=0
+  json=$(cd "$HOME" && mise dot paths --json 2>/dev/null) || rc=$?
+  ((rc == 0)) || die "mise dot paths --json exited $rc"
+  jq -r '.entries[] | select(.mode == "track") | .path' <<<"$json" |
+    sed -E "s#^(~|$HOME)/\.config/##; s#/.*##" | sort -u
+}
+
+# decided: "name<TAB>decision" for each exclude/owner row of the table.
+decided() {
+  [[ -f $decisions ]] || return 0
+  sed -nE 's/^\| *([^| ]+) *\| *(exclude|owner) *\|.*/\1\t\2/p' "$decisions" | sort -u
+}
+
+main() {
+  command -v mise >/dev/null || die "mise not found"
+  command -v jq >/dev/null || die "jq not found"
+  local tmp t=0 d=0 c=0 name decision
+  local -a undecided=() conflicts=()
+  tmp=$(mktemp -d)
+  # shellcheck disable=SC2064 # expand now: $tmp is local and gone when EXIT fires
+  trap "rm -rf '$tmp'" EXIT
+  tracked >"$tmp/tracked" || exit 2
+  decided >"$tmp/decided"
+  while read -r name; do
+    decision=$(awk -F'\t' -v n="$name" '$1 == n { print $2; exit }' "$tmp/decided")
+    if grep -qxF -- "$name" "$tmp/tracked"; then
+      if [[ -n $decision ]]; then
+        conflicts+=("CONFLICT $name: tracked and $decision")
+        c=$((c + 1))
+      else
+        t=$((t + 1))
+      fi
+    elif [[ -n $decision ]]; then
+      d=$((d + 1))
+    else
+      undecided+=("UNDECIDED $name")
+    fi
+  done < <(entries | sort)
+  ((c)) && printf '%s\n' "${conflicts[@]}"
+  ((${#undecided[@]})) && printf '%s\n' "${undecided[@]}"
+  echo "$t tracked, $d decided, ${#undecided[@]} undecided, $c conflicts"
+  ((c == 0 && ${#undecided[@]} == 0))
+}
+
+main

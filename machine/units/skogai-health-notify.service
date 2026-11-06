@@ -1,0 +1,6 @@
+[Unit]
+Description=Desktop notification when skogai-health fails
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/notify-send -u critical -a skogai-health "skogai-health failed" "journalctl --user -u skogai-health -n 50"
