@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Health checks for the desktop: `tmux-config` and `hypr-bindings` still hold
+# the personal changes, not a copy of Omarchy's stock file. OMARCHY_CONFIG
+# overrides the stock dir.
+set -u
+
+# shellcheck source=bin/health-lib.sh
+source "$(dirname "$0")/../bin/health-lib.sh"
+
+stock_check tmux-config tmux/tmux.conf desktop/tmux.md
+stock_check hypr-bindings hypr/bindings.lua desktop/window-manager.md
+exit "$failed"

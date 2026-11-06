@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# Health checks for agents (herdr.md): `herdr-config` not reset to stock,
+# `herdr-binary` is mise's (not Omarchy's /usr/bin/herdr), and
+# `herdr-integrations` has none broken. HERDR_OMARCHY_BIN overrides the path.
+set -u
+
+# shellcheck source=bin/health-lib.sh
+source "$(dirname "$0")/../bin/health-lib.sh"
+
+herdr_binary() {
+  local path omarchy=${HERDR_OMARCHY_BIN:-/usr/bin/herdr}
+  path=$(command -v herdr)
+  if [[ $path == "$omarchy" ]]; then
+    report "FAIL herdr-binary: $path is Omarchy's herdr; mise's must come first on PATH"
+  else
+    report "ok herdr-binary: $(tilde "$path")"
+  fi
+}
+
+herdr_integrations() {
+  local out rc=0 summary current broken
+  out=$(herdr integration status 2>/dev/null) || rc=$?
+  if ((rc != 0)); then
+    report "FAIL herdr-integrations: herdr integration status exited $rc"
+    return
+  fi
+  # "name: state (vN) (path)" -> count current; collect anything not installed/current.
+  summary=$(awk '
+    i = index($0, ": ") {
+      name = substr($0, 1, i - 1); state = substr($0, i + 2)
+      j = index(state, " ("); if (j) state = substr(state, 1, j - 1)
+      if (state == "current") n++
+      else if (state != "not installed") bad = bad (bad == "" ? "" : ", ") name " " state
+    }
+    END { print n + 0 "\t" bad }' <<<"$out")
+  current=${summary%%$'\t'*}
+  broken=${summary#*$'\t'}
+  if [[ -n $broken ]]; then
+    report "FAIL herdr-integrations: $broken"
+  else
+    report "ok herdr-integrations: $current current"
+  fi
+}
+
+stock_check herdr-config herdr/config.toml agents/herdr.md
+if need herdr-binary herdr; then herdr_binary; fi
+if need herdr-integrations herdr; then herdr_integrations; fi
+exit "$failed"

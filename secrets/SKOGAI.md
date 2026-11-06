@@ -12,5 +12,6 @@ need them. Never read secret values into a conversation.
 
 - fnox.md - fnox + age: keys, providers and profiles, where the config lives, test access (draft)
 - ../mise/secrets.md - how secret values reach mise (`[bootstrap.secrets]`, fnox)
+- health - `ssh-dir`, `age-keys`, `fnox-config`: key and config permissions. All checks: ../bin/health
 
 </routes>

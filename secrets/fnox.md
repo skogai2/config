@@ -2,7 +2,10 @@
 
 A living record of how secrets are encrypted and which user can decrypt
 them, updated directly as the agreement changes. **Status: draft
-(2026-10-14).** Nothing below has been created on the machine yet. The
+(2026-10-14).** Mostly not set up yet, except: `~/.ssh/skogix-age.txt`
+exists, and `/etc/skogai/fnox.toml` exists but is owned by skogix, not
+root as decided below (seen 2026-11-06; `secrets/health` `fnox-config`
+fails until it's root-owned). The
 mise side (how secrets reach `mise bootstrap` and tasks) is in
 `../mise/secrets.md`.
 

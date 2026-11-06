@@ -63,7 +63,11 @@ main() {
   local group report total failed
   report=$(
     while read -r group; do
-      if [[ $group == skogai ]]; then routes_check; else run_group "$group" "$root/$group/health"; fi
+      if [[ $group == skogai ]]; then
+        routes_check
+      else
+        run_group "$group" "$root/$group/health"
+      fi
     done < <(groups | LC_ALL=C sort)
   )
   printf '%s\n' "$report"

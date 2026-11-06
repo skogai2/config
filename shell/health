@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+# Health checks for the shell (atuin.md): `atuin-sync` freshness and
+# `atuin-vars`, dotfile var names that look like plaintext secrets.
+# Var values are dropped on read and never printed.
+set -u
+
+# shellcheck source=bin/health-lib.sh
+source "$(dirname "$0")/../bin/health-lib.sh"
+
+atuin_sync() {
+  local out rc=0 when stamp age max=${ATUIN_SYNC_MAX_AGE_HOURS:-24}
+  out=$(atuin status 2>/dev/null) || rc=$?
+  if ((rc != 0)); then
+    report "FAIL atuin-sync: atuin status exited $rc"
+    return
+  fi
+  # "Last sync: 2026-11-06 14:57:47.347674749 +01:00:00" -> "2026-11-06 14:57:47 +01:00"
+  local re='^Last sync: ([0-9-]{10} [0-9:]{8})(\.[0-9]+)? ([+-][0-9]{2}:[0-9]{2})(:[0-9]{2})?$'
+  when=$(sed -nE "s/$re/\\1 \\3/p" <<<"$out" | head -1)
+  if [[ -z $when ]] || ! stamp=$(date -d "$when" +%s 2>/dev/null); then
+    report "FAIL atuin-sync: no Last sync: line"
+    return
+  fi
+  age=$(($(date +%s) - stamp))
+  if ((age < max * 3600)); then
+    report "ok atuin-sync: $((age / 3600))h ago"
+  else
+    report "FAIL atuin-sync: last sync $((age / 3600))h ago"
+  fi
+}
+
+atuin_vars() {
+  local names rc=0 bad list
+  # Keep only NAME from "export NAME=value"; values never leave this pipeline.
+  names=$(atuin dotfiles var list 2>/dev/null | sed -nE 's/^export ([^=]+)=.*/\1/p'
+    exit "${PIPESTATUS[0]}") || rc=$?
+  if ((rc != 0)); then
+    report "FAIL atuin-vars: atuin dotfiles var list exited $rc"
+    return
+  fi
+  bad=$(awk -F_ '{
+    for (i = 1; i <= NF; i++)
+      if (toupper($i) ~ /^(KEY|TOKEN|SECRET|PASSWORD|PASSWD|CREDENTIAL)$/) { print; next }
+  }' <<<"$names" | LC_ALL=C sort)
+  if [[ -n $bad ]]; then
+    mapfile -t list <<<"$bad"
+    report "FAIL atuin-vars: secret-looking names: $(join ', ' "${list[@]}")"
+  else
+    report "ok atuin-vars: $(grep -c . <<<"$names") vars"
+  fi
+}
+
+if need atuin-sync atuin; then atuin_sync; fi
+if need atuin-vars atuin; then atuin_vars; fi
+exit "$failed"
