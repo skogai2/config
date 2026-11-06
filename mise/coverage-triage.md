@@ -35,14 +35,14 @@ file contents have been read. Sizes are as of 2026-11-06.
 - [x] `google-chrome-for-testing`: browser profile
 - [x] `google-chrome-unstable`: browser profile
 - [x] `microsoft-edge-dev`: browser profile
-- [ ] `zen`: 111 files, 63M browser profile
+- [x] `zen`: 111 files, 63M browser profile
   - skogix: track the dotfiles part (`user.js`, `chrome/*.css`, `profiles.ini`?), profile data `owner`
 - [x] `heroic`: 8.1k files, 1.8G Electron profile and cookies
 - [x] `Codex`: 3.8k files, 527M app state
 - [x] `Perplexity`: 806 files, 19M Electron profile
 - [x] `t3code-v2`: 283 files, 7.2M Electron profile
 - [x] `backpass`: 480 files, 7.6M
-- [ ] `Bitwarden CLI`: `data.json` (vault cache)
+- [x] `Bitwarden CLI`: `data.json` (vault cache)
   - skogix: possibly track the login targets/settings (server URL etc.), never the vault
 - [x] `Claude-3p`: empty
 
@@ -52,7 +52,7 @@ These look like secrets by name. Before deciding, check that none of them
 is already in the dotfile history (`mise dot` log, read-only).
 
 - [x] `age`: `phone-backup.key`
-- [ ] `antigravity`: `credential-user-scope`
+- [x] `antigravity`: `credential-user-scope`
   - skogix: possibly settings; look at what else it writes once it's used
 - [x] `hey-cli`: `credential-storage`, `credentials.lock`
 - [x] `pulse`: `cookie`
@@ -101,9 +101,9 @@ also holds logs or backups.
 
 ## batch 4: look first (possible secrets or bigger questions)
 
-- [ ] `goose`: `config.yaml`, `.goosehints`; there's a `secrets.yaml.lock`
+- [x] `goose`: `config.yaml`, `.goosehints`; there's a `secrets.yaml.lock`
   - skogix: track the basic dotfiles (`config.yaml`, `.goosehints`), exclude `secrets.yaml*`
-- [ ] `cloudflare`: `state.json`; PROJECT.md says to check it for secrets first
+- [x] `cloudflare`: `state.json`; PROJECT.md says to check it for secrets first
 - [x] `containers`: 308 files, the quadlets the tracked `systemd/user`
       links point into; tracked once, then dropped. Settle this one first
       (`../containers/SKOGAI.md`)
@@ -127,11 +127,23 @@ also holds logs or backups.
 
 ## batch 6: unsorted, small
 
-- [ ] `aether`: `wallhaven.json`, `previous-omarchy-theme` (state?)
-- [ ] `astro`: `config.json`
-- [ ] `basic-memory`: `config.json`; exclude `basic-memory.log`
-- [ ] `Hermes`: 5 GPU/sandbox `*-fallback.json` files (generated?)
-- [ ] `nextjs-nodejs`: `config.json` (telemetry flag?)
-- [ ] `omafin`: `config.json`
-- [ ] `ruflo`: 1 file
-- [ ] `Code`: 1 file (VS Code)
+- [x] `aether`: `wallhaven.json`, `previous-omarchy-theme` (state?)
+- [x] `astro`: `config.json`
+- [x] `basic-memory`: `config.json`; exclude `basic-memory.log`
+- [x] `Hermes`: 5 GPU/sandbox `*-fallback.json` files (generated?)
+- [x] `nextjs-nodejs`: `config.json` (telemetry flag?)
+- [x] `omafin`: `config.json`
+- [x] `ruflo`: 1 file
+- [x] `Code`: 1 file (VS Code)
+
+## done 2026-11-06 (checkpoints 994-996)
+
+- tracked as file entries (no directory, so nothing excluded was ever captured):
+  `goose/config.yaml`, `goose/.goosehints`, `omafin/config.json`, `zen/profiles.ini`,
+  `zen/<profile>/chrome/zen-themes.css`. Not tracked: goose `secrets.yaml*`,
+  `chatgpt_codex/tokens.json`, `kimicode/device_id`; the zen profile itself (no `user.js` exists)
+- `basic-memory`: `exclude`, not `track`: `config.json` has token/api-key fields
+- `nvim.backup.20261023-184226` vs `nvim`: `lua/plugins/herdr-nvim.lua` only in the backup;
+  `lazy-lock.json`, `lazyvim.json`, `config/remote_clipboard.lua`, `plugins/all-themes.lua`,
+  `plugin/after/transparency.lua` differ; `plugins/lualine-transparent.lua` only in `nvim`.
+  skogix to pick what to merge before the backup is deleted

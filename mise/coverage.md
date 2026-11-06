@@ -63,3 +63,13 @@ worked through. Only skogix's decisions go in the table.
 | skogai | owner | this repo, declared in `[bootstrap.repos]` (skogai2/config) (triage batch 4) |
 | Moonlight Game Streaming Project | owner | pairing state: `Moonlight.conf` holds the client certificate and private key (tracked by mistake in checkpoint 984, never published; untracked 2026-11-06) |
 | chromium-flags.conf | exclude | holds `--oauth2-client-secret`; track with `encrypt = true` once fnox/age is set up (untracked 2026-11-06) |
+| cloudflare | owner | `config/default.json` holds `oauth_token` and `refresh_token`; `state.json` is a device id (triage batch 4, 2026-11-06) |
+| aether | owner | `wallhaven.json` holds an `apiKey`; `previous-omarchy-theme` is Omarchy state (triage batch 6) |
+| Bitwarden CLI | owner | `data.json` is the vault cache; there's no separate settings file to track (triage batch 1) |
+| antigravity | exclude | only `credential-user-scope` so far; look again once it writes settings (triage batch 2) |
+| basic-memory | exclude | `config.json` has `milvus_token`, `*_api_key` and `cloud_api_key` fields; track with `encrypt = true` once fnox/age is set up (triage batch 6) |
+| astro | owner | telemetry id only (triage batch 6) |
+| nextjs-nodejs | owner | telemetry id and salt only (triage batch 6) |
+| Hermes | owner | installation id, generated GPU/sandbox fallbacks, Crashpad (triage batch 6) |
+| ruflo | owner | `policy-trust/` ledger state only (triage batch 6) |
+| Code | owner | VS Code Electron profile; `User/settings.json` can get its own file entry if VS Code is used (triage batch 6) |

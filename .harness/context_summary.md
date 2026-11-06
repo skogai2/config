@@ -5,6 +5,7 @@ This file is referenced in CLAUDE.md and loaded every session.
 
 ## Active Context
 - Done 2026-11-06: F001-F007. `bin/health` covers all 7 groups (16 checks); timer units in
+- Coverage 2026-11-06 late: 3 undecided left (nvim.backup merge, pangolin, treehouse: skogix)
   `machine/units/` (not installed); `bin/check-coverage` + `mise/coverage.md`
 - Next up: skogix's calls on the 4 live health failures and installing the timer; then
   work the 66 undecided `~/.config` entries into mise/coverage.md (PROJECT.md section 2)
@@ -58,6 +59,8 @@ This file is referenced in CLAUDE.md and loaded every session.
 - `mise dot status` exits 0 while publishing fails; the error is a `✗ last error:` line under
   Repository. `dot-sync` in mise/health catches it (2026-11-06)
 - mise's name-based credential filter misses keys inside ordinary config files (Moonlight.conf
+- `jq paths(scalars)` skips null values: a key-name scan with it misses empty `*_api_key` fields
+  (basic-memory, 2026-11-06). Grep the raw file for names instead (2026-11-06)
   `key=`); its publish check catches them, but only after they're in local history. Before
   tracking a new app dir, grep key names (`cut -d= -f1`) for key/cert/token (2026-11-06)
 
