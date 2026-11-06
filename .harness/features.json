@@ -1,8 +1,8 @@
 {
   "project": "skogai-config",
   "created": "2026-11-02T15:33:53Z",
-  "total_features": 1,
-  "passing": 1,
+  "total_features": 7,
+  "passing": 7,
   "features": [
     {
       "id": "F001",
@@ -38,6 +38,228 @@
         "evidence_type": "unit",
         "artifact": "tests/health.test.sh",
         "not_established": "live run only checked by hand on 2026-11-06 (1 of 6 failed: mise doctor, claude-code not installed)"
+      }
+    },
+    {
+      "id": "F002",
+      "description": "secrets/health: key and fnox config permissions.\n\nFollows the concern-check contract in F001 (bin/health): prints `ok <check>[: <detail>]` / `FAIL <check>: <detail>` lines, exits 0 iff no FAIL, read-only, never prints env or secret values. A missing command gives `FAIL <check>: <cmd> not found`. Shared helpers may live in tests/lib.sh (test stubs) and bin/health-lib.sh (sourced by concern scripts); bin/health skips bin/ so neither is run as a check. Tests use stubs only (temp HOME, stub commands on a minimal PATH), never live machine state, and run under full_test.\n\nAcceptance criteria:\n1. `ssh-dir`: $HOME/.ssh is a directory owned by the current user with mode 700 -> `ok ssh-dir`; missing -> `FAIL ssh-dir: ~/.ssh not found`; else `FAIL ssh-dir: ~/.ssh is <mode> <owner>, want 700 <user>`.\n2. `age-keys`: every file matching $HOME/.ssh/*age*.txt is owned by the current user with mode 600 -> `ok age-keys: <n> keys` (n may be 0); else `FAIL age-keys: <file> <mode> <owner>[, ...]` (basenames, sorted).\n3. `fnox-config`: FNOX_CONFIG (default /etc/skogai/fnox.toml) absent -> `ok fnox-config: not deployed`. Present: the file must be mode 644 and its directory mode 755, both owned by FNOX_CONFIG_OWNER (default root) -> `ok fnox-config`; else `FAIL fnox-config: <path> is <mode> <owner>[; <dir> is <mode> <owner>], want 644/755 <owner>` listing only what is wrong. The file's contents are never read.\n4. tests/health-secrets.test.sh covers 1-3 with a temp HOME and a temp FNOX_CONFIG (owner override = the test user for the ok path).\n5. secrets/SKOGAI.md routes `health`; secrets/fnox.md's draft status line is corrected to say /etc/skogai/fnox.toml exists (seen 2026-11-06, owned by skogix).\n\nQA binding: evidence_type unit (tests/health-secrets.test.sh).\nF002-F005 are built sequentially by one implementer; each may create or extend tests/lib.sh and bin/health-lib.sh (the stock-reset rule lives in bin/health-lib.sh).\nfnox-config FAIL lists only the wrong parts, joined by `; `, then `, want 644/755 <owner>`: e.g. file ok, dir wrong -> `FAIL fnox-config: /etc/skogai is 775 root, want 644/755 root`.",
+      "priority": 2,
+      "status": "passing",
+      "scope": [
+        "secrets/",
+        "tests/health-secrets.test.sh",
+        "tests/lib.sh",
+        "bin/health-lib.sh"
+      ],
+      "depends_on": [
+        "F001"
+      ],
+      "assigned_to": null,
+      "test_file": "tests/health-secrets.test.sh",
+      "coverage": "9/9 cases; every branch exercised (no bash coverage tool)",
+      "notes": "Added 2026-11-06 at skogix's request to continue after F001.",
+      "correction_cycles": 0,
+      "scope_expansions": 0,
+      "approaches_tried": [
+        "TDD single-session; shared bin/health-lib.sh (report/need/tilde/join/stock_check) and tests/lib.sh (extracted from F001 tests)."
+      ],
+      "discovered_via": "F001",
+      "spec": {
+        "verdict": "PASS",
+        "verified_at": "2026-11-06",
+        "notes": "One ASK round over F002-F007 (QA binding, helper scope, output details); all answered by the lead from verbatim samples and folded in."
+      },
+      "risk": "normal",
+      "require_plan_approval": false,
+      "proof": {
+        "evidence_type": "unit",
+        "artifact": "tests/health-secrets.test.sh",
+        "not_established": "fnox-config fails live: /etc/skogai/fnox.toml owned by skogix"
+      }
+    },
+    {
+      "id": "F003",
+      "description": "shell/health: atuin sync freshness and secret-looking dotfile var names.\n\nFollows the concern-check contract in F001 (bin/health): prints `ok <check>[: <detail>]` / `FAIL <check>: <detail>` lines, exits 0 iff no FAIL, read-only, never prints env or secret values. A missing command gives `FAIL <check>: <cmd> not found`. Shared helpers may live in tests/lib.sh (test stubs) and bin/health-lib.sh (sourced by concern scripts); bin/health skips bin/ so neither is run as a check. Tests use stubs only (temp HOME, stub commands on a minimal PATH), never live machine state, and run under full_test.\n\nAcceptance criteria:\n1. `atuin-sync` runs `atuin status`. Verbatim sample line: `Last sync: 2026-11-06 14:57:47.347674749 +01:00:00`. It parses date, time (seconds, fraction dropped) and offset (+HH:MM from +HH:MM:SS). Younger than ATUIN_SYNC_MAX_AGE_HOURS (default 24) -> `ok atuin-sync: <h>h ago`; older -> `FAIL atuin-sync: last sync <h>h ago`; no parseable `Last sync:` line -> `FAIL atuin-sync: no Last sync: line`; nonzero exit -> `FAIL atuin-sync: atuin status exited <rc>`.\n2. `atuin-vars` runs `atuin dotfiles var list`. Verbatim line form: `export NAME=value`. Takes NAME only (the text between `export ` and the first `=`); values are discarded before any processing and never printed. A NAME matching (case-insensitive) KEY, TOKEN, SECRET, PASSWORD, PASSWD or CREDENTIAL is secret-looking -> `FAIL atuin-vars: secret-looking names: <A>, <B>` (sorted); else `ok atuin-vars: <n> vars`. Nonzero exit -> `FAIL atuin-vars: atuin dotfiles var list exited <rc>`.\n3. Missing atuin -> both checks `FAIL <check>: atuin not found`.\n4. tests/health-shell.test.sh covers 1-3 with a stub atuin; a test asserts a stubbed secret value never appears in the output. TZ-independent (stub times are relative to `date`).\n5. shell/SKOGAI.md routes `health`.\n\nQA binding: evidence_type unit (tests/health-shell.test.sh).\nF002-F005 are built sequentially by one implementer; each may create or extend tests/lib.sh and bin/health-lib.sh (the stock-reset rule lives in bin/health-lib.sh).\natuin-sync: <h> is the age in floored whole hours; ok iff the age in seconds < ATUIN_SYNC_MAX_AGE_HOURS*3600 (exactly at the limit fails). A nonzero exit wins over any parsed line.\natuin-vars: NAME is split on `_`; it is secret-looking iff any part equals (case-insensitive) one of the words. So TERMIX_TAILSCALE_API_KEY is flagged, KEYMAP and MONKEY are not.",
+      "priority": 2,
+      "status": "passing",
+      "scope": [
+        "shell/",
+        "tests/health-shell.test.sh",
+        "tests/lib.sh",
+        "bin/health-lib.sh"
+      ],
+      "depends_on": [
+        "F001"
+      ],
+      "assigned_to": null,
+      "test_file": "tests/health-shell.test.sh",
+      "coverage": "11/11 cases; every branch exercised (no bash coverage tool)",
+      "notes": "Added 2026-11-06 at skogix's request to continue after F001.",
+      "correction_cycles": 0,
+      "scope_expansions": 0,
+      "approaches_tried": [
+        "TDD single-session; shared bin/health-lib.sh (report/need/tilde/join/stock_check) and tests/lib.sh (extracted from F001 tests)."
+      ],
+      "discovered_via": "F001",
+      "spec": {
+        "verdict": "PASS",
+        "verified_at": "2026-11-06",
+        "notes": "One ASK round over F002-F007 (QA binding, helper scope, output details); all answered by the lead from verbatim samples and folded in."
+      },
+      "risk": "normal",
+      "require_plan_approval": false,
+      "proof": {
+        "evidence_type": "unit",
+        "artifact": "tests/health-shell.test.sh",
+        "not_established": "atuin-vars fails live: TERMIX_TAILSCALE_API_KEY"
+      }
+    },
+    {
+      "id": "F004",
+      "description": "desktop/health: personal desktop configs not reset to Omarchy stock.\n\nFollows the concern-check contract in F001 (bin/health): prints `ok <check>[: <detail>]` / `FAIL <check>: <detail>` lines, exits 0 iff no FAIL, read-only, never prints env or secret values. A missing command gives `FAIL <check>: <cmd> not found`. Shared helpers may live in tests/lib.sh (test stubs) and bin/health-lib.sh (sourced by concern scripts); bin/health skips bin/ so neither is run as a check. Tests use stubs only (temp HOME, stub commands on a minimal PATH), never live machine state, and run under full_test.\n\nStock-reset check `<name>` for a personal file P (under $HOME/.config) and its Omarchy stock S (under OMARCHY_CONFIG, default $HOME/.local/share/omarchy/config, same relative path): P missing -> `FAIL <name>: <P> not found`; S missing -> `ok <name>: no Omarchy stock to compare`; P byte-identical to S -> `FAIL <name>: matches Omarchy stock, personal changes lost (see <page>)`; otherwise `ok <name>`. Paths in details are printed with $HOME replaced by `~`.\n\nAcceptance criteria:\n1. `tmux-config`: P = tmux/tmux.conf, page desktop/tmux.md.\n2. `hypr-bindings`: P = hypr/bindings.lua, page desktop/window-manager.md.\n3. tests/health-desktop.test.sh covers each outcome of the stock-reset rule (missing P, missing S, identical, differs) with a temp HOME and OMARCHY_CONFIG.\n4. desktop/SKOGAI.md routes `health`.\n\nQA binding: evidence_type unit (tests/health-desktop.test.sh).\nF002-F005 are built sequentially by one implementer; each may create or extend tests/lib.sh and bin/health-lib.sh (the stock-reset rule lives in bin/health-lib.sh).",
+      "priority": 2,
+      "status": "passing",
+      "scope": [
+        "desktop/",
+        "tests/health-desktop.test.sh",
+        "tests/lib.sh",
+        "bin/health-lib.sh"
+      ],
+      "depends_on": [
+        "F001"
+      ],
+      "assigned_to": null,
+      "test_file": "tests/health-desktop.test.sh",
+      "coverage": "3/3 cases; every branch exercised (no bash coverage tool)",
+      "notes": "Added 2026-11-06 at skogix's request to continue after F001.",
+      "correction_cycles": 0,
+      "scope_expansions": 0,
+      "approaches_tried": [
+        "TDD single-session; shared bin/health-lib.sh (report/need/tilde/join/stock_check) and tests/lib.sh (extracted from F001 tests)."
+      ],
+      "discovered_via": "F001",
+      "spec": {
+        "verdict": "PASS",
+        "verified_at": "2026-11-06",
+        "notes": "One ASK round over F002-F007 (QA binding, helper scope, output details); all answered by the lead from verbatim samples and folded in."
+      },
+      "risk": "normal",
+      "require_plan_approval": false,
+      "proof": {
+        "evidence_type": "unit",
+        "artifact": "tests/health-desktop.test.sh",
+        "not_established": "tmux-config fails live: reset to stock 2026-11-02 07:39 (tmux.conf.bak.1793601577 has the personal version)"
+      }
+    },
+    {
+      "id": "F005",
+      "description": "agents/health: herdr config, binary and agent integrations.\n\nFollows the concern-check contract in F001 (bin/health): prints `ok <check>[: <detail>]` / `FAIL <check>: <detail>` lines, exits 0 iff no FAIL, read-only, never prints env or secret values. A missing command gives `FAIL <check>: <cmd> not found`. Shared helpers may live in tests/lib.sh (test stubs) and bin/health-lib.sh (sourced by concern scripts); bin/health skips bin/ so neither is run as a check. Tests use stubs only (temp HOME, stub commands on a minimal PATH), never live machine state, and run under full_test.\n\nStock-reset check `<name>` for a personal file P (under $HOME/.config) and its Omarchy stock S (under OMARCHY_CONFIG, default $HOME/.local/share/omarchy/config, same relative path): P missing -> `FAIL <name>: <P> not found`; S missing -> `ok <name>: no Omarchy stock to compare`; P byte-identical to S -> `FAIL <name>: matches Omarchy stock, personal changes lost (see <page>)`; otherwise `ok <name>`. Paths in details are printed with $HOME replaced by `~`.\n\nAcceptance criteria:\n1. `herdr-config`: P = herdr/config.toml, page agents/herdr.md.\n2. `herdr-binary`: `command -v herdr` empty -> `FAIL herdr-binary: herdr not found`; equal to HERDR_OMARCHY_BIN (default /usr/bin/herdr) -> `FAIL herdr-binary: <path> is Omarchy's herdr; mise's must come first on PATH`; else `ok herdr-binary: <path with ~>`.\n3. `herdr-integrations` runs `herdr integration status`. Verbatim lines: `claude: current (v11) (/skogai/claude/hooks/herdr-agent-state.sh)`, `omp: not installed (/home/skogix/.omp/...)`, `opencode: needs repair (v13) (/home/...)`, `letta (experimental): not installed (...)`. Name = text before the first `: `; state = the rest up to its first ` (` (whole rest if none). States `current` and `not installed` are fine -> `ok herdr-integrations: <n> current`; any other -> `FAIL herdr-integrations: <name> <state>[, ...]`. Nonzero exit -> `FAIL herdr-integrations: herdr integration status exited <rc>`.\n4. tests/health-agents.test.sh covers 1-3 (stock rule outcomes for herdr-config, all herdr-binary branches, integration states incl. the `letta (experimental)` name).\n5. agents/SKOGAI.md routes `health`.\n\nQA binding: evidence_type unit (tests/health-agents.test.sh).\nF002-F005 are built sequentially by one implementer; each may create or extend tests/lib.sh and bin/health-lib.sh (the stock-reset rule lives in bin/health-lib.sh).\nherdr-integrations: lines without `: ` (headers, blank lines) are ignored.",
+      "priority": 2,
+      "status": "passing",
+      "scope": [
+        "agents/",
+        "tests/health-agents.test.sh",
+        "tests/lib.sh",
+        "bin/health-lib.sh"
+      ],
+      "depends_on": [
+        "F001"
+      ],
+      "assigned_to": null,
+      "test_file": "tests/health-agents.test.sh",
+      "coverage": "7/7 cases; every branch exercised (no bash coverage tool)",
+      "notes": "Added 2026-11-06 at skogix's request to continue after F001.",
+      "correction_cycles": 0,
+      "scope_expansions": 0,
+      "approaches_tried": [
+        "TDD single-session; shared bin/health-lib.sh (report/need/tilde/join/stock_check) and tests/lib.sh (extracted from F001 tests)."
+      ],
+      "discovered_via": "F001",
+      "spec": {
+        "verdict": "PASS",
+        "verified_at": "2026-11-06",
+        "notes": "One ASK round over F002-F007 (QA binding, helper scope, output details); all answered by the lead from verbatim samples and folded in."
+      },
+      "risk": "normal",
+      "require_plan_approval": false,
+      "proof": {
+        "evidence_type": "unit",
+        "artifact": "tests/health-agents.test.sh",
+        "not_established": "herdr-integrations fails live: opencode needs repair"
+      }
+    },
+    {
+      "id": "F006",
+      "description": "bin/health on a timer with a desktop notification on failure, the quadlet-health pattern.\n\nAcceptance criteria:\n1. machine/units/skogai-health.service: Type=oneshot, ExecStart=%h/.config/skogai/bin/health, OnFailure=skogai-health-notify.service, Environment=PATH with %h/.local/share/mise/shims first then /usr/local/bin:/usr/bin:/bin (so mise, atuin, herdr, jq resolve under the user manager).\n2. machine/units/skogai-health-notify.service: Type=oneshot, ExecStart=/usr/bin/notify-send -u critical -a skogai-health \"skogai-health failed\" \"journalctl --user -u skogai-health -n 50\".\n3. machine/units/skogai-health.timer: OnStartupSec=10min, OnUnitActiveSec=1h, [Install] WantedBy=timers.target.\n4. tests/health-units.test.sh asserts those lines and, when systemd-analyze is available, that `systemd-analyze --user verify` accepts the three files (skip, not fail, when it is absent).\n5. machine/SKOGAI.md documents install (`systemctl --user link` each unit, `systemctl --user enable --now skogai-health.timer`) as a manual step skogix confirms; this feature does not install or enable anything.\n\nQA binding: evidence_type unit (tests/health-units.test.sh).\nsystemd-analyze verify runs only when systemd-analyze, $HOME/.config/skogai/bin/health and /usr/bin/notify-send all exist; otherwise the test prints `skip <reason>` and does not fail.",
+      "priority": 2,
+      "status": "passing",
+      "scope": [
+        "machine/units/",
+        "machine/SKOGAI.md",
+        "tests/health-units.test.sh"
+      ],
+      "depends_on": [
+        "F001"
+      ],
+      "assigned_to": null,
+      "test_file": "tests/health-units.test.sh",
+      "coverage": "4/4 cases incl. systemd-analyze --user verify",
+      "notes": "Added 2026-11-06 at skogix's request to continue after F001.",
+      "correction_cycles": 0,
+      "scope_expansions": 0,
+      "approaches_tried": [
+        "Copied the quadlet-health unit pattern; verify skips when its ExecStart binaries are absent."
+      ],
+      "discovered_via": "F001",
+      "spec": {
+        "verdict": "PASS",
+        "verified_at": "2026-11-06",
+        "notes": "One ASK round over F002-F007 (QA binding, helper scope, output details); all answered by the lead from verbatim samples and folded in."
+      },
+      "risk": "normal",
+      "require_plan_approval": false,
+      "proof": {
+        "evidence_type": "unit",
+        "artifact": "tests/health-units.test.sh",
+        "not_established": "not installed or enabled: a manual step for skogix (machine/SKOGAI.md)"
+      }
+    },
+    {
+      "id": "F007",
+      "description": "bin/check-coverage: every entry in ~/.config is tracked by mise dotfiles or has a written decision.\n\nAcceptance criteria:\n1. Entries = every directory and regular file directly in CONFIG_DIR (default $HOME/.config), skipping names starting with `.` and names matching `*.bak` or `*.bak.*`.\n2. Tracked = entries whose name equals the first path segment after `~/.config/` of any `.entries[].path` in `mise dot paths --json` (run with cwd $HOME; jq parses it). So `~/.config/herdr/config.toml` tracks `herdr`.\n3. Decided = rows of the table in mise/coverage.md (path overridable with COVERAGE_FILE): `| <name> | exclude|owner | <why> |`; other rows and text are ignored. A name with a decision that is also tracked is reported as `CONFLICT <name>: tracked and <decision>` and fails.\n4. Output: one `UNDECIDED <name>` line per entry neither tracked nor decided (sorted), then `<t> tracked, <d> decided, <u> undecided` . Exit 0 iff no UNDECIDED and no CONFLICT, 1 otherwise, 2 if `mise dot paths --json` fails or jq/mise is missing (message on stderr).\n5. mise/coverage.md explains the three outcomes and is seeded only with decisions skogix already made in PROJECT.md section 2 (\"app profiles, caches, logins (never track)\") for entries that exist on this machine; nothing else is decided by the agent.\n6. Not part of bin/health (it would fail until section 2 is worked through). Routed from mise/SKOGAI.md and the root SKOGAI.md.\n7. tests/check-coverage.test.sh covers 1-4 with a temp CONFIG_DIR, a stub mise and a temp COVERAGE_FILE.\n\nQA binding: evidence_type unit (tests/check-coverage.test.sh).\nClarifications: entries include symlinks that resolve to a directory or regular file (dangling links are skipped). Sorting is bytewise (LC_ALL=C). Output order: CONFLICT lines (sorted), then UNDECIDED lines (sorted), then the summary `<t> tracked, <d> decided, <u> undecided, <c> conflicts`. A CONFLICT entry counts only in c. t and d count only entries that exist in CONFIG_DIR. Only `.entries[]` with `mode == \"track\"` count as tracked (verified 2026-11-06: excludes live in a separate top-level `exclude` key; all 54 entries are track). Entry paths may start with `~/.config/` or `$HOME/.config/`; both are handled.\nSeed: only entries PROJECT.md section 2 names explicitly and that exist on this machine, each with decision `owner` (app profiles, caches and logins belong to their app). \"chrome variants\" and \"...\" stay undecided.",
+      "priority": 3,
+      "status": "passing",
+      "scope": [
+        "bin/check-coverage",
+        "mise/coverage.md",
+        "mise/SKOGAI.md",
+        "SKOGAI.md",
+        "tests/check-coverage.test.sh"
+      ],
+      "depends_on": [
+        "F001"
+      ],
+      "assigned_to": null,
+      "test_file": "tests/check-coverage.test.sh",
+      "coverage": "9/9 cases; every branch except jq-missing (same die path as mise-missing)",
+      "notes": "Added 2026-11-06 at skogix's request to continue after F001.",
+      "correction_cycles": 0,
+      "scope_expansions": 0,
+      "approaches_tried": [
+        "jq over `mise dot paths --json`, track-mode entries only; decisions parsed from a markdown table. Fixed a sed using | as both delimiter and alternation."
+      ],
+      "discovered_via": "F001",
+      "spec": {
+        "verdict": "PASS",
+        "verified_at": "2026-11-06",
+        "notes": "One ASK round over F002-F007 (QA binding, helper scope, output details); all answered by the lead from verbatim samples and folded in."
+      },
+      "risk": "normal",
+      "require_plan_approval": false,
+      "proof": {
+        "evidence_type": "unit",
+        "artifact": "tests/check-coverage.test.sh",
+        "not_established": "live: 42 tracked, 12 decided, 66 undecided (2026-11-06)"
       }
     }
   ]

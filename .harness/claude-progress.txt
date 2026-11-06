@@ -19,3 +19,14 @@
 - Live run: 1 of 6 checks failed - mise doctor: aqua:anthropics/claude-code@2.1.318 not installed
 - Next: health checks for the other groups; timer + notify; coverage check as its own feature
 - Blockers: none. Untracked `commands/` left alone on skogix's request.
+
+## Session 3 - 2026-11-06
+- Features: F002 secrets, F003 shell, F004 desktop, F005 agents health; F006 timer units;
+  F007 bin/check-coverage
+- Status: all complete (7/7 passing)
+- Tests: 73 passing, 0 failing; shellcheck clean; all routes resolve
+- Live bin/health: 4 of 16 checks fail, all real (tmux reset, opencode integration,
+  fnox.toml owner, TERMIX_TAILSCALE_API_KEY in atuin vars)
+- Live check-coverage: 42 tracked, 12 decided, 66 undecided
+- Not done (needs skogix): install/enable the timer; fix the 4 failures
+- Next: work the undecided ~/.config entries into mise/coverage.md
