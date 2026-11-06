@@ -1,0 +1,1 @@
+/home/skogix/skogai-runner/src/core/contract/usage.sh
