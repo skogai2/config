@@ -55,6 +55,12 @@ This file is referenced in CLAUDE.md and loaded every session.
   2026-10-31): a spec gate proves a spec is testable, not that it's worth building.
   Ask "what changes in the world if this works" first
 
+- `mise dot status` exits 0 while publishing fails; the error is a `✗ last error:` line under
+  Repository. `dot-sync` in mise/health catches it (2026-11-06)
+- mise's name-based credential filter misses keys inside ordinary config files (Moonlight.conf
+  `key=`); its publish check catches them, but only after they're in local history. Before
+  tracking a new app dir, grep key names (`cut -d= -f1`) for key/cert/token (2026-11-06)
+
 ## Meta-Patterns
 <!-- Coordination insights that apply across features — NOT domain-specific.
      Populated by the retrospective step at session end.
