@@ -86,6 +86,9 @@ also holds logs or backups.
 - [x] `cursor`: `cli-config.json`
 - [x] `cactus`: `sky.toml`, `tui.json`, `poke-webhooks.json` (webhook URLs may be secret)
 - [x] `Moonlight Game Streaming Project`: `Moonlight.conf`
+  - reversed 2026-11-06: the file holds the client certificate and private key
+    (line 21 `key`). Captured in checkpoint 984, blocked from publishing by mise;
+    untracked and decided `owner`. Still to do: remove it from the local history
 - [x] `KDE`: `qrca.conf`
 - [x] `hype`: `hype.ini`
 - [x] `jellyfin-mpv-shim`: `conf.json`, `mpv.conf`, `input.conf`; exclude `users.json*` (logins), `*.lock*`

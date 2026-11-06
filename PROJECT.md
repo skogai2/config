@@ -102,7 +102,7 @@ Status as of 2026-10-25. `[x]` done, `[~]` in progress, `[ ]` not started.
 
 Not tracked yet, to sort into track / exclude / owner's.
 `bin/check-coverage` lists what's still undecided; decisions go in
-`mise/coverage.md` (2026-11-06: 64 tracked, 38 decided, 16 undecided; working list in `mise/coverage-triage.md`). When unsure:
+`mise/coverage.md` (2026-11-06: 63 tracked, 39 decided, 16 undecided; working list in `mise/coverage-triage.md`). When unsure:
 track, then trim the noise within the hour (decided 2026-10-30).
 
 - likely config: `aichat`, `argc`, `cactus`, `environment.d`,

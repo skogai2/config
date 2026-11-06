@@ -61,3 +61,4 @@ worked through. Only skogix's decisions go in the table.
 | captains-deck-web | exclude | `vapid.json`, a web-push private key; never in history (triage batch 2) |
 | containers | owner | `systemd/` is its own repo, declared in `[bootstrap.repos]` (skogai/podman); `nodocker` is an empty marker (triage batch 4) |
 | skogai | owner | this repo, declared in `[bootstrap.repos]` (skogai2/config) (triage batch 4) |
+| Moonlight Game Streaming Project | owner | pairing state: `Moonlight.conf` holds the client certificate and private key (tracked by mistake in checkpoint 984, never published; untracked 2026-11-06) |

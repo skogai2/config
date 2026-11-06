@@ -10,7 +10,7 @@ source "$(dirname "$0")/lib.sh"
 fixture() {
   local h=$work/cov
   rm -rf "$h"
-  mkdir -p "$h/home/.config"/{fish,herdr,Bitwarden,go,zeta,Alpha,both} "$h/bin"
+  mkdir -p "$h/home/.config"/{fish,herdr,Bitwarden,go,zeta,Alpha,both,"Some App"} "$h/bin"
   touch "$h/home/.config"/{starship.toml,mimeapps.list.bak,x.conf.bak.123,.hidden}
   ln -s "$h/home/.config/zeta" "$h/home/.config/link-to-dir"
   ln -s "$h/nowhere" "$h/home/.config/dangling"
@@ -30,6 +30,7 @@ EOF
 |---|---|---|
 | Bitwarden | owner | Electron app profile |
 | go | exclude | build cache |
+| Some App | owner | a name with a space |
 | both | exclude | conflicts with tracking |
 | gone | owner | not on this machine |
 | weird | maybe | not a decision |
@@ -54,7 +55,7 @@ test_report() {
   expect "coverage: report and counts" 1 \
     "CONFLICT both: tracked and exclude" \
     "UNDECIDED Alpha" "UNDECIDED link-to-dir" "UNDECIDED zeta" \
-    "3 tracked, 2 decided, 3 undecided, 1 conflicts"
+    "3 tracked, 3 decided, 3 undecided, 1 conflicts"
   local order
   order=$(grep -E '^(CONFLICT|UNDECIDED|[0-9])' <<<"$out" | cut -d' ' -f1-2 | tr '\n' '|')
   if [[ $order == "CONFLICT both:|UNDECIDED Alpha|UNDECIDED link-to-dir|UNDECIDED zeta|3 tracked,|" ]]
@@ -71,7 +72,7 @@ test_clean() {
   fixture
   rm -r "$cov/home/.config"/{zeta,Alpha,both,link-to-dir}
   coverage
-  expect "coverage: all decided exits 0" 0 "3 tracked, 2 decided, 0 undecided, 0 conflicts"
+  expect "coverage: all decided exits 0" 0 "3 tracked, 3 decided, 0 undecided, 0 conflicts"
 }
 
 test_errors() {

@@ -44,7 +44,7 @@ tracked() {
 # decided: "name<TAB>decision" for each exclude/owner row of the table.
 decided() {
   [[ -f $decisions ]] || return 0
-  sed -nE 's/^\| *([^| ]+) *\| *(exclude|owner) *\|.*/\1\t\2/p' "$decisions" | sort -u
+  sed -nE 's/^\| *([^| ]([^|]*[^| ])?) *\| *(exclude|owner) *\|.*/\1\t\3/p' "$decisions" | sort -u
 }
 
 main() {
