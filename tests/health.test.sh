@@ -120,7 +120,7 @@ test_mise() {
   mise_case "settings\n\n$warn" 0 "x\n$plan_ok" 0 "$dot_ok" 0
   expect "mise: all ok, warnings are not failures" 0 \
     "ok doctor" "ok bootstrap-plan: Plan: 0 create, 0 update, 13 unchanged, 0 remove, 0 unknown" \
-    "ok dot-capture"
+    "ok dot-capture" "ok dot-sync"
   local cwds
   cwds=$(cat "$mise_dir/doctor.cwd" "$mise_dir/plan.cwd" "$mise_dir/dot.cwd" | sort -u)
   if [[ $cwds == "$mise_dir/home" ]]; then pass "mise: runs from \$HOME"; else
@@ -134,15 +134,21 @@ test_mise() {
     "FAIL bootstrap-plan: Plan: 1 create, 0 update, 12 unchanged, 0 remove, 0 unknown" \
     "FAIL dot-capture: automatic capture not running"
 
+  mise_case "settings\n" 0 "$plan_ok" 0 \
+    "Repository\n  Branch: main\n  \xe2\x9c\x97 last error: cannot publish: line 2 of a.conf looks like a secret. Rotate it (failing since 17:27)\n\nAutomatic capture \xe2\x9c\x93\n  running (edits are saved).\n" 0
+  expect "mise: sync error under Repository" 1 \
+    "ok dot-capture" \
+    "FAIL dot-sync: last error: cannot publish: line 2 of a.conf looks like a secret"
+
   mise_case "nothing\n" 1 "no summary\n" 3 "$dot_ok" 4
   expect "mise: unexpected exits" 1 \
     "FAIL doctor: mise doctor exited 1" "FAIL bootstrap-plan: no Plan: line (exit 3)" \
-    "FAIL dot-capture: mise dot status exited 4"
+    "FAIL dot-capture: mise dot status exited 4" "FAIL dot-sync: mise dot status exited 4"
 
   run env HOME="$work" PATH="$(toolbox)" "$repo/mise/health"
   expect "mise: mise not on PATH" 1 \
     "FAIL doctor: mise not found" "FAIL bootstrap-plan: mise not found" \
-    "FAIL dot-capture: mise not found"
+    "FAIL dot-capture: mise not found" "FAIL dot-sync: mise not found"
 }
 
 test_machine() {

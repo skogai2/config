@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
-# Health checks for mise: `doctor` problems, `bootstrap-plan` drift and
-# `dot-capture` (the dotfile watcher). Contract: bin/health.
+# Health checks for mise: `doctor` problems, `bootstrap-plan` drift,
+# `dot-capture` (the dotfile watcher) and `dot-sync` (any ✗ line in
+# `mise dot status`, e.g. a failing publish). Contract: bin/health.
 # Only problem lines and the Plan: summary are ever printed; never mise env.
 set -u
 
-checks=(doctor bootstrap-plan dot-capture)
+checks=(doctor bootstrap-plan dot-capture dot-sync)
 failed=0
 
 report() {
@@ -45,11 +46,17 @@ bootstrap_plan() {
   fi
 }
 
+# `mise dot status` exits 0 even when sync fails, so both dot checks read
+# its output: run it once, here.
+dot_status() {
+  dot_rc=0
+  dot_out=$(mise dot status 2>/dev/null) || dot_rc=$?
+}
+
 dot_capture() {
-  local out rc=0 state
-  out=$(mise dot status 2>/dev/null) || rc=$?
-  if ((rc != 0)); then
-    report "FAIL dot-capture: mise dot status exited $rc"
+  local out=$dot_out state
+  if ((dot_rc != 0)); then
+    report "FAIL dot-capture: mise dot status exited $dot_rc"
     return
   fi
   # The first non-blank line after "Automatic capture", leading space trimmed.
@@ -65,6 +72,25 @@ dot_capture() {
   fi
 }
 
+# Every line marked ✗, up to its first ". " (the error, not the advice).
+dot_sync() {
+  local errors
+  if ((dot_rc != 0)); then
+    report "FAIL dot-sync: mise dot status exited $dot_rc"
+    return
+  fi
+  errors=$(awk '
+    { sub(/^[ \t]+/, "") }
+    /^\xe2\x9c\x97 / { sub(/^\xe2\x9c\x97 /, ""); sub(/\. .*/, ""); s = s (s == "" ? "" : "; ") $0 }
+    END { print s }
+  ' <<<"$dot_out")
+  if [[ -n $errors ]]; then
+    report "FAIL dot-sync: $errors"
+  else
+    report "ok dot-sync"
+  fi
+}
+
 main() {
   local c
   if ! command -v mise >/dev/null; then
@@ -74,7 +100,9 @@ main() {
   cd "$HOME" || return 1
   doctor
   bootstrap_plan
+  dot_status
   dot_capture
+  dot_sync
   return "$failed"
 }
 
