@@ -1,0 +1,249 @@
+#!/usr/bin/env bash
+# Tests for bin/health and the concern health scripts (containers, mise,
+# machine). Everything runs against stub scripts and stub commands; nothing
+# reads live machine state.
+set -u
+
+repo="$(cd "$(dirname "$0")/.." && pwd)"
+work=$(mktemp -d)
+trap 'rm -rf "$work"' EXIT
+failures=0
+out="" rc=0
+
+pass() { echo "ok   $1"; }
+fail() {
+  echo "FAIL $1"
+  printf '%s\n' "$out" | sed 's/^/     | /'
+  failures=1
+}
+
+# run <cmd...>: capture combined output and exit status into $out / $rc.
+run() {
+  rc=0
+  out=$("$@" 2>&1) || rc=$?
+}
+
+# expect <name> <want-rc> <line>...: $rc matches and each line appears verbatim.
+expect() {
+  local name=$1 want=$2 line
+  shift 2
+  if [[ $rc != "$want" ]]; then
+    fail "$name: exit $rc, want $want"
+    return
+  fi
+  for line in "$@"; do
+    if ! grep -qxF -- "$line" <<<"$out"; then
+      fail "$name: missing line '$line'"
+      return
+    fi
+  done
+  pass "$name"
+}
+
+# refute <name> <text>: the output does not contain <text>.
+refute() {
+  if grep -qF -- "$2" <<<"$out"; then fail "$1: unexpected '$2'"; else pass "$1"; fi
+}
+
+# newroot: an empty fixture repo root.
+newroot() {
+  local dir
+  dir=$(mktemp -d "$work/root.XXXX")
+  echo "$dir"
+}
+
+# concern <root> <group> <body>: an executable <group>/health with <body>.
+concern() {
+  mkdir -p "$1/$2"
+  printf '#!/usr/bin/env bash\n%s\n' "$3" >"$1/$2/health"
+  chmod +x "$1/$2/health"
+}
+
+# stub <dir> <name> <body>: an executable stub command.
+stub() {
+  mkdir -p "$1"
+  printf '#!/usr/bin/env bash\n%s\n' "$3" >"$1/$2"
+  chmod +x "$1/$2"
+}
+
+# toolbox: a PATH dir with the basic tools but no mise and no systemctl.
+toolbox() {
+  local dir=$work/toolbox t
+  if [[ ! -d $dir ]]; then
+    mkdir -p "$dir"
+    for t in bash env sed grep awk cat sort head tail tr cut wc timeout dirname \
+      basename find mktemp rm sleep printf; do
+      ln -s "$(command -v "$t")" "$dir/$t"
+    done
+  fi
+  echo "$dir"
+}
+
+# verdict <name> <status>: pass when <status> is 0.
+verdict() { if (($2 == 0)); then pass "$1"; else fail "$1"; fi; }
+
+# shellcheck disable=SC2329 # invoked indirectly, as `run health <root>`
+health() { SKOGAI_HEALTH_ROOT=$1 "$repo/bin/health"; }
+
+test_runner() {
+  local r
+  r=$(newroot)
+  concern "$r" b 'echo "ok x"'
+  concern "$r" a 'echo "ok y: some detail"'
+  concern "$r" zed 'echo "ok last"'
+  concern "$r" bin 'echo "FAIL never: bin/ is skipped"; exit 1'
+  mkdir -p "$r/c" "$r/d/sub"
+  printf 'echo "ok not-executable"\n' >"$r/c/health"
+  concern "$r/d" sub 'echo "ok too-deep"'
+  run health "$r"
+  expect "runner: discovers, prefixes and passes" 0 \
+    "a ok y: some detail" "b ok x" "skogai ok routes" "zed ok last" "all 4 checks ok"
+  [[ $(grep -vx 'all 4 checks ok' <<<"$out" | cut -d' ' -f1 | tr '\n' ' ') == "a b skogai zed " ]]
+  verdict "runner: groups in alphabetical order" $?
+  refute "runner: skips bin/" "never"
+  refute "runner: skips non-executable" "not-executable"
+  refute "runner: skips deeper health files" "too-deep"
+}
+
+test_routes() {
+  local r
+  r=$(newroot)
+  printf '<routes>\n\n- gone.md - x\n- also-gone.md - y\n\n</routes>\n' >"$r/SKOGAI.md"
+  run health "$r"
+  expect "routes: missing routes fail against the given root" 1 \
+    "skogai FAIL routes: 2 missing" "1 of 1 checks failed"
+}
+
+test_script_failures() {
+  local r
+  r=$(newroot)
+  concern "$r" crash 'echo "junk line"; echo "noise" >&2; exit 3'
+  concern "$r" liar 'echo "ok fine"; echo "FAIL broken: oh no"; exit 0'
+  concern "$r" quiet 'exit 0'
+  run health "$r"
+  expect "script failures: exit, liar, zero checks" 1 \
+    "crash FAIL health: exited 3" "liar ok fine" "liar FAIL broken: oh no" \
+    "quiet FAIL health: no checks reported" "skogai ok routes" "3 of 5 checks failed"
+  refute "script failures: unmatched lines ignored" "junk line"
+  refute "script failures: stderr suppressed" "noise"
+}
+
+test_timeout() {
+  local r
+  r=$(newroot)
+  concern "$r" slow 'echo "ok early"; sleep 5; echo "ok late"'
+  SECONDS=0
+  rc=0
+  out=$(HEALTH_TIMEOUT=1 SKOGAI_HEALTH_ROOT=$r "$repo/bin/health" 2>&1) || rc=$?
+  expect "timeout: partial output kept, timeout counted" 1 \
+    "slow ok early" "slow FAIL health: timed out after 1s" "1 of 3 checks failed"
+  refute "timeout: killed before finishing" "late"
+  ((SECONDS < 4))
+  verdict "timeout: does not wait for the script (${SECONDS}s)" $?
+}
+
+test_bad_root() {
+  run health "$work/does-not-exist"
+  expect "bad root: exits 2 with a message" 2 \
+    "health: root $work/does-not-exist is not a directory"
+}
+
+test_containers() {
+  local s=$work/qh
+  stub "$s" ok 'echo "generator: ok, 14 units"; echo; echo "UNIT SOURCE"'
+  stub "$s" bad 'echo "generator: rc=1, 3 units"; exit 2'
+  run env QUADLET_HEALTH="$s/ok" "$repo/containers/health"
+  expect "containers: ok with unit count" 0 "ok quadlet-health: 14 units"
+  run env QUADLET_HEALTH="$s/bad" "$repo/containers/health"
+  expect "containers: nonzero exit fails" 1 "FAIL quadlet-health: exit 2, see quadlet-health"
+  run env QUADLET_HEALTH="$s/nope" "$repo/containers/health"
+  expect "containers: missing script" 1 "FAIL quadlet-health: $s/nope not found"
+}
+
+# A stub mise answering doctor / bootstrap plan / dot status from files in $STUB.
+mise_stub() {
+  # shellcheck disable=SC2016 # the body is a script; it expands when the stub runs
+  stub "$1" mise '
+case "$1 ${2:-}" in
+  "doctor "*) sub=doctor ;;
+  "bootstrap plan") sub=plan ;;
+  "dot status") sub=dot ;;
+  *) exit 99 ;;
+esac
+pwd >"$STUB/$sub.cwd"
+cat "$STUB/$sub.out" 2>/dev/null
+exit "$(cat "$STUB/$sub.rc" 2>/dev/null || echo 0)"'
+}
+
+# mise_case <doctor-out> <doctor-rc> <plan-out> <plan-rc> <dot-out> <dot-rc>
+mise_case() {
+  local d=$work/mise-$RANDOM
+  mise_stub "$d/bin"
+  mkdir -p "$d/home"
+  printf '%b' "$1" >"$d/doctor.out"; echo "$2" >"$d/doctor.rc"
+  printf '%b' "$3" >"$d/plan.out"; echo "$4" >"$d/plan.rc"
+  printf '%b' "$5" >"$d/dot.out"; echo "$6" >"$d/dot.rc"
+  run env STUB="$d" HOME="$d/home" PATH="$d/bin:$(toolbox)" "$repo/mise/health"
+  mise_dir=$d
+}
+
+plan_ok='Plan: 0 create, 0 update, 13 unchanged, 0 remove, 0 unknown\n'
+dot_ok='Repository\n  x\n\nAutomatic capture \xe2\x9c\x93\n  running (edits are saved).\n'
+warn='1 warning found:\n\n1. new mise version available\n\n'
+
+test_mise() {
+  mise_case "settings\n\n$warn" 0 "x\n$plan_ok" 0 "$dot_ok" 0
+  expect "mise: all ok, warnings are not failures" 0 \
+    "ok doctor" "ok bootstrap-plan: Plan: 0 create, 0 update, 13 unchanged, 0 remove, 0 unknown" \
+    "ok dot-capture"
+  local cwds
+  cwds=$(cat "$mise_dir/doctor.cwd" "$mise_dir/plan.cwd" "$mise_dir/dot.cwd" | sort -u)
+  if [[ $cwds == "$mise_dir/home" ]]; then pass "mise: runs from \$HOME"; else
+    fail "mise: runs from \$HOME"; fi
+
+  mise_case "${warn}2 problems found:\n\n1. tool a is not installed\n2. tool b is broken\n" 1 \
+    "Plan: 1 create, 0 update, 12 unchanged, 0 remove, 0 unknown\n" 0 \
+    "Automatic capture \xe2\x9c\x93\n\n  stopped\n" 0
+  expect "mise: problems, plan drift, capture stopped" 1 \
+    "FAIL doctor: tool a is not installed; tool b is broken" \
+    "FAIL bootstrap-plan: Plan: 1 create, 0 update, 12 unchanged, 0 remove, 0 unknown" \
+    "FAIL dot-capture: automatic capture not running"
+
+  mise_case "nothing\n" 1 "no summary\n" 3 "$dot_ok" 4
+  expect "mise: unexpected exits" 1 \
+    "FAIL doctor: mise doctor exited 1" "FAIL bootstrap-plan: no Plan: line (exit 3)" \
+    "FAIL dot-capture: mise dot status exited 4"
+
+  run env HOME="$work" PATH="$(toolbox)" "$repo/mise/health"
+  expect "mise: mise not on PATH" 1 \
+    "FAIL doctor: mise not found" "FAIL bootstrap-plan: mise not found" \
+    "FAIL dot-capture: mise not found"
+}
+
+test_machine() {
+  local d=$work/sysd
+  stub "$d/none" systemctl 'exit 0'
+  stub "$d/two" systemctl '
+echo "foo.service loaded failed failed Foo thing"
+echo "bar.timer   loaded failed failed Bar"'
+  stub "$d/err" systemctl 'echo "Failed to connect to bus"; exit 1'
+  run env PATH="$d/none:$(toolbox)" "$repo/machine/health"
+  expect "machine: no failed units" 0 "ok failed-units"
+  run env PATH="$d/two:$(toolbox)" "$repo/machine/health"
+  expect "machine: failed units listed" 1 "FAIL failed-units: foo.service, bar.timer"
+  run env PATH="$d/err:$(toolbox)" "$repo/machine/health"
+  expect "machine: systemctl error" 1 "FAIL failed-units: systemctl exited 1"
+  run env PATH="$(toolbox)" "$repo/machine/health"
+  expect "machine: systemctl not on PATH" 1 "FAIL failed-units: systemctl not found"
+}
+
+test_runner
+test_routes
+test_script_failures
+test_timeout
+test_bad_root
+test_containers
+test_mise
+test_machine
+
+exit $failures

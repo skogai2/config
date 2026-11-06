@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+# Health checks for mise: `doctor` problems, `bootstrap-plan` drift and
+# `dot-capture` (the dotfile watcher). Contract: bin/health.
+# Only problem lines and the Plan: summary are ever printed; never mise env.
+set -u
+
+checks=(doctor bootstrap-plan dot-capture)
+failed=0
+
+report() {
+  echo "$1"
+  [[ $1 == FAIL* ]] && failed=1
+  return 0
+}
+
+doctor() {
+  local out rc=0 problems
+  out=$(mise doctor 2>&1) || rc=$?
+  # Numbered lines of the "N problem(s) found:" block, joined with "; ".
+  problems=$(awk '
+    /^[0-9]+ problems? found:$/ { p = 1; found = 1; next }
+    /^[0-9]+ (warnings?|problems?) found:$/ { p = 0 }
+    p && /^[0-9]+\. / { sub(/^[0-9]+\. /, ""); s = s (s == "" ? "" : "; ") $0 }
+    END { if (found) print "found:" s }
+  ' <<<"$out")
+  if [[ -n $problems ]]; then
+    report "FAIL doctor: ${problems#found:}"
+  elif ((rc != 0)); then
+    report "FAIL doctor: mise doctor exited $rc"
+  else
+    report "ok doctor"
+  fi
+}
+
+bootstrap_plan() {
+  local out rc=0 line
+  out=$(mise bootstrap plan 2>/dev/null) || rc=$?
+  line=$(grep -m1 '^Plan: ' <<<"$out")
+  if [[ -z $line ]]; then
+    report "FAIL bootstrap-plan: no Plan: line (exit $rc)"
+  elif grep -qE '(: |, )[1-9][0-9]* (create|update|remove|unknown)' <<<"$line"; then
+    report "FAIL bootstrap-plan: $line"
+  else
+    report "ok bootstrap-plan: $line"
+  fi
+}
+
+dot_capture() {
+  local out rc=0 state
+  out=$(mise dot status 2>/dev/null) || rc=$?
+  if ((rc != 0)); then
+    report "FAIL dot-capture: mise dot status exited $rc"
+    return
+  fi
+  # The first non-blank line after "Automatic capture", leading space trimmed.
+  state=$(awk '
+    { sub(/^[ \t]+/, "") }
+    seen && $0 != "" { print; exit }
+    /^Automatic capture/ { seen = 1 }
+  ' <<<"$out")
+  if [[ $state == running* ]]; then
+    report "ok dot-capture"
+  else
+    report "FAIL dot-capture: automatic capture not running"
+  fi
+}
+
+main() {
+  local c
+  if ! command -v mise >/dev/null; then
+    for c in "${checks[@]}"; do echo "FAIL $c: mise not found"; done
+    return 1
+  fi
+  cd "$HOME" || return 1
+  doctor
+  bootstrap_plan
+  dot_capture
+  return "$failed"
+}
+
+main

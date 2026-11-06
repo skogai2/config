@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+# System health checkup. Runs every executable <group>/health one level below
+# the repo root (bin/ excluded), plus bin/check-routes as group `skogai`, and
+# prints one `<group> ok|FAIL <check>[: <detail>]` line per check.
+#
+# A concern script prints `ok <check>[: <detail>]` or `FAIL <check>: <detail>`
+# lines on stdout and exits 0 iff it printed no FAIL line. It only reads
+# machine state and never prints env or secret values.
+#
+# Usage: bin/health
+#   SKOGAI_HEALTH_ROOT  repo root to scan (default: the repo this script is in)
+#   HEALTH_TIMEOUT      seconds before a concern script is killed (default 120)
+# Exit 0 all checks ok, 1 any check failed, 2 the root is not a directory.
+set -u
+
+here=$(cd "$(dirname "$0")/.." && pwd)
+root=${SKOGAI_HEALTH_ROOT:-$here}
+limit=${HEALTH_TIMEOUT:-120}
+
+# run_group <group> <script>: run one concern script, print its prefixed lines.
+run_group() {
+  local group=$1 script=$2 tmp lines rc=0
+  tmp=$(mktemp)
+  timeout "$limit" "$script" </dev/null >"$tmp" 2>/dev/null || rc=$?
+  lines=$(grep -E '^(ok|FAIL) [^ ]' "$tmp" | sed "s|^|$group |")
+  rm -f "$tmp"
+  [[ -n $lines ]] && printf '%s\n' "$lines"
+  if ((rc == 124)); then
+    echo "$group FAIL health: timed out after ${limit}s"
+  elif [[ -z $lines ]] && ((rc == 0)); then
+    echo "$group FAIL health: no checks reported"
+  elif ((rc != 0)) && ! grep -q "^$group FAIL " <<<"$lines"; then
+    echo "$group FAIL health: exited $rc"
+  fi
+}
+
+# routes_check: bin/check-routes against the same root, as group skogai.
+routes_check() {
+  local out rc=0
+  out=$("$here/bin/check-routes" "$root" 2>/dev/null) || rc=$?
+  if ((rc == 0)); then
+    echo "skogai ok routes"
+  else
+    echo "skogai FAIL routes: $(grep -c '^MISSING ' <<<"$out") missing"
+  fi
+}
+
+groups() {
+  local f group
+  echo skogai
+  for f in "$root"/*/health; do
+    [[ -f $f && -x $f ]] || continue
+    group=$(basename "$(dirname "$f")")
+    [[ $group == bin || $group == skogai ]] || echo "$group"
+  done
+}
+
+main() {
+  if [[ ! -d $root ]]; then
+    echo "health: root $root is not a directory" >&2
+    return 2
+  fi
+  local group report total failed
+  report=$(
+    while read -r group; do
+      if [[ $group == skogai ]]; then routes_check; else run_group "$group" "$root/$group/health"; fi
+    done < <(groups | LC_ALL=C sort)
+  )
+  printf '%s\n' "$report"
+  total=$(grep -cE '^[^ ]+ (ok|FAIL) ' <<<"$report")
+  failed=$(grep -cE '^[^ ]+ FAIL ' <<<"$report")
+  if ((failed == 0)); then
+    echo "all $total checks ok"
+    return 0
+  fi
+  echo "$failed of $total checks failed"
+  return 1
+}
+
+main

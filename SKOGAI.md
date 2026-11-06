@@ -12,6 +12,8 @@ type: router
 - secrets/SKOGAI.md - keys, who can decrypt what (fnox + age), and how secrets reach mise
 - shell/SKOGAI.md - shell history, env vars and aliases (atuin)
 - containers/SKOGAI.md - podman and the quadlet stack
+- machine/SKOGAI.md - machine-wide state no other concern owns (failed user units)
+- bin/health - system health checkup: runs every `<group>/health`, read-only. Exit 0 ok, 1 a check failed
 - desktop/SKOGAI.md - window manager, tmux, keybindings
 - agents/SKOGAI.md - herdr workspaces and panes for agents
 

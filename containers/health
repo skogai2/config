@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Health check for the podman quadlets: wraps quadlet-health (see podman.md).
+# Contract: bin/health. QUADLET_HEALTH overrides the script's path.
+set -u
+
+qh=${QUADLET_HEALTH:-$HOME/.config/containers/systemd/bin/quadlet-health}
+if [[ ! -f $qh || ! -x $qh ]]; then
+  echo "FAIL quadlet-health: $qh not found"
+  exit 1
+fi
+
+rc=0
+out=$("$qh" 2>/dev/null) || rc=$?
+if ((rc != 0)); then
+  echo "FAIL quadlet-health: exit $rc, see quadlet-health"
+  exit 1
+fi
+units=$(sed -nE 's/^generator: .*, ([0-9]+) units$/\1/p' <<<"$out" | head -1)
+echo "ok quadlet-health: ${units:-?} units"
