@@ -9,3 +9,13 @@
 - .harness/init.sh: smoke = bash -n, full = tests/*.test.sh + bin/check-routes
 - Added bin/check-routes and tests/check-routes.test.sh (5 cases)
 - Before this: repo grouped by concern (7bac9c5)
+
+## Session 2 - 2026-11-06
+- Feature: F001 - system health checkup (`bin/health` + containers/, mise/, machine/ health)
+- Status: complete
+- Tests: 30 passing (25 new in tests/health.test.sh), 0 failing; shellcheck clean
+- Coverage: 25 cases mapped to criteria 1-8 (no bash coverage tool)
+- Decisions: per-concern `<group>/health` scripts + runner, on demand only (context_summary.md)
+- Live run: 1 of 6 checks failed - mise doctor: aqua:anthropics/claude-code@2.1.318 not installed
+- Next: health checks for the other groups; timer + notify; coverage check as its own feature
+- Blockers: none. Untracked `commands/` left alone on skogix's request.

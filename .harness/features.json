@@ -1,7 +1,44 @@
 {
   "project": "skogai-config",
   "created": "2026-11-02T15:33:53Z",
-  "total_features": 0,
-  "passing": 0,
-  "features": []
+  "total_features": 1,
+  "passing": 1,
+  "features": [
+    {
+      "id": "F001",
+      "description": "System health checkup: one read-only command, bin/health, that runs a health script per concern and reports every check as ok or FAIL.\n\nContract for a concern check: an executable <group>/health in this repo (one level below the root). It prints one line per check on stdout, `ok <check>[: <detail>]` or `FAIL <check>: <detail>`, and exits 0 iff it printed no FAIL line. It only reads machine state; it never writes, and never prints env var or secret values. When a command a check needs is missing from PATH, the check prints `FAIL <check>: <cmd> not found`; when it exits nonzero in a way the check does not expect, `FAIL <check>: <cmd> exited <rc>`.\n\nAcceptance criteria:\n1. bin/health finds every executable `*/health` one level below the repo root, except bin/ (bin/health itself). The root defaults to the repo containing bin/health and is overridable with SKOGAI_HEALTH_ROOT. If the root is missing or not a directory, bin/health prints `health: root <path> is not a directory` to stderr and exits 2 without running anything. It runs each script with stdin from /dev/null and stderr suppressed, and prints each check line as `<group> ok|FAIL <check>[: <detail>]`. All groups, including `skogai` (criterion 2), are printed in alphabetical order of group name.\n2. bin/health also runs `bin/check-routes <root>` against the same root as group `skogai`, check `routes`: `ok routes` on exit 0, otherwise `FAIL routes: <n> missing`, where n is the count of `MISSING` lines it printed.\n3. After the checks it prints `all N checks ok` and exits 0, or `F of N checks failed` and exits 1.\n4. A concern script that exits nonzero without printing a FAIL line is reported as `<group> FAIL health: exited <rc>` and counts as one failed check. A script that prints a FAIL line but exits 0 still counts as failed. A script that exits 0 and prints no check lines is reported as `<group> FAIL health: no checks reported`. Lines matching neither form are ignored.\n5. A concern script running longer than HEALTH_TIMEOUT seconds (default 120) is killed. Check lines it printed before being killed are still reported and counted, and `<group> FAIL health: timed out after <n>s` is added as one more failed check.\n6. containers/health runs quadlet-health, by default $HOME/.config/containers/systemd/bin/quadlet-health, overridable with QUADLET_HEALTH. On exit 0 it prints `ok quadlet-health: <n> units`, n taken from the `generator:` line (`generator: ok, <n> units` or `generator: rc=<rc>, <n> units`). Otherwise `FAIL quadlet-health: exit <rc>, see quadlet-health`. A missing or non-executable script gives `FAIL quadlet-health: <path> not found`.\n7. mise/health runs three checks, each with cwd $HOME:\n   a. `doctor` runs `mise doctor`. Its output ends with optional blocks like\n        1 warning found:\n        <blank>\n        1. new mise version 2026.11.2 available, currently on 2026.10.17\n        <blank>\n        1 problem found:\n        <blank>\n        1. tool aqua:anthropics/claude-code@2.1.318 is not installed, install with `mise install`\n      The check fails iff a line matching `^[0-9]+ problems? found:$` exists; the detail is the numbered lines (`^[0-9]+\\. `) of that block, without their number prefix, joined with `; `. Warning blocks never fail it. A nonzero exit with no problem block is `FAIL doctor: mise doctor exited <rc>`.\n   b. `bootstrap-plan` runs `mise bootstrap plan`. It finds the line matching `^Plan: `, verbatim e.g. `Plan: 0 create, 0 update, 13 unchanged, 0 remove, 0 unknown`. ok with that line as detail iff create, update, remove and unknown are all 0; else FAIL with that line as detail. No `Plan:` line is `FAIL bootstrap-plan: no Plan: line (exit <rc>)`.\n   a/c pass line: exactly `ok doctor`, `ok dot-capture`.\n   c. `dot-capture` runs `mise dot status`. A nonzero exit is `FAIL dot-capture: mise dot status exited <rc>`. Otherwise ok iff the output has a line starting `Automatic capture` and the next non-blank line starts with `running` (leading whitespace trimmed for both); else `FAIL dot-capture: automatic capture not running`.\n8. machine/health has one check, `failed-units`, from `systemctl --user --failed --no-legend --plain`: `ok failed-units` when it lists no units, else `FAIL failed-units: <unit>[, <unit>...]` (first column of each line). A nonzero exit is `FAIL failed-units: systemctl exited <rc>` regardless of output. machine/SKOGAI.md is added as a short router page and routed from SKOGAI.md; check-routes must still pass.\n9. tests/health.test.sh covers criteria 1-8 with stub concern scripts in a temp SKOGAI_HEALTH_ROOT and stub `mise`, `systemctl` and quadlet-health on PATH/env; no test depends on live machine state. It runs under full_test.\n\nQA binding: evidence_type unit (tests/health.test.sh).\n\nOut of scope: a timer or notification (later feature), checks for secrets/, shell/, desktop/, agents/ (they join by adding their own health file).",
+      "priority": 1,
+      "status": "passing",
+      "scope": [
+        "bin/health",
+        "containers/health",
+        "mise/health",
+        "machine/",
+        "SKOGAI.md",
+        "tests/health.test.sh"
+      ],
+      "depends_on": [],
+      "assigned_to": null,
+      "test_file": "tests/health.test.sh",
+      "coverage": "25/25 cases; every branch of bin/health, containers/health, mise/health, machine/health exercised (no bash coverage tool; cases mapped to criteria 1-8)",
+      "notes": "Decided with skogix 2026-11-06: per-concern health scripts + runner; on demand only, timer later. On 2026-11-06 the live machine would fail `doctor` (aqua:anthropics/claude-code@2.1.318 not installed).",
+      "correction_cycles": 0,
+      "scope_expansions": 0,
+      "approaches_tried": [
+        "TDD single-session: stub concern scripts in a temp SKOGAI_HEALTH_ROOT, stub mise/systemctl on a minimal PATH toolbox (symlinked basics, no mise/systemctl) so not-found paths are testable. Concern output goes to a temp file, not a pipe, so a timed-out script's orphaned children cannot hold the runner open."
+      ],
+      "spec": {
+        "verdict": "PASS",
+        "verified_at": "2026-11-06",
+        "notes": "Round 1 ASK (15 q), round 2 ASK (6 q); all answered by the lead from real command output and folded into the description. Round 2 had SV-01/04/05/06 PASS; its 6 questions were output-detail precedence, answered inline without a third round."
+      },
+      "risk": "normal",
+      "require_plan_approval": false,
+      "proof": {
+        "evidence_type": "unit",
+        "artifact": "tests/health.test.sh",
+        "not_established": "live run only checked by hand on 2026-11-06 (1 of 6 failed: mise doctor, claude-code not installed)"
+      }
+    }
+  ]
 }
