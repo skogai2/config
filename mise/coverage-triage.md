@@ -69,6 +69,7 @@ Small and hand-edited by the look of it. Excludes are noted where a dir
 also holds logs or backups.
 
 - [x] `aichat`: `config.yaml`, `models-override.yaml` (91 files, 1.1M: check what the rest is)
+  - 2026-11-06: `config.yaml` excluded, it holds an `api_key` (line 10); roles and agents tracked
 - [x] `rtk`: `config.toml`, `filters.toml`, `pipeline.toml`
 - [x] `voxtype`: `config.toml`
 - [x] `uwsm`: 1 file
@@ -77,6 +78,7 @@ also holds logs or backups.
 - [x] `xdg-desktop-portal`: `hyprland-portals.conf`
 - [x] `hyprland-mimeapps.list`
 - [x] `chromium-flags.conf`
+  - reversed 2026-11-06: line 8 is `--oauth2-client-secret`; untracked, decided `exclude` until encrypted
 - [x] `nushell`: `config.nu`
   - skogix: track the basic dotfiles
 - [x] `rust-analyzer`: `rust-analyzer.toml`
