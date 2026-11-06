@@ -35,3 +35,9 @@ worked through. Only skogix's decisions go in the table.
 | yay | owner | cache (PROJECT.md section 2) |
 | procps | owner | PROJECT.md section 2, never track |
 | mpv | owner | empty (PROJECT.md section 2) |
+| uv | exclude | installer receipt only (untracked 2026-10-27, PROJECT.md section 1) |
+| tailscale | exclude | generated ssh_known_hosts for tailnet hosts (untracked 2026-10-27) |
+| menus | exclude | generated .menu files (untracked 2026-10-27) |
+| ibus | exclude | runtime bus address files only (untracked 2026-10-27) |
+| fcitx | exclude | runtime dbus address file only (untracked 2026-10-27) |
+| dconf | exclude | binary settings db written by apps; a `dconf dump` export if settings ever matter |

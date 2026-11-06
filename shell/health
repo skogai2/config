@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Health checks for the shell (atuin.md): `atuin-sync` freshness and
-# `atuin-vars`, dotfile var names that look like plaintext secrets.
-# Var values are dropped on read and never printed.
+# Health checks for the shell (atuin.md): `atuin-sync`, history synced recently.
+# (`atuin-vars` was retired 2026-11-06: atuin 18.24 made dotfile vars read-only
+# legacy data that is no longer exported, so a finding there can't be fixed.)
 set -u
 
 # shellcheck source=bin/health-lib.sh
@@ -29,27 +29,5 @@ atuin_sync() {
   fi
 }
 
-atuin_vars() {
-  local names rc=0 bad list
-  # Keep only NAME from "export NAME=value"; values never leave this pipeline.
-  names=$(atuin dotfiles var list 2>/dev/null | sed -nE 's/^export ([^=]+)=.*/\1/p'
-    exit "${PIPESTATUS[0]}") || rc=$?
-  if ((rc != 0)); then
-    report "FAIL atuin-vars: atuin dotfiles var list exited $rc"
-    return
-  fi
-  bad=$(awk -F_ '{
-    for (i = 1; i <= NF; i++)
-      if (toupper($i) ~ /^(KEY|TOKEN|SECRET|PASSWORD|PASSWD|CREDENTIAL)$/) { print; next }
-  }' <<<"$names" | LC_ALL=C sort)
-  if [[ -n $bad ]]; then
-    mapfile -t list <<<"$bad"
-    report "FAIL atuin-vars: secret-looking names: $(join ', ' "${list[@]}")"
-  else
-    report "ok atuin-vars: $(grep -c . <<<"$names") vars"
-  fi
-}
-
 if need atuin-sync atuin; then atuin_sync; fi
-if need atuin-vars atuin; then atuin_vars; fi
 exit "$failed"

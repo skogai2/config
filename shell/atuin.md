@@ -15,17 +15,15 @@ agreement changes — not derived from any single dotfiles file.
 - **Shell history sync.** Every command run in an interactive shell is
   recorded and synced to Emil's atuin.sh account (username `skogix`), so
   history is shared across machines.
-- **Env vars and aliases.** New environment variables and shell aliases are
-  added via Atuin's dotfiles feature, not hand-written into `.bashrc`/`.zshrc`,
-  so they sync to every machine automatically:
-  - `atuin dotfiles var set NAME=value` — add/update an env var
-  - `atuin dotfiles var delete NAME` — remove one
-  - `atuin dotfiles var list` — see what's set
-  - `atuin dotfiles alias set name=command` — add/update an alias
-  - `atuin dotfiles alias delete name` / `list` / `clear` — same idea
-
-  Only truly machine-local, one-off values (things that must never sync)
-  belong directly in shell rc files instead.
+- **Env vars and aliases: no longer.** As of atuin 18.24 (seen 2026-11-06)
+  the dotfiles feature is "legacy": `atuin dotfiles var list` / `alias list`
+  still show the old synced data, but there is no `set` or `delete`, and
+  `atuin init` no longer exports any of it. The old vars are inert data in
+  atuin's store (including one secret-named var, left as is: unused).
+  Six names on that list are set nowhere else any more: `FNOX_PROFILE`,
+  `PODMAN_COMPOSE_WARNING_LOGS`, `SKOGAI_OLLAMA_API`, `TEST`,
+  `XDG_SKOGAI_CONFIG_DIR`, `XDG_SKOGAI_DIR`. Env vars and aliases need a
+  new home (PROJECT.md walkthrough item 3: mise vs atuin).
 
 ## Per-machine setup
 
