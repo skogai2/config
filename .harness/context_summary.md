@@ -61,6 +61,13 @@ This file is referenced in CLAUDE.md and loaded every session.
   `key=`); its publish check catches them, but only after they're in local history. Before
   tracking a new app dir, grep key names (`cut -d= -f1`) for key/cert/token (2026-11-06)
 
+- Removing plaintext from mise history without `history purge` (mise < 2026.11): stop
+  `dev.mise.mise-history.service`, move `main` back to the last published commit
+  (`refs/remotes/origin/setup`), `mise dot save`, then `reflog expire` + `gc --prune=now`.
+  The publish check stops at the first hit: scan every new file before syncing, or it takes
+  one reset per secret (three on 2026-11-06). Each reset needs skogix's approval, and
+  `--allow-plaintext-history` is skogix's to run, never an agent's (2026-11-06)
+
 ## Meta-Patterns
 <!-- Coordination insights that apply across features — NOT domain-specific.
      Populated by the retrospective step at session end.

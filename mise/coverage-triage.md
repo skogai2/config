@@ -95,6 +95,8 @@ also holds logs or backups.
 - [x] `hype`: `hype.ini`
 - [x] `jellyfin-mpv-shim`: `conf.json`, `mpv.conf`, `input.conf`; exclude `users.json*` (logins), `*.lock*`
 - [x] `superwhisper`: settings; exclude `*.lock`
+  - 2026-11-06: mise's publish check flags `shortcuts.lua:145` (`token=tostring(serial)`, a Lua
+    variable): a false positive, published once with `--allow-plaintext-history`
 - [x] `sunshine`: `apps.json`; exclude `sunshine.log*`, `sunshine_state.json` (pairing state)
 
 ## batch 4: look first (possible secrets or bigger questions)
