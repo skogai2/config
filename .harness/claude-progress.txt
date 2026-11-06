@@ -30,3 +30,7 @@
 - Live check-coverage: 42 tracked, 12 decided, 66 undecided
 - Not done (needs skogix): install/enable the timer; fix the 4 failures
 - Next: work the undecided ~/.config entries into mise/coverage.md
+- Follow-up (same day): tmux.conf restored from .bak, opencode integration repaired,
+  fnox.toml chowned to root (skogix), atuin-vars retired (atuin 18.24 legacy vars).
+  bin/health: all 15 checks ok. check-coverage: 42 tracked, 18 decided, 60 undecided.
+- Open for skogix: 6 ex-atuin vars set nowhere now (shell/atuin.md); timer install.
