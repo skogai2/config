@@ -1,1 +1,1 @@
-/skogai/.skogai/repos/skogai-runner/examples/usage/hello/hello.sh
+/home/skogix/skogai-runner/examples/usage/hello/hello.sh
