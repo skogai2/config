@@ -1,1 +1,0 @@
-/home/skogix/skogai-runner/examples/usage/hello/hello.sh
