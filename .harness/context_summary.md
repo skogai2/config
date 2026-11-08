@@ -4,11 +4,13 @@ Persistent record of architectural decisions, discovered patterns, gotchas, and 
 This file is referenced in CLAUDE.md and loaded every session.
 
 ## Active Context
-- Done 2026-11-06: F001-F007. `bin/health` covers all 7 groups (16 checks); timer units in
-- Coverage 2026-11-06 late: 3 undecided left (nvim.backup merge, pangolin, treehouse: skogix)
-  `machine/units/` (not installed); `bin/check-coverage` + `mise/coverage.md`
-- Next up: skogix's calls on the 4 live health failures and installing the timer; then
-  work the 66 undecided `~/.config` entries into mise/coverage.md (PROJECT.md section 2)
+- Done 2026-11-06: F001-F007. `bin/health` covers all 7 groups (16 checks, all ok
+  2026-11-09); timer units in `machine/units/` (not installed); `bin/check-coverage` +
+  `mise/coverage.md`
+- Coverage 2026-11-09: 65 tracked, 50 decided, 8 undecided (incl. nvim.backup merge,
+  pangolin, treehouse: skogix's calls; turborepo, verdaccio are new since 2026-11-06)
+- Next up: install the timer (skogix); decide the 8 undecided entries (PROJECT.md section 2)
+- atuin MCP thread tools fail: daemon 18.24.2 vs client `/usr/bin/atuin` 18.24.1
 
 ## Cross-Cutting Concerns
 - Stack: Markdown docs, plus bash checks in `bin/` and `tests/`
@@ -56,6 +58,9 @@ This file is referenced in CLAUDE.md and loaded every session.
   2026-10-31): a spec gate proves a spec is testable, not that it's worth building.
   Ask "what changes in the world if this works" first
 
+- `atuin status` doesn't zero-pad the hour (`Last sync: 2026-11-09 0:15:46...`): a time
+  parser tested only with daytime samples passes until midnight. Test an hour < 10 (2026-11-09)
+
 - `mise dot status` exits 0 while publishing fails; the error is a `✗ last error:` line under
   Repository. `dot-sync` in mise/health catches it (2026-11-06)
 - mise's name-based credential filter misses keys inside ordinary config files (Moonlight.conf
@@ -95,3 +100,17 @@ This file is referenced in CLAUDE.md and loaded every session.
   atuin var), each one a check meant to catch it.
 - Model calibration: 0 correction cycles; one self-inflicted miss (a sed edit that silently didn't
   match the toolbox line) cost a red cycle. Verify a sed edit with grep in the same call.
+
+## Meta-Session 2026-11-07
+- Reconstructed 2026-11-09 from git only (atuin thread capture was unreadable): skogix's own
+  commits, no harness feature work. `commands/` got symlinks into the skogai-runner checkout
+  (c1f3c85), then they were removed again (c2df7ad "WIP"); `/graft/.cache` was gitignored.
+- Discovered: none recorded. Transfer: a session with no harness work still trips the
+  SESSION_INCOMPLETE gap; a two-line retrospective at session end costs less than reconstruction.
+
+## Meta-Session 2026-11-09
+- Scope: resolve the 11-07 gap; the startup `bin/health` run then exposed an atuin-sync false
+  failure (unpadded hour), fixed with TDD on F003. 0 correction cycles.
+- Discovered: F003's samples were all daytime timestamps; verbatim samples need to cover
+  edge cases of the format (single-digit fields), not only the one captured at spec time.
+- Transfer: run `bin/health` at session start; it found a real bug in its own check.

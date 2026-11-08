@@ -98,7 +98,8 @@
       "correction_cycles": 0,
       "scope_expansions": 0,
       "approaches_tried": [
-        "TDD single-session; shared bin/health-lib.sh (report/need/tilde/join/stock_check) and tests/lib.sh (extracted from F001 tests)."
+        "TDD single-session; shared bin/health-lib.sh (report/need/tilde/join/stock_check) and tests/lib.sh (extracted from F001 tests).",
+        "2026-11-09 fix: atuin-sync regex assumed a zero-padded hour; atuin prints '0:15:46', so the check failed 00:00-09:59 daily. Regex now [0-9]{1,2}:; test 'unpadded hour parses' added."
       ],
       "discovered_via": "F001",
       "spec": {

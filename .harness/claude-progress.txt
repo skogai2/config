@@ -34,3 +34,11 @@
   fnox.toml chowned to root (skogix), atuin-vars retired (atuin 18.24 legacy vars).
   bin/health: all 15 checks ok. check-coverage: 42 tracked, 18 decided, 60 undecided.
 - Open for skogix: 6 ex-atuin vars set nowhere now (shell/atuin.md); timer install.
+
+## Session 4 - 2026-11-09
+- Feature: F003 bugfix (atuin-sync failed 00:00-09:59: unpadded hour in `atuin status`)
+- Status: complete; also wrote the missing 2026-11-07 retrospective (from git)
+- Tests: full_test green (new case "atuin: unpadded hour parses"); shellcheck -x clean
+- Live bin/health: all 16 checks ok. check-coverage: 65 tracked, 50 decided, 8 undecided
+- Next: decide the 8 undecided ~/.config entries; timer install (skogix)
+- Blockers: atuin MCP thread tools down (daemon 18.24.2 vs /usr/bin/atuin 18.24.1)
