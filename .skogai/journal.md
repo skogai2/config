@@ -2599,3 +2599,58 @@ The concern groups in section 3 are only a proposal. Settling them first would b
 - Write `.skogai/TODO.md`
 - Bash: `cd ~/.config/skogai; python3 -I - <<'EOF'`
 
+## 2026-11-09 00:19 · turn c722dace
+
+**User**
+
+> /vv-harness:harness-continue
+
+**Assistant**
+
+skogix, all 7 features are passing, so nothing is waiting to be picked up. I fixed one bug, filled in a missing session note, and committed both locally (not pushed).
+
+**Bug fixed: `bin/health` was failing every night.** The atuin-sync check reported "no Last sync: line" from midnight until 10:00 each day. Sync itself was fine; atuin writes the hour without a leading zero (`0:15:46`), and the check only accepted two-digit hours. I added a failing test for an early-morning time, fixed the check in `shell/health:19`, and confirmed the test passes. The full suite passes, shellcheck is clean, and a live `bin/health` run is back to 16 of 16 ok. Commit: `6a0eef5`.
+
+**Missing 2026-11-07 note:** the last session ended without its summary in `.harness/context_summary.md`. I couldn't read that session's history, so I rebuilt the note from git only. It shows your own commits that day (the `commands/` links added, then removed in "WIP") and no tracked feature work. I also rewrote the "Active Context" section at the top of that file: it was garbled and still listed 4 failing checks and 66 undecided entries. Commit: `a851a21`.
+
+**Needs you:**
+- **8 `~/.config` entries are still undecided** (65 tracked, 50 decided). Three were already waiting on you (`nvim.backup.20261023-184226`, `pangolin`, `treehouse`); `turborepo` and `verdaccio` are new since 2026-11-06.
+- **The `bin/health` timer** is written but still not installed.
+- **Atuin's session history can't be read here.** The atuin service running in the background is 18.24.2, but `/usr/bin/atuin` is 18.24.1, and the two refuse to talk. Removing the older system copy or restarting the service should fix it. That changes your machine, so it's your call.
+
+Should I work through the coverage entries next? I'd go through them a batch at a time and bring each one to you as track, exclude or leave to the app, with my reasoning.
+
+**Actions**
+
+- Bash: `git status -s; git log --oneline -8 --format='%h %ad %s' --date=short`
+- Bash: `./.harness/init.sh smoke_test 2>&1 | tail -15`
+- Bash: `gh auth status 2>&1 | head -6; git config user.email; claude --version 2>/dev/null; python3 -c "import json;print(json.l…`
+- Bash: `git show --stat --format='%h %s%n%b' c1f3c85 11f9aff c2df7ad | head -60; echo ---; tail -25 .harness/claude-progress.txt…`
+- Bash: `git show 11f9aff -- .gitignore | tail -4; git log -3 --format='%h %an <%ae> %ad' --date=iso`
+- ToolSearch: select:mcp__atuin__atuin_threads_list
+- mcp__atuin__atuin_threads_list: . (failed)
+- Read `.harness/context_summary.md`
+- Bash: `bin/check-coverage 2>&1 | tail -6; echo "exit=$?"`
+- Bash: `bin/health 2>&1 | grep -v '^ok' | tail -8`
+- Bash: `grep -n -A8 'atuin-sync' shell/health | head -20; atuin --version; which -a atuin`
+- Bash: `atuin status 2>&1 | grep -iE 'sync|^\[|error|version' | head -10; /usr/bin/atuin --version`
+- Bash: `grep -n 'Last sync' tests/*.test.sh | head; sed -n 10,13p shell/health; sed -n 23,32p shell/health`
+- Read `tests/health-shell.test.sh`
+- Bash: `grep -n -A10 '^expect()' tests/lib.sh`
+- Edit `tests/health-shell.test.sh`
+- Bash: `./.harness/init.sh focused_test tests/health-shell.test.sh 2>&1 | tail -6`
+- Bash: `sed -i 's|re=.^Last sync: (\[0-9-\]{10} \[0-9:\]{8})|re='"'"'^Last sync: ([0-9-]{10} [0-9]{1,2}:[0-9]{2}:[0-9]{2})|' she…`
+- Bash: `sed -i 's|# "Last sync: 2026-11-06 14:57:47.347674749 +01:00:00" -> "2026-11-06 14:57:47 +01:00"|# "Last sync: 2026-11-0…`
+- Bash: `./.harness/init.sh full_test 2>&1 | grep -cE '^ok '; ./.harness/init.sh full_test 2>&1 | grep -E '^FAIL|failed' ; shellc…` (failed)
+- Bash: `shellcheck -x shell/health tests/health-shell.test.sh && echo shellcheck-clean`
+- Bash: `python3 -c "`
+- Bash: `python3 - <<'EOF'`
+- Edit `.harness/context_summary.md`
+- Edit `.harness/context_summary.md`
+- Bash: `cat >> .harness/context_summary.md <<'EOF'`
+- Bash: `cat > .harness/mld/2026-11-09-7ce3807e-6ce6-4e21-8250-015982fc1b37.md <<'EOF'`
+- Bash: `git add shell/health tests/health-shell.test.sh`
+- Bash: `git commit -q -m "shell/health: parse atuin's unpadded hour in Last sync`
+- Bash: `git add .harness/claude-progress.txt .harness/context_summary.md .harness/features.json .harness/mld/2026-11-09-7ce3807e…`
+- Bash: `git commit -q -m "docs: harness session 4, 2026-11-07 retrospective, atuin hour gotcha" && git log --oneline -2 && git s…`
+
