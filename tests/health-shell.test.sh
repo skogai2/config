@@ -36,6 +36,12 @@ test_sync() {
   expect "atuin: exactly at the limit fails" 1 "FAIL atuin-sync: last sync 24h ago"
   atuin_case "Last sync: never" 0
   expect "atuin: unparseable sync line" 1 "FAIL atuin-sync: no Last sync: line"
+  # atuin doesn't zero-pad the hour: "0:15:46" between midnight and 10:00
+  local early hours
+  early=$(date -d 'yesterday 00:15:46' '+%Y-%m-%d')
+  hours=$((($(date +%s) - $(date -d "$early 00:15:46" +%s)) / 3600))
+  atuin_case "Last sync: $early 0:15:46.289958728 $(date -d "$early" +%:z):00" 0
+  expect "atuin: unpadded hour parses" 1 "FAIL atuin-sync: last sync ${hours}h ago"
   atuin_case "$(synced 1)" 2
   expect "atuin: status exit wins" 1 "FAIL atuin-sync: atuin status exited 2"
 }
