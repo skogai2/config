@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 # Health checks for mise: `doctor` problems, `bootstrap-plan` drift,
 # `dot-capture` (the dotfile watcher) and `dot-sync` (any ✗ line in
-# `mise dot status`, e.g. a failing publish). Contract: bin/health.
+# `mise dot status`, e.g. a failing publish) and `coverage` (every ~/.config
+# entry tracked or decided, ../bin/check-coverage). Contract: bin/health.
 # Only problem lines and the Plan: summary are ever printed; never mise env.
 set -u
 
-checks=(doctor bootstrap-plan dot-capture dot-sync)
+checks=(doctor bootstrap-plan dot-capture dot-sync coverage)
+here=$(cd "$(dirname "$0")/.." && pwd)
 failed=0
 
 report() {
@@ -91,6 +93,21 @@ dot_sync() {
   fi
 }
 
+# coverage: bin/check-coverage's summary; on a miss, the names it flagged.
+coverage() {
+  local out rc=0 summary names
+  out=$("$here/bin/check-coverage" 2>/dev/null) || rc=$?
+  summary=$(tail -1 <<<"$out")
+  if ((rc == 0)); then
+    report "ok coverage: $summary"
+  elif ((rc == 1)); then
+    names=$(sed -nE 's/^(CONFLICT|UNDECIDED) //p' <<<"$out" | awk '{printf "%s%s", (NR > 1 ? ", " : ""), $0}')
+    report "FAIL coverage: ${summary#* tracked, * decided, }: $names"
+  else
+    report "FAIL coverage: check-coverage exited $rc"
+  fi
+}
+
 main() {
   local c
   if ! command -v mise >/dev/null; then
@@ -103,6 +120,7 @@ main() {
   dot_status
   dot_capture
   dot_sync
+  coverage
   return "$failed"
 }
 

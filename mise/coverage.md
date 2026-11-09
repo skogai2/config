@@ -16,8 +16,9 @@ into one of three outcomes:
 - **undecided**: neither. These are the to-do list, PROJECT.md section 2.
 
 A name that is both tracked and decided is a `CONFLICT`: fix one side.
-It's a standalone check, not part of `bin/health`, until section 2 is
-worked through. Only skogix's decisions go in the table.
+`mise/health` runs it as the `coverage` check (since 2026-11-09, when
+every entry was decided), so a new app dir fails `bin/health` until it
+gets a row or a track entry. Only skogix's decisions go in the table.
 
 ## decisions
 

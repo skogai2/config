@@ -93,8 +93,10 @@ case "$1 ${2:-}" in
   "doctor "*) sub=doctor ;;
   "bootstrap plan") sub=plan ;;
   "dot status") sub=dot ;;
+  "dot paths") sub=paths ;;
   *) exit 99 ;;
 esac
+[[ $sub == paths && ! -e $STUB/paths.out ]] && echo "{\"entries\": []}"
 pwd >"$STUB/$sub.cwd"
 cat "$STUB/$sub.out" 2>/dev/null
 exit "$(cat "$STUB/$sub.rc" 2>/dev/null || echo 0)"'
@@ -108,8 +110,15 @@ mise_case() {
   printf '%b' "$1" >"$d/doctor.out"; echo "$2" >"$d/doctor.rc"
   printf '%b' "$3" >"$d/plan.out"; echo "$4" >"$d/plan.rc"
   printf '%b' "$5" >"$d/dot.out"; echo "$6" >"$d/dot.rc"
-  run env STUB="$d" HOME="$d/home" PATH="$d/bin:$(toolbox)" "$repo/mise/health"
-  mise_dir=$d
+  printf '| name | decision | why |\n|---|---|---|\n' >"$d/coverage.md"
+  mise_run "$d"
+}
+
+# mise_run <stub-dir>: run mise/health against the stub and its decisions file.
+mise_run() {
+  run env STUB="$1" HOME="$1/home" COVERAGE_FILE="$1/coverage.md" \
+    PATH="$1/bin:$(toolbox)" "$repo/mise/health"
+  mise_dir=$1
 }
 
 plan_ok='Plan: 0 create, 0 update, 13 unchanged, 0 remove, 0 unknown\n'
@@ -120,7 +129,7 @@ test_mise() {
   mise_case "settings\n\n$warn" 0 "x\n$plan_ok" 0 "$dot_ok" 0
   expect "mise: all ok, warnings are not failures" 0 \
     "ok doctor" "ok bootstrap-plan: Plan: 0 create, 0 update, 13 unchanged, 0 remove, 0 unknown" \
-    "ok dot-capture" "ok dot-sync"
+    "ok dot-capture" "ok dot-sync" "ok coverage: 0 tracked, 0 decided, 0 undecided, 0 conflicts"
   local cwds
   cwds=$(cat "$mise_dir/doctor.cwd" "$mise_dir/plan.cwd" "$mise_dir/dot.cwd" | sort -u)
   if [[ $cwds == "$mise_dir/home" ]]; then pass "mise: runs from \$HOME"; else
@@ -148,7 +157,34 @@ test_mise() {
   run env HOME="$work" PATH="$(toolbox)" "$repo/mise/health"
   expect "mise: mise not on PATH" 1 \
     "FAIL doctor: mise not found" "FAIL bootstrap-plan: mise not found" \
-    "FAIL dot-capture: mise not found" "FAIL dot-sync: mise not found"
+    "FAIL dot-capture: mise not found" "FAIL dot-sync: mise not found" \
+    "FAIL coverage: mise not found"
+}
+
+# coverage: bin/check-coverage as a mise check, against a stub HOME/.config.
+test_coverage() {
+  local d
+  mise_case "settings\n" 0 "$plan_ok" 0 "$dot_ok" 0
+  d=$mise_dir
+  mkdir -p "$d/home/.config"/{tracked,both,"Some App",zeta}
+  printf '{"entries": [{"path": "~/.config/tracked", "mode": "track"},\n' >"$d/paths.out"
+  printf ' {"path": "~/.config/both", "mode": "track"}]}\n' >>"$d/paths.out"
+  printf '| both | owner | x |\n' >>"$d/coverage.md"
+  mise_run "$d"
+  expect "coverage: undecided and conflicts fail, named" 1 \
+    "FAIL coverage: 2 undecided, 1 conflicts: both: tracked and owner, Some App, zeta" "ok dot-sync"
+
+  printf '| Some App | owner | x |\n| zeta | exclude | y |\n' >>"$d/coverage.md"
+  printf '{"entries": [{"path": "~/.config/tracked", "mode": "track"},\n' >"$d/paths.out"
+  printf ' {"path": "~/.config/both", "mode": "track"}]}\n' >>"$d/paths.out"
+  sed -i '/^| both /d' "$d/coverage.md"
+  mise_run "$d"
+  expect "coverage: all decided is ok" 0 \
+    "ok coverage: 2 tracked, 2 decided, 0 undecided, 0 conflicts"
+
+  echo 3 >"$d/paths.rc"
+  mise_run "$d"
+  expect "coverage: check-coverage error" 1 "FAIL coverage: check-coverage exited 2"
 }
 
 test_machine() {
@@ -175,6 +211,7 @@ test_timeout
 test_bad_root
 test_containers
 test_mise
+test_coverage
 test_machine
 
 exit $failures
