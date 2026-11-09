@@ -42,3 +42,6 @@
 - Live bin/health: all 16 checks ok. check-coverage: 65 tracked, 50 decided, 8 undecided
 - Next: decide the 8 undecided ~/.config entries; timer install (skogix)
 - Blockers: atuin MCP thread tools down (daemon 18.24.2 vs /usr/bin/atuin 18.24.1)
+- Follow-up (same session): coverage batch 7, all 11 undecided entries decided on skogix's
+  "do them all" (10 rows in mise/coverage.md); nvim.backup moved to the trash
+  after confirming nvim is the newer version. check-coverage: 65 tracked, 60 decided, 0 undecided.

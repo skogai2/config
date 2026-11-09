@@ -7,9 +7,11 @@ This file is referenced in CLAUDE.md and loaded every session.
 - Done 2026-11-06: F001-F007. `bin/health` covers all 7 groups (16 checks, all ok
   2026-11-09); timer units in `machine/units/` (not installed); `bin/check-coverage` +
   `mise/coverage.md`
-- Coverage 2026-11-09: 65 tracked, 50 decided, 8 undecided (incl. nvim.backup merge,
-  pangolin, treehouse: skogix's calls; turborepo, verdaccio are new since 2026-11-06)
-- Next up: install the timer (skogix); decide the 8 undecided entries (PROJECT.md section 2)
+- Coverage 2026-11-09: 65 tracked, 60 decided, 0 undecided. Batch 7 (11 entries) decided by
+  the lead on skogix's "do them all"; nvim backup trashed, not merged (mise/coverage-triage.md)
+- Next up: install the timer (skogix); whether `bin/check-coverage` joins `bin/health` now that
+  `~/.config` is fully decided (new app dirs keep appearing: 3 in 3 days); PROJECT.md section 2
+  "outside ~/.config" and packages
 - atuin MCP thread tools fail: daemon 18.24.2 vs client `/usr/bin/atuin` 18.24.1
 
 ## Cross-Cutting Concerns
