@@ -2654,3 +2654,76 @@ Should I work through the coverage entries next? I'd go through them a batch at 
 - Bash: `git add .harness/claude-progress.txt .harness/context_summary.md .harness/features.json .harness/mld/2026-11-09-7ce3807e…`
 - Bash: `git commit -q -m "docs: harness session 4, 2026-11-07 retrospective, atuin hour gotcha" && git log --oneline -2 && git s…`
 
+## 2026-11-09 06:21 · turn 409ae2b8
+
+**User**
+
+> please do them all and tell me at the end what was needed etc
+
+**Assistant**
+
+skogix, all 11 undecided `~/.config` entries are decided. `bin/check-coverage` now reports 65 tracked, 60 decided, 0 undecided, and the full test suite passes. It's committed in `c3596b4` and `8254d17`, not pushed. Your own two commits (`9f70b85`, `9beef16`) landed in between, and the history is still in order.
+
+There were 11 entries rather than 8: three new app folders appeared since this morning.
+
+**What each one needed:**
+
+| entry | decision | why |
+|---|---|---|
+| Antigravity IDE | owner | an Electron app profile (caches, crash reports) |
+| argc | owner | its only content is a symlink into the `skogai-runner` checkout, so the runner owns it, not the dotfiles |
+| configstore | owner | npm update-check state |
+| gtk-4.0 | owner | empty, created by GTK apps |
+| nautilus | owner | empty; it came back after the 2026-11-06 delete, which the triage notes predicted |
+| omapets | owner | a pet image downloaded from codex-pets.net that can be downloaded again |
+| turborepo | owner | a telemetry id only, same as astro and nextjs earlier |
+| pangolin | exclude | update-check file only |
+| treehouse | exclude | update-check file only |
+| verdaccio | exclude | the stock default `config.yaml`, never edited; worth tracking once you change it |
+
+**`nvim.backup.20261023-184226`** is the one decision you might disagree with. The backup is your nvim config from just before checkpoint 388 on 2026-10-23, when you deliberately rewrote the clipboard and transparency setup. Every file that differs is newer in the current `nvim`, so I merged nothing. Only two one-line entries weren't carried over:
+- the `herdr-nvim` plugin: `return { "ChmaraX/herdr-nvim", opts = {} }`
+- the `lazyvim.plugins.extras.ai.claudecode` extra
+
+You haven't had either for two weeks, so I left them out; add them back by hand if you want them. I moved the backup to the desktop trash (`~/.local/share/Trash/files/`) instead of deleting it, so you can still get it back. Both lines are written down in `mise/coverage-triage.md`.
+
+I also ticked the item in `.skogai/TODO.md`, updated the counts in PROJECT.md, and updated the harness notes.
+
+**Still yours to decide:**
+- **The `bin/health` timer** is still not installed.
+- **Should `bin/check-coverage` run inside `bin/health` now?** I'd say yes: three new app folders appeared in three days, and a daily check would catch them.
+- **Atuin needs one fix on your machine.** Its background service is 18.24.2 but `/usr/bin/atuin` is 18.24.1, so I can't read past session history. Removing the old system copy or restarting the service should fix it.
+- **The rest of PROJECT.md section 2** (files outside `~/.config`, and the package list) hasn't been started.
+
+**Actions**
+
+- Bash: `bin/check-coverage 2>&1 | grep UNDECIDED; echo ---; sed -n 1,60p mise/coverage.md`
+- Bash: `grep -n -iE 'nvim.backup|pangolin|treehouse|argc|nautilus|gtk-4|configstore|turborepo|verdaccio|omapets|antigravity' mis…`
+- Bash: `cd ~/.config && for d in "Antigravity IDE" argc configstore gtk-4.0 nautilus nvim.backup.20261023-184226 omapets pangoli…`
+- Bash: `sed -n 140,155p mise/coverage-triage.md; echo ---; cat ~/.config/argc/commands/core.sh | head -30; echo ---; find ~/.con…`
+- Bash: `grep -vE '^\s*#|^\s*$' ~/.config/verdaccio/config.yaml | cut -d: -f1 | head -40; echo ---; grep -ciE 'password|token|sec…`
+- Bash: `grep -nE 'password|token|secret|key' ~/.config/verdaccio/config.yaml | grep -vE '^\s*[0-9]+:\s*#' ; echo ---; pacman -Qo…`
+- Bash: `cd ~/.config; B=nvim.backup.20261023-184226; ls -la argc/commands/core.sh; diff -rq $B nvim | grep -v '^Only in nvim/.gi…`
+- Bash: `cd ~/.config; B=nvim.backup.20261023-184226; for f in lazyvim.json lua/config/remote_clipboard.lua lua/plugins/all-theme…`
+- Bash: `mise dot --help 2>&1 | sed -n 1,30p`
+- Bash: `mise dot history --help 2>&1 | sed -n 1,40p`
+- Bash: `mise dot history ls --path ~/.config/nvim/lua/plugins/herdr-nvim.lua -n 0 2>&1 | head; echo ---; mise dot history ls --p…`
+- Bash: `mise dot history diff --help 2>&1 | sed -n 1,25p`
+- Bash: `mise dot history diff 388 --path ~/.config/nvim 2>&1 | head -20`
+- Bash: `cat ~/.config/omapets/pets/clawd/pet.json | head -30; echo; grep -rl omapets ~/.local/share/omarchy/bin 2>/dev/null | he…`
+- Bash: `grep -n -E 'Moonlight|antigravity|openknowledge' mise/coverage.md; tail -5 mise/coverage.md; grep -n -E '^- \[ \]' mise/…`
+- Bash: `command -v gio trash-put; ls ~/.local/share/Trash 2>&1 | head -2`
+- Bash: `gio trash ~/.config/nvim.backup.20261023-184226 && ls ~/.local/share/Trash/files | grep nvim.backup`
+- Bash: `cat >> mise/coverage.md <<'EOF'`
+- Bash: `sed -n 146,150p mise/coverage-triage.md`
+- Edit `mise/coverage-triage.md`
+- Bash: `bin/check-coverage 2>&1 | tail -3; ./.harness/init.sh full_test 2>&1 | grep -E '^FAIL|routes|Complete'`
+- Bash: `sed -i 's#(2026-11-06: 62 tracked, 40 decided, 16 undecided; working list in `mise/coverage-triage.md`)#(2026-11-09: 65 …`
+- Edit `.harness/context_summary.md`
+- Bash: `cat >> .harness/claude-progress.txt <<'EOF'`
+- Bash: `git add mise/coverage.md mise/coverage-triage.md PROJECT.md .skogai/TODO.md`
+- Bash: `git commit -q -m "coverage: decide the last 11 ~/.config entries (batch 7), trash nvim backup"`
+- Bash: `git add .harness/claude-progress.txt .harness/context_summary.md`
+- Bash: `git commit -q -m "docs: harness notes for coverage batch 7"; git log --oneline -4; git status -s`
+- Bash: `git log --oneline -8; git branch --contains 6a0eef5 a851a21 2>&1 | head`
+
