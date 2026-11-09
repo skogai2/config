@@ -19,7 +19,7 @@ has() {
 has "service: oneshot running bin/health" skogai-health.service \
   "Type=oneshot" "ExecStart=%h/.config/skogai/bin/health" \
   "OnFailure=skogai-health-notify.service" \
-  "Environment=PATH=%h/.local/share/mise/shims:/usr/local/bin:/usr/bin:/bin"
+  "Environment=PATH=%h/.local/bin:%h/.local/share/mise/shims:/usr/local/bin:/usr/bin:/bin"
 
 has "notify: critical desktop notification" skogai-health-notify.service \
   "Type=oneshot" \

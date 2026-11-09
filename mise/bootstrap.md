@@ -187,7 +187,9 @@ Step 16 is `mise install` for `[tools]`; see `SKOGAI.md` for the layers.
 
 `[tasks.bootstrap]` runs after everything else, with `[tools]` on PATH:
 `systemctl is-enabled -q sshd.service || omarchy-setup-security-sshd`,
-same for `tailscaled`. A no-op on this machine. It assumes Omarchy, so it
+same for `tailscaled`, and (2026-11-09) the `skogai-health` timer linked
+from `../machine/units/` when `systemctl --user is-enabled` says it isn't.
+A no-op on this machine. It assumes Omarchy, so it
 fails elsewhere (open: guard it). No hooks declared (`pre-/post-packages`,
 `-repos`, `-dotfiles`, `-user`, `-tools`, `final`).
 

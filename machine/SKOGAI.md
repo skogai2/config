@@ -17,8 +17,10 @@ Machine-wide state that no other concern owns. Declared machine state
 
 ## health timer
 
-The same pattern as `quadlet-health`. Install is a manual step skogix
-confirms, because it writes to the user's systemd config:
+The same pattern as `quadlet-health`. Installed 2026-11-09, and declared:
+`[tasks.bootstrap]` in `~/.config/mise/config.toml` links the three
+units from this checkout and enables the timer when it isn't enabled yet
+(../mise/bootstrap.md, task and hooks). By hand, the same thing:
 
 ```sh
 systemctl --user link ~/.config/skogai/machine/units/skogai-health.service \
@@ -27,6 +29,10 @@ systemctl --user link ~/.config/skogai/machine/units/skogai-health.service \
 systemctl --user enable --now skogai-health.timer
 ```
 
+The service's PATH starts with `~/.local/bin`: `/usr/bin/mise` (pacman
+`mise-bin`) is a different version from the shell's `~/.local/bin/mise`,
+and checking the wrong one fails `doctor` and `bootstrap-plan`.
+
 Every failing check notifies once an hour, so fix (or knowingly accept)
-the current failures first. `containers` failures notify twice: once from
+failures quickly. `containers` failures notify twice: once from
 `quadlet-health`'s own timer, once from this one.
