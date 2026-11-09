@@ -2727,3 +2727,97 @@ I also ticked the item in `.skogai/TODO.md`, updated the counts in PROJECT.md, a
 - Bash: `git commit -q -m "docs: harness notes for coverage batch 7"; git log --oneline -4; git status -s`
 - Bash: `git log --oneline -8; git branch --contains 6a0eef5 a851a21 2>&1 | head`
 
+## 2026-11-09 06:40 · turn 3537d58f
+
+**User**
+
+> 1. install it/add to mise bootstrap
+> 2. yes
+> 3. atuin daemon restart
+> 4. great. that means we are actually doing the important things first/right now!
+
+**Assistant**
+
+skogix, the timer and the coverage check are done and committed (`896bba5`, `9f48623`, `1252cbd`, not pushed). Atuin isn't fixed: the restart was the wrong fix, and the right one was blocked for me.
+
+**1. Timer: installed and in bootstrap.**
+- **Running now:** `skogai-health.timer` is enabled and runs hourly; the next run is 07:36.
+- **Bootstrap:** a guarded line in `[tasks.bootstrap]` (`~/.config/mise/config.toml`) links the three unit files from this repo and enables the timer on any machine where it isn't on yet. Here it does nothing. `mise bootstrap plan` shows no changes.
+- **Why not mise's own unit table:** it has no `OnFailure=` setting, which the failure notification needs.
+- **First run failed, then fixed.** The timer was using a different mise. There are two installed: `~/.local/bin/mise` (2026.10.17, the one your shell uses) and `/usr/bin/mise` (2026.11.4, from the pacman package `mise-bin`). The unit's PATH skipped `~/.local/bin`, so it got the newer one, and two checks failed against state the older one wrote. I put `~/.local/bin` first in the unit's PATH. It now reports all 17 checks ok. That failed run probably sent you one critical desktop notification.
+
+**2. Coverage check: added.** It runs as a `coverage` check inside `mise/health`, not in `bin/health` itself, because it reads the live `~/.config` and would make the runner's tests depend on this machine. A new app folder will now fail the hourly check by name (e.g. `FAIL coverage: 1 undecided, 0 conflicts: newapp`) until it gets a decision. Tests pass and shellcheck is clean.
+
+**3. Atuin: a restart won't fix it.** The daemon already runs 18.24.2, the same atuin your shell uses. The problem is that Claude's MCP config pins `/usr/bin/atuin` (pacman, 18.24.1). Restarting the daemon on 18.24.1 would just move the mismatch to your shell. I tried to point the MCP server at mise's atuin, but the permission classifier blocked removing the old entry, so nothing changed. To fix it, run:
+
+```
+! claude mcp remove atuin -s user
+! claude mcp add -s user atuin -- /home/skogix/.local/share/mise/shims/atuin mcp
+```
+
+It takes effect when a session restarts. I checked that the shim reports 18.24.2 without shell activation.
+
+**Your call:** mise and atuin both exist twice, a pacman copy in `/usr/bin` and a user install. Anything that sets its own PATH can pick the wrong one, which is what broke the timer. Removing or pinning one side of each would end that, but whether Omarchy depends on the pacman packages is your decision. It's recorded under Gotchas in `.harness/context_summary.md`.
+
+I didn't touch `.skogai/logs/skogai-core/log.jsonl`; it's modified by your skogai-core work and left uncommitted.
+
+**Actions**
+
+- Bash: `ls machine/units/; head -50 machine/units/*; echo ---; grep -n -i -E 'systemd|units|service' ~/.config/mise/config.toml …`
+- Bash: `systemctl --user list-units --all 2>/dev/null | grep -i atuin; pgrep -a atuin`
+- Bash: `sed -n 100,115p ~/.config/mise/config.toml; echo ...; sed -n 240,300p ~/.config/mise/config.toml`
+- Bash: `grep -n -i -E 'systemd|units|services' mise/bootstrap.md | head -30; grep -rn -i 'install' machine/*.md machine/SKOGAI.m…`
+- Bash: `sed -n 170,200p mise/bootstrap.md`
+- Bash: `mise --version; f=$(find ~/.local/share/mise/installs/mise* /usr/share/mise* -name '*schema*.json' 2>/dev/null | head -3…`
+- Bash: `cat ~/.config/systemd/user/dev.mise.gptme-server.service; ls ~/.config/systemd/user/ | grep dev.mise; strings "$(command…`
+- Bash: `strings -n 20 "$(command -v mise | xargs readlink -f)" | grep -E 'on_unit_active_sec|on_boot_sec|on_calendar' | cut -c1-…`
+- Bash: `strings -n 3 "$(command -v mise | xargs readlink -f)" | grep -n -m1 '"on_unit_active_sec": {' | cut -d: -f1 > /tmp/claud…`
+- Bash: `grep -rln 'machine/units\|skogai-health' tests/ bin/ machine/ *.md mise/ | head; ls tests/`
+- Bash: `cat tests/health-units.test.sh; echo ----; cat machine/SKOGAI.md`
+- Bash: `cat bin/health; echo ----; grep -n -i 'routes' tests/health.test.sh | head -20`
+- Bash: `sed -n 1,30p bin/check-coverage; echo ----; grep -n -E '^[a-z_]+\(\)|report|need ' mise/health | head -30; ls tests | gr…`
+- Bash: `sed -n 1,16p mise/health; sed -n 94,130p mise/health; echo ----; grep -n 'mise' tests/health.test.sh | head -40`
+- Bash: `sed -n 86,118p tests/health.test.sh; grep -n 'mise ' bin/check-coverage; grep -n -B2 -A12 '^paths_stub\|stub .*mise' tes…`
+- Edit `tests/health.test.sh`
+- Edit `tests/health.test.sh`
+- Read `tests/health.test.sh`
+- Bash: `grep -n -A12 '^toolbox()' tests/lib.sh`
+- Bash: `python3 - <<'EOF'`
+- Bash: `python3 - <<'EOF'`
+- Bash: `sed -i "s#| paste -sd, - | sed 's/,/, /g')#| awk '{printf \"%s%s\", (NR > 1 ? \", \" : \"\"), \$0}')#" mise/health && gr…`
+- Bash: `sed -i 's#"FAIL coverage: 2 undecided, 1 conflicts: both, Some App, zeta"#"FAIL coverage: 2 undecided, 1 conflicts: both…`
+- Bash: `bin/health 2>&1 | tail -4`
+- Bash: `grep -n -A2 "It's a standalone check" mise/coverage.md; grep -rn 'check-coverage' SKOGAI.md mise/SKOGAI.md | head`
+- Bash: `python3 - <<'EOF'`
+- Bash: `git add mise/health tests/health.test.sh mise/coverage.md`
+- Bash: `git commit -q -m "mise/health: coverage check runs bin/check-coverage`
+- Bash: `systemctl --user link ~/.config/skogai/machine/units/skogai-health.service ~/.config/skogai/machine/units/skogai-health-…`
+- Bash: `systemctl --user enable --now skogai-health.timer; systemctl --user list-timers skogai-health.timer --no-pager`
+- Bash: `systemctl --user show skogai-health.service -p Result -p ActiveState -p ExecMainStatus; journalctl --user -u skogai-heal…`
+- Bash: `journalctl --user -u skogai-health -n 40 --no-pager -o cat | grep -E 'FAIL|checks'`
+- Bash: `env -i HOME=$HOME USER=$USER PATH=$HOME/.local/share/mise/shims:/usr/local/bin:/usr/bin:/bin bin/health 2>&1 | grep -E '…`
+- Bash: `env | cut -d= -f1 | grep -E '^_?_?MISE' | sort; systemctl --user show-environment | cut -d= -f1 | grep -iE 'mise|xdg' `
+- Bash: `systemd-run --user --wait --pipe --quiet -p Environment=PATH=%h/.local/share/mise/shims:/usr/local/bin:/usr/bin:/bin -p …` (failed)
+- Bash: `systemd-run --user --wait --pipe --quiet -p "Environment=PATH=$HOME/.local/share/mise/shims:/usr/local/bin:/usr/bin:/bin…`
+- Bash: `echo "session: DATA=${XDG_DATA_HOME:-unset} CONFIG=${XDG_CONFIG_HOME:-unset} STATE=${XDG_STATE_HOME:-unset} CACHE=${XDG_…`
+- Bash: `systemd-run --user --wait --pipe --quiet -p "Environment=PATH=$HOME/.local/share/mise/shims:/usr/local/bin:/usr/bin:/bin…`
+- Bash: `which -a mise; for m in $(which -a mise | sort -u); do echo "$m: $($m --version 2>/dev/null | head -1)"; done; pacman -Q…`
+- Bash: `sed -i 's#"Environment=PATH=%h/.local/share/mise/shims:/usr/local/bin:/usr/bin:/bin"#"Environment=PATH=%h/.local/bin:%h/…`
+- Bash: `sed -i -e 's#^\# mise, atuin, herdr and jq come from mise; the user manager.s PATH has no shims.#\# mise, atuin, herdr a…`
+- Bash: `systemctl --user daemon-reload && systemctl --user start skogai-health.service; systemctl --user show skogai-health.serv…`
+- Read `/home/skogix/.config/mise/config.toml`
+- Edit `/home/skogix/.config/mise/config.toml`
+- Bash: `mise tasks info bootstrap 2>&1 | head -12; echo ---; systemctl --user is-enabled -q skogai-health.timer && echo "guard: …`
+- Bash: `sh -n -c 'systemctl --user is-enabled -q skogai-health.timer || { u="$HOME/.config/skogai/machine/units"; systemctl --us…`
+- Bash: `python3 - <<'EOF'`
+- Bash: `git add machine/units/skogai-health.service tests/health-units.test.sh machine/SKOGAI.md mise/bootstrap.md`
+- Bash: `git commit -q -m "skogai-health timer: installed, declared in bootstrap task`
+- Bash: `ls -d ~/.local/share/mise/installs/atuin*; ls -la ~/.local/share/mise/installs/atuin/ | head; pacman -Qo /usr/bin/atuin;…`
+- Bash: `grep -rln 'atuin' /skogai/claude/settings.json /skogai/claude/settings.local.json ~/.claude.json /skogai/claude/.claude.…`
+- Bash: `for f in /skogai/claude/.claude.json ~/.claude.json; do echo "== $f"; jq -c '[.. | objects | select(has("command")) | se…`
+- Bash: `jq -c '{user: (.mcpServers.atuin // null), projects: [.projects // {} | to_entries[] | select(.value.mcpServers.atuin) |…`
+- Bash: `env -i HOME=$HOME PATH=/usr/bin:/bin $HOME/.local/share/mise/shims/atuin --version`
+- Bash: `claude mcp add -s user atuin -- /home/skogix/.local/share/mise/shims/atuin mcp && jq -c '.mcpServers.atuin' /skogai/clau…` (failed)
+- Bash: `python3 - <<'EOF'`
+- Bash: `git commit -q -m "docs: harness notes for timer, coverage check, two mise/atuin copies"; git log --oneline -4; git statu…`
+
