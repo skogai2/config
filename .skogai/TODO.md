@@ -5,4 +5,4 @@
   - [x] mise; dotfiles with origin and deeper knowledge of how it works (mise/dotfiles.md, mise/dotfiles-upstream.md)
   - [x] mise; bundled into mise/ (2026-10-31)
   - [ ] mise; env
-- [ ] coverage; decide the 60 undecided `~/.config` entries, batch by batch (mise/coverage-triage.md)
+- [x] coverage; every `~/.config` entry decided, 2026-11-09 (mise/coverage.md)

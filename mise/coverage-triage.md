@@ -116,13 +116,13 @@ also holds logs or backups.
 
 ## batch 5: delete or merge
 
-- [ ] `nvim.backup.20261023-184226`: merge what's still wanted into `nvim`, then delete
+- [x] `nvim.backup.20261023-184226`: nothing merged, moved to the trash 2026-11-09 (see below)
   - skogix: double check, and keep `nvim` monitored as dotfiles/bootstrap
 - [x] `argc`: empty, deleted 2026-11-06
 - [x] `nautilus`: empty, deleted 2026-11-06 (`owner` if nautilus recreates it)
-- [ ] `pangolin`: `pangolin-update-check.json` only → `exclude`
+- [x] `pangolin`: `pangolin-update-check.json` only → `exclude` (2026-11-09)
   - skogix: skip for now
-- [ ] `treehouse`: `update-check.json` only → `exclude`
+- [x] `treehouse`: `update-check.json` only → `exclude` (2026-11-09)
   - skogix: skip for now
 
 ## batch 6: unsorted, small
@@ -146,4 +146,11 @@ also holds logs or backups.
 - `nvim.backup.20261023-184226` vs `nvim`: `lua/plugins/herdr-nvim.lua` only in the backup;
   `lazy-lock.json`, `lazyvim.json`, `config/remote_clipboard.lua`, `plugins/all-themes.lua`,
   `plugin/after/transparency.lua` differ; `plugins/lualine-transparent.lua` only in `nvim`.
-  skogix to pick what to merge before the backup is deleted
+  skogix to pick what to merge before the backup is deleted.
+  2026-11-09: the backup is `nvim` just before checkpoint 388 (2026-10-23 18:42), which
+  rewrote the clipboard and transparency on purpose; every differing file in `nvim` is the
+  newer version. Only two one-liners were not carried over: `herdr-nvim.lua`
+  (`return { "ChmaraX/herdr-nvim", opts = {} }`, in history from checkpoint 178) and the
+  `lazyvim.plugins.extras.ai.claudecode` extra in `lazyvim.json`. Not merged (unused for
+  two weeks); re-add either by hand if wanted. The dir is in the desktop trash
+  (`~/.local/share/Trash/files/`), not deleted.

@@ -73,3 +73,13 @@ worked through. Only skogix's decisions go in the table.
 | Hermes | owner | installation id, generated GPU/sandbox fallbacks, Crashpad (triage batch 6) |
 | ruflo | owner | `policy-trust/` ledger state only (triage batch 6) |
 | Code | owner | VS Code Electron profile; `User/settings.json` can get its own file entry if VS Code is used (triage batch 6) |
+| Antigravity IDE | owner | Electron profile: caches, Crashpad, local storage (triage batch 7, 2026-11-09) |
+| argc | owner | only `commands/core.sh`, a symlink into the skogai-runner checkout; the runner's packaging owns it (triage batch 7) |
+| configstore | owner | npm update-notifier state only (triage batch 7) |
+| gtk-4.0 | owner | empty, recreated by GTK apps (triage batch 7) |
+| nautilus | owner | empty, recreated by nautilus after the 2026-11-06 delete (triage batch 7) |
+| omapets | owner | downloaded Codex pet (`clawd`, codex-pets.net), re-fetchable; no settings (triage batch 7) |
+| pangolin | exclude | `pangolin-update-check.json` and empty `logs/` only (triage batch 7) |
+| treehouse | exclude | `update-check.json` only (triage batch 7) |
+| turborepo | owner | telemetry id only (triage batch 7) |
+| verdaccio | exclude | stock default `config.yaml`, never edited; track it once it is (triage batch 7) |
