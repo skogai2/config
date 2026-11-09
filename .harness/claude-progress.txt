@@ -45,3 +45,9 @@
 - Follow-up (same session): coverage batch 7, all 11 undecided entries decided on skogix's
   "do them all" (10 rows in mise/coverage.md); nvim.backup moved to the trash
   after confirming nvim is the newer version. check-coverage: 65 tracked, 60 decided, 0 undecided.
+- Follow-up 2: skogai-health timer installed (enabled, hourly) and declared in [tasks.bootstrap];
+  unit PATH now starts with ~/.local/bin (was running /usr/bin/mise 2026.11.4 and failing).
+  coverage check added to mise/health. Live: all 17 checks ok under the timer.
+- Open for skogix: atuin MCP repoint (`claude mcp remove atuin -s user`, then
+  `claude mcp add -s user atuin -- ~/.local/share/mise/shims/atuin mcp`), and pacman vs
+  mise-installed mise/atuin.

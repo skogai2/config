@@ -9,10 +9,12 @@ This file is referenced in CLAUDE.md and loaded every session.
   `mise/coverage.md`
 - Coverage 2026-11-09: 65 tracked, 60 decided, 0 undecided. Batch 7 (11 entries) decided by
   the lead on skogix's "do them all"; nvim backup trashed, not merged (mise/coverage-triage.md)
-- Next up: install the timer (skogix); whether `bin/check-coverage` joins `bin/health` now that
-  `~/.config` is fully decided (new app dirs keep appearing: 3 in 3 days); PROJECT.md section 2
-  "outside ~/.config" and packages
-- atuin MCP thread tools fail: daemon 18.24.2 vs client `/usr/bin/atuin` 18.24.1
+- 2026-11-09: skogai-health timer installed + declared in `[tasks.bootstrap]`; coverage is a
+  `mise/health` check (17 checks, all ok under the timer)
+- Next up: PROJECT.md section 2 "outside ~/.config" and packages; skogix: which mise/atuin
+  wins (pacman vs mise-installed, see Gotchas)
+- atuin MCP: user-scope entry pins `/usr/bin/atuin` (18.24.1); daemon/shell are mise's 18.24.2.
+  Repoint to `~/.local/share/mise/shims/atuin mcp` (blocked for the agent; skogix runs it)
 
 ## Cross-Cutting Concerns
 - Stack: Markdown docs, plus bash checks in `bin/` and `tests/`
@@ -39,8 +41,10 @@ This file is referenced in CLAUDE.md and loaded every session.
   On demand only for now; timer later (skogix, 2026-11-06)
 - Concern health scripts source `bin/health-lib.sh` (report/need/tilde/join/stock_check);
   test files source `tests/lib.sh` (run/expect/refute/stub/toolbox) (2026-11-06)
-- `bin/check-coverage` stays out of bin/health until section 2 is worked through; only
-  skogix's decisions go in mise/coverage.md (2026-11-06)
+- `bin/check-coverage` runs as the `coverage` check in `mise/health` (skogix, 2026-11-09);
+  only skogix's decisions go in mise/coverage.md (2026-11-06)
+- The health timer is linked from `machine/units/` by a guarded `[tasks.bootstrap]` line, not a
+  `[bootstrap.linux.systemd.units]` entry: mise's units have no `OnFailure=` (2026-11-09)
 - Commits carry no Co-Authored-By (decision 2026-10-30, `.skogai/handover.md`)
 
 ### Patterns
@@ -62,6 +66,11 @@ This file is referenced in CLAUDE.md and loaded every session.
 
 - `atuin status` doesn't zero-pad the hour (`Last sync: 2026-11-09 0:15:46...`): a time
   parser tested only with daytime samples passes until midnight. Test an hour < 10 (2026-11-09)
+
+- Two copies of mise and atuin: pacman (`/usr/bin`, mise-bin 2026.11.4, atuin 18.24.1) beside
+  the user installs (`~/.local/bin/mise` 2026.10.17, mise's atuin 18.24.2). Anything with its
+  own PATH (systemd units, MCP configs) can pick the other one: the timer failed doctor and
+  bootstrap-plan on /usr/bin/mise. Put `~/.local/bin` first, or name the binary (2026-11-09)
 
 - `mise dot status` exits 0 while publishing fails; the error is a `✗ last error:` line under
   Repository. `dot-sync` in mise/health catches it (2026-11-06)
@@ -116,3 +125,7 @@ This file is referenced in CLAUDE.md and loaded every session.
 - Discovered: F003's samples were all daytime timestamps; verbatim samples need to cover
   edge cases of the format (single-digit fields), not only the one captured at spec time.
 - Transfer: run `bin/health` at session start; it found a real bug in its own check.
+- Follow-up (same day): timer, coverage-in-health, atuin. The timer's first run failed on
+  /usr/bin/mise; a live run under the real unit (systemd-run) found it, which a unit-file test
+  and `systemd-analyze verify` can't. skogix's "restart the atuin daemon" was the wrong lever:
+  checking which binary each process runs showed the MCP config pinning the old atuin.
