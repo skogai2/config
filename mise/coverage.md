@@ -84,3 +84,5 @@ gets a row or a track entry. Only skogix's decisions go in the table.
 | treehouse | exclude | `update-check.json` only (triage batch 7) |
 | turborepo | owner | telemetry id only (triage batch 7) |
 | verdaccio | exclude | stock default `config.yaml`, never edited; track it once it is (triage batch 7) |
+| crush | exclude | not used (2026-11-10) |
+| gliff | exclude | not used (2026-11-10) |
