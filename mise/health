@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 # Health checks for mise: `doctor` problems, `bootstrap-plan` drift,
 # `dot-capture` (the dotfile watcher) and `dot-sync` (any ✗ line in
-# `mise dot status`, e.g. a failing publish) and `coverage` (every ~/.config
-# entry tracked or decided, ../bin/check-coverage). Contract: bin/health.
+# `mise dot status`, e.g. a failing publish), `dot-modes` (every [dotfiles]
+# entry tracked in place, never a symlink/copy/template deploy) and `coverage`
+# (every ~/.config entry tracked or decided, ../bin/check-coverage).
+# Contract: bin/health.
 # Only problem lines and the Plan: summary are ever printed; never mise env.
 set -u
 
-checks=(doctor bootstrap-plan dot-capture dot-sync coverage)
+checks=(doctor bootstrap-plan dot-capture dot-sync dot-modes coverage)
 here=$(cd "$(dirname "$0")/.." && pwd)
 failed=0
 
@@ -93,6 +95,22 @@ dot_sync() {
   fi
 }
 
+# dot-modes: a `[dotfiles]` entry that isn't `mode = "track"` deploys over
+# the live file. An empty `{}` entry is a symlink from ~/.dotfiles: on
+# 2026-11-08 it replaced atuin/config.toml with a link (../mise/dotfiles.md).
+dot_modes() {
+  local out rc=0 bad
+  out=$(mise bootstrap status --json 2>/dev/null) || rc=$?
+  if ! bad=$(jq -r '[.dotfiles.files[]? | select(.mode != "track")
+      | "\(.target) (\(.mode))"] | join(", ")' <<<"$out" 2>/dev/null); then
+    report "FAIL dot-modes: no JSON from mise bootstrap status (exit $rc)"
+  elif [[ -n $bad ]]; then
+    report "FAIL dot-modes: not tracked in place: $bad"
+  else
+    report "ok dot-modes"
+  fi
+}
+
 # coverage: bin/check-coverage's summary; on a miss, the names it flagged.
 coverage() {
   local out rc=0 summary names
@@ -120,6 +138,7 @@ main() {
   dot_status
   dot_capture
   dot_sync
+  dot_modes
   coverage
   return "$failed"
 }

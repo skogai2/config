@@ -80,8 +80,8 @@ part names:
 - **`dotfiles` never pulls, syncs or applies history.** For track entries
   it's a no-op apart from its hooks: "a tracked file is never written:
   history captures it as it is" (`crates/mise-system/src/files.rs:5838`).
-  It only deploys symlink/copy/template entries (our atuin entry, see
-  `dotfiles.md`).
+  It only deploys symlink/copy/template entries, and an entry with no
+  `mode` is one of those (`dotfiles.md` rules, the atuin incident).
 - Every bootstrap run that writes takes a before and an after checkpoint
   of the tracked files (`OperationScope`, `src/cli/bootstrap.rs:2053`).
 - `mise_shell_activate` writes the same static block into

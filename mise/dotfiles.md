@@ -11,11 +11,9 @@ change a dotfile through the origin repo instead of on the machine, see
 
 ## state (2026-11-11)
 
-- `[dotfiles]` in `~/.config/mise/config.toml`: 84 entries, 342 files,
-  checkpoint 1406. All `mode = "track"` except one: `~/.config/atuin/config.toml = {}`
-  is a symlink entry, linked to `~/.dotfiles/.config/atuin/config.toml`
-  (an untracked path in that clone, so neither history has it). Open:
-  intended?
+- `[dotfiles]` in `~/.config/mise/config.toml`: 84 `mode = "track"`
+  entries, 342 files, checkpoint 1413. Nothing else: `dot-modes` in
+  `health` fails on any entry that isn't `track`.
 - Origin `github.com/skogai2/.dotfiles` (private), branch `main`, mode
   `sync`, declared in `config.local.toml` (untracked). The watcher
   (`dev.mise.mise-history`, declared as
@@ -24,11 +22,9 @@ change a dotfile through the origin repo instead of on the machine, see
 - mise's history is the bare store `~/.local/state/mise/history/repo.git`
   (`refs/heads/main` = checkpoints, `refs/remotes/origin/setup` = last
   fetch). Read it with `mise dot history`, never raw git.
-- `~/.dotfiles` is **not** that store (corrected 2026-11-11): it's a plain
-  `git clone` of the origin (`home/.config/...`, `config/`), plus a
-  `dotbot` submodule, an `.envrc` that runs `git pull`, and an untracked
-  `.config/`. mise doesn't use it, except through the atuin symlink.
-  Open: what it's for (upstream edits, `dotfiles-upstream.md`?).
+- `~/.dotfiles` doesn't exist any more (removed 2026-11-11). It was a
+  plain `git clone` of the origin with a `dotbot` submodule, never mise's
+  store; nothing but the atuin link below used it.
 - How a fresh machine goes from this history to a bootstrapped machine:
   `adopt.md`.
 - Not tracked: `~/.config/skogai` and `~/.config/containers/systemd`
@@ -70,6 +66,14 @@ mise history is the versioning for `~/.config`. Deploy modes
 
 ## rules
 
+- **Never write a `[dotfiles]` entry without `mode = "track"`.** An entry
+  with no mode (`"<path>" = {}`) is a *symlink deploy* from the default
+  source dir `~/.dotfiles`, and bootstrap's `dotfiles` step applies it
+  over the live file. On 2026-11-08 a bootstrap run turned
+  `atuin/config.toml` into a link to `~/.dotfiles/.config/atuin/config.toml`;
+  history saved the link, not the content, and atuin's config stopped
+  syncing for a week. Fixed 2026-11-11 (entry removed, real file back,
+  checkpoint 1413); `dot-modes` in `health` catches it now.
 - **Check `mise dot paths` before tracking anything new.** mise's
   credential filter goes by filename only and missed most of the real
   secrets here. Excluded by hand: `fnox` (include only `*.toml` and

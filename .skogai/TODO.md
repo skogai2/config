@@ -1,5 +1,6 @@
 - [~] mise; go over and make sure this is setup (plan: PROJECT.md):
   - [~] mise; bootstrap (full fresh-machine run still untested)
+  - [ ] test environment: container / test user for bootstrap + adopt runs (PROJECT.md §1)
   - [ ] mise; config
   - [ ] mise; daemons
   - [x] mise; dotfiles with origin and deeper knowledge of how it works (mise/dotfiles.md, mise/dotfiles-upstream.md)

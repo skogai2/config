@@ -49,8 +49,12 @@ Status as of 2026-10-25. `[x]` done, `[~]` in progress, `[ ]` not started.
   origin is `skogai2/skogix` now)
 - [x] fresh-machine adopt tested for dotfiles; upstream edits through an
   origin clone tested (`mise/dotfiles-upstream.md`)
-- [ ] full fresh-machine run in a container or VM: packages, accounts,
-  repos (do submodules clone?), tools, services
+- [ ] a standing test environment (skogix, 2026-11-11): a container
+  and/or a real test user, so every bootstrap/dotfiles change is tried
+  there before this machine. First run: the full fresh-machine adopt
+  (packages, accounts, repos, tools, services; expect conflicts with
+  files the base system wrote, `mise/adopt.md`). Submodules: answered,
+  only with `submodules = true`
 - [ ] `[tasks.bootstrap]` assumes Omarchy; guard it so other machines
   can run bootstrap
 - [ ] `dev.mise.gptme-server` runs but is no longer declared (no

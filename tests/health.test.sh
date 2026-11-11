@@ -94,9 +94,11 @@ case "$1 ${2:-}" in
   "bootstrap plan") sub=plan ;;
   "dot status") sub=dot ;;
   "dot paths") sub=paths ;;
+  "bootstrap status") sub=bstatus ;;
   *) exit 99 ;;
 esac
 [[ $sub == paths && ! -e $STUB/paths.out ]] && echo "{\"entries\": []}"
+[[ $sub == bstatus && ! -e $STUB/bstatus.out ]] && echo "{\"dotfiles\": {\"files\": []}}"
 pwd >"$STUB/$sub.cwd"
 cat "$STUB/$sub.out" 2>/dev/null
 exit "$(cat "$STUB/$sub.rc" 2>/dev/null || echo 0)"'
@@ -129,7 +131,7 @@ test_mise() {
   mise_case "settings\n\n$warn" 0 "x\n$plan_ok" 0 "$dot_ok" 0
   expect "mise: all ok, warnings are not failures" 0 \
     "ok doctor" "ok bootstrap-plan: Plan: 0 create, 0 update, 13 unchanged, 0 remove, 0 unknown" \
-    "ok dot-capture" "ok dot-sync" "ok coverage: 0 tracked, 0 decided, 0 undecided, 0 conflicts"
+    "ok dot-capture" "ok dot-sync" "ok dot-modes" "ok coverage: 0 tracked, 0 decided, 0 undecided, 0 conflicts"
   local cwds
   cwds=$(cat "$mise_dir/doctor.cwd" "$mise_dir/plan.cwd" "$mise_dir/dot.cwd" | sort -u)
   if [[ $cwds == "$mise_dir/home" ]]; then pass "mise: runs from \$HOME"; else
@@ -154,11 +156,24 @@ test_mise() {
     "FAIL doctor: mise doctor exited 1" "FAIL bootstrap-plan: no Plan: line (exit 3)" \
     "FAIL dot-capture: mise dot status exited 4" "FAIL dot-sync: mise dot status exited 4"
 
+  mise_case "settings\n" 0 "$plan_ok" 0 "$dot_ok" 0
+  printf '%s\n' '{"dotfiles": {"files": [{"target": "~/.config/a", "mode": "track"},' \
+    '{"target": "~/.config/b/c.toml", "mode": "symlink"}, {"target": "~/.x", "mode": "copy"}]}}' \
+    >"$mise_dir/bstatus.out"
+  mise_run "$mise_dir"
+  expect "mise: a deploy entry fails dot-modes" 1 \
+    "FAIL dot-modes: not tracked in place: ~/.config/b/c.toml (symlink), ~/.x (copy)"
+
+  echo "not json" >"$mise_dir/bstatus.out"; echo 2 >"$mise_dir/bstatus.rc"
+  mise_run "$mise_dir"
+  expect "mise: bootstrap status error" 1 \
+    "FAIL dot-modes: no JSON from mise bootstrap status (exit 2)"
+
   run env HOME="$work" PATH="$(toolbox)" "$repo/mise/health"
   expect "mise: mise not on PATH" 1 \
     "FAIL doctor: mise not found" "FAIL bootstrap-plan: mise not found" \
     "FAIL dot-capture: mise not found" "FAIL dot-sync: mise not found" \
-    "FAIL coverage: mise not found"
+    "FAIL dot-modes: mise not found" "FAIL coverage: mise not found"
 }
 
 # coverage: bin/check-coverage as a mise check, against a stub HOME/.config.
