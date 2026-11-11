@@ -149,7 +149,7 @@ track, then trim the noise within the hour (decided 2026-10-30).
   fnox, atuin, fish), add it to include lists or as its own entry
   where needed. Each one only routes back to its page here
 - [x] knowledge here or beside the app: here (2026-11-01)
-- [ ] `.skogai/SKOGAI.md` is empty: give it a route or remove it
+- [x] `.skogai/SKOGAI.md` was empty: removed (2026-11-11); `AGENTS.md` says what goes where
 
 #### modules and their env vars (planned, not implemented)
 

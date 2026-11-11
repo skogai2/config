@@ -1,1 +1,0 @@
-/home/skogix/skogai-runner/src/core/log/usage.sh

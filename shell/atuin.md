@@ -43,6 +43,15 @@ agreement changes — not derived from any single dotfiles file.
   every terminal, so it was reverted. The MCP's `atuin_output` and
   `atuin_output_search` therefore return nothing here.
 
+## Gotchas
+
+- `atuin status` doesn't zero-pad the hour (`Last sync: 2026-11-09
+  0:15:46...`); `shell/health` parses both (fixed 2026-11-09).
+- Two atuins: pacman's `/usr/bin/atuin` (18.24.1) and mise's (18.24.2,
+  which runs the daemon and the shell). The user-scope MCP entry pins
+  `/usr/bin/atuin`, so the thread tools fail against the newer daemon.
+  Repoint it to `~/.local/share/mise/shims/atuin mcp` (skogix runs it).
+
 ## Caution: secrets
 
 The dotfiles var list is a convenient place to accidentally park plaintext

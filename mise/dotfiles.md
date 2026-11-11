@@ -66,6 +66,19 @@ mise history is the versioning for `~/.config`. Deploy modes
   `gh/hosts.yml`, `anthropic/credentials`, `gptme/*.env` and
   `gptme/oauth`, herdr's collie `.env`. The filter skips `*secret*`, so
   `~/.config/mise/ollama.secret.env` (0600, `_.file`) stays out.
+  It also misses keys inside ordinary config files (Moonlight.conf
+  `key=`); the publish check catches those, but only after they're in
+  local history. Before tracking a new app dir, grep its key names
+  (`cut -d= -f1`) for key/cert/token.
+- **`mise dot status` exits 0 while publishing fails.** The error is a
+  `✗ last error:` line under Repository; `dot-sync` in `health` catches it.
+- **Removing plaintext from history without `history purge`** (mise <
+  2026.11): stop `dev.mise.mise-history.service`, move `main` back to the
+  last published commit (`refs/remotes/origin/setup`), `mise dot save`,
+  then `reflog expire` + `gc --prune=now`. The publish check stops at the
+  first hit, so scan every new file before syncing or it takes one reset
+  per secret (three on 2026-11-06). Each reset needs skogix's approval,
+  and `--allow-plaintext-history` is skogix's to run, never an agent's.
 - **A dir with a big ignored subtree is tracked by its files, not the
   dir.** The watcher holds an inotify watch on every subdirectory of a
   tracked dir, excluded or not: an `include`/`exclude` list limits what is

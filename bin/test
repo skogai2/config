@@ -1,6 +1,6 @@
 #!/bin/bash
-# Harness init.sh for skogai-config (stack: markdown docs + shell checks)
-# Usage: .harness/init.sh [smoke_test|full_test|focused_test <test_file>]
+# Test runner for skogai config (markdown docs + bash checks)
+# Usage: bin/test [smoke_test|full_test|focused_test <test_file>]
 # Default: full_test
 #
 # smoke_test   — bash syntax check of bin/* and tests/*.sh (<15s).
@@ -23,7 +23,7 @@ fi
 PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$PROJECT_ROOT"
 
-echo "=== Harness ${TARGET} ==="
+echo "=== ${TARGET} ==="
 echo "Project: $PROJECT_ROOT"
 echo "Date: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 echo ""

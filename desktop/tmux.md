@@ -32,6 +32,8 @@ down, with Alt instead of Super.
 `omarchy-refresh-config tmux/tmux.conf` replaces the file with the stock
 version. So did the 2026-10-25 04:00 reset of 22 Omarchy-shipped files (mise
 checkpoint 569, cause not yet found); rolled back in checkpoint 583.
+And again on 2026-11-02 07:39, silently, leaving `tmux.conf.bak.<epoch>`.
+`desktop/health` catches a byte-identical stock copy (`stock_check`).
 Check with:
 
 ```sh

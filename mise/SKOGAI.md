@@ -30,6 +30,11 @@ replaces none of it.
   asking.
 - Use mise's own commands on the dotfile history, never raw git or
   systemctl on its store.
+- Every `mise dot` write goes through the lead, one at a time; other
+  agents return a verdict plus the exact command (2026-10-30).
+- `mise doctor` exits 1 when it has problems, and its output includes
+  env and settings: parse only the `N problem(s) found:` block, never
+  print the rest.
 
 ## config layers (2026-10-31)
 

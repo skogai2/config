@@ -1,7 +1,7 @@
+# agent workspace: runtime output stays on disk, out of git (AGENTS.md)
+/.skogai/journal.md
+/.skogai/logs/
+/.skogai/tmp/
 /.skogai/worktrees/
-/tmp/
-.harness/SESSION_INCOMPLETE
-.harness/features.json.lock
-.harness/last_gate.json
+# tool caches
 /graft/.cache
-/.skogai/logs/skogai-core/log.jsonl

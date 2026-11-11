@@ -31,7 +31,19 @@ systemctl --user enable --now skogai-health.timer
 
 The service's PATH starts with `~/.local/bin`: `/usr/bin/mise` (pacman
 `mise-bin`) is a different version from the shell's `~/.local/bin/mise`,
-and checking the wrong one fails `doctor` and `bootstrap-plan`.
+and checking the wrong one fails `doctor` and `bootstrap-plan`. The
+units are linked by a `[tasks.bootstrap]` line rather than declared in
+`[bootstrap.linux.systemd.units]`, because mise's units have no
+`OnFailure=`. A unit-file test or `systemd-analyze verify` doesn't catch
+a PATH problem; a live run under the real unit (`systemd-run`) does.
+
+## two copies of mise and atuin
+
+pacman installs `/usr/bin/mise` (mise-bin) and `/usr/bin/atuin` beside
+the user installs (`~/.local/bin/mise`, mise's atuin). Anything with its
+own PATH (systemd units, MCP configs) can pick the other one: put
+`~/.local/bin` first or name the binary. Which copy wins is skogix's
+call (PROJECT.md §2, packages).
 
 Every failing check notifies once an hour, so fix (or knowingly accept)
 failures quickly. `containers` failures notify twice: once from
