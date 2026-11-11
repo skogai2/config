@@ -3,7 +3,7 @@ permalink: config/mise/old-dotfiles
 type: reference
 ---
 
-# the old rcm repo: what's still worth having
+# the old rcm repo: inventory
 
 The rcm-era dotfiles (`rcup -d ~/.dotfiles`), kept at
 `~/.local/src/old-skogai/dotfiles` (origin `SkogBackup/.dotfiles`; it was
