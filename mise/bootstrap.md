@@ -12,14 +12,14 @@ the `bootstrap` task run on every apply, so they must be safe to repeat.
 
 ## state (2026-10-31)
 
-`mise bootstrap plan`: 13 unchanged, 0 to do. Declared:
+`mise bootstrap plan`: 12 unchanged, 0 to do (2026-11-11). Declared:
 
 | part | declared |
 |---|---|
 | accounts | group `skogai` (system); skogix in it (`groups = ["skogai", "wheel"]`, fish) |
 | packages | `pacman:` podman, podman-docker, podman-compose, podlet, fish, zsh present; docker-compose, docker-buildx, ufw-docker absent |
-| services | `cloudflared` (system, running + enabled); `mise-history` (built-in `history-watch`, user) |
-| repos | `~/.config/skogai`, `~/.config/containers/systemd`; `~/.skogai` and `/skogai` commented out |
+| services | `mise-history` (built-in `history-watch`, user); `cloudflared` commented out (2026-11-11: still running + enabled, just not declared) |
+| repos | `~/.config/skogai`, `~/.config/containers/systemd`, `~/Work` (current); `~/skogai`, `~/skogix` (missing, 2026-11-11); `~/.skogai` and `/skogai` commented out |
 | shell | `mise_shell_activate = { fish = true }` |
 | tools | `[tools]`, run by `mise install` |
 | task | `[tasks.bootstrap]`: Omarchy's sshd/Tailscale flows, guarded |
@@ -80,7 +80,8 @@ file already provides. User mode (`scope = "user"`) writes a plain
 `history-watch` and `tool-update`. Units with hardening or an
 `EnvironmentFile` belong in `systemd-units`.
 
-- `cloudflared`: declared. Its unit at
+- `cloudflared`: commented out in the config (seen 2026-11-11); the
+  service still runs. Its unit at
   `/etc/systemd/system/cloudflared.service` is hand-placed (no owning
   package); a copy sits in `~/.config/mise/files/cloudflared.service`.
 - `mise-history`: declared (unit `dev.mise.mise-history`).

@@ -74,7 +74,9 @@ aliases (`../shell/atuin.md`); who owns what is walkthrough item 3.
 - mise 2026.10.17; 2026.10.23 available. After `mise self-update`, run
   `mise bootstrap plan` (the watcher unit drifts on upgrades).
 - `mise bootstrap plan`: 13 unchanged, 0 to do. `repos status`: both
-  declared repos `current`.
+  declared repos `current`. 2026-11-11: 12 unchanged (cloudflared
+  service commented out); 5 repos declared, `~/skogai` and `~/skogix`
+  `missing`.
 - `mise dot status`: 54 entries, 174 files, up to date, published.
   2026-11-05: 176 files (checkpoint 950), after excluding
   `spotifast/milkdrop/**`; `bootstrap plan` still 13 unchanged.
