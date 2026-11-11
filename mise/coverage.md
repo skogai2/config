@@ -86,3 +86,4 @@ gets a row or a track entry. Only skogix's decisions go in the table.
 | verdaccio | exclude | stock default `config.yaml`, never edited; track it once it is (triage batch 7) |
 | crush | exclude | not used (2026-11-10) |
 | gliff | exclude | not used (2026-11-10) |
+| ponytail | exclude | for now (skogix, 2026-11-11) |

@@ -2,9 +2,13 @@
 
 ## where we are
 
-- `bin/health`: 17 checks across 7 groups, all ok as of 2026-11-09, run
-  hourly by the `skogai-health` timer (`machine/SKOGAI.md`).
-- Coverage: 65 tracked, 60 decided, 0 undecided (`mise/coverage.md`).
+- `bin/health`: 17 checks across 7 groups, run hourly by the
+  `skogai-health` timer (`machine/SKOGAI.md`). 2026-11-11: one real
+  failure left, `failed-units: app-bitwarden@autostart.service`. Run
+  from an agent's zsh tool shell, `herdr-binary` also fails; that's the
+  shell, not the machine (`machine/SKOGAI.md`, two copies).
+- Coverage: every `~/.config` entry decided (`mise/coverage.md`;
+  `ponytail` excluded for now, 2026-11-11).
 - 2026-11-11: the vv-harness was retired (plugin no longer installed;
   F001-F007 all done). Its knowledge moved to the concern pages and
   `AGENTS.md`; `.harness/init.sh` is now `bin/test`; its hooks in
@@ -12,18 +16,13 @@
 
 ## next
 
-- `bin/health` on 2026-11-11: 3 of 17 fail, all new since 11-09 and not
-  from the cleanup: `herdr-binary` (`/usr/bin/herdr` ahead of mise's on
-  PATH), `failed-units` (`app-bitwarden@autostart`, plus
-  `skogai-health` itself failing on the others), `coverage` (`ponytail`
-  undecided).
+- `app-bitwarden@autostart.service` failing: look at why.
+- mise wins over pacman for mise and atuin (skogix, 2026-11-11): find
+  what still names `/usr/bin/mise` or `/usr/bin/atuin`, then remove the
+  pacman packages (confirm first).
+- zsh: activate mise, so the agent tool shell matches fish (PROJECT.md §4).
 - PROJECT.md §2: config outside `~/.config`, then packages.
 
 ## open for skogix
 
-- Which mise/atuin wins: pacman (`/usr/bin`) or the user installs
-  (`machine/SKOGAI.md`, two copies).
-- atuin MCP still pins `/usr/bin/atuin`; repoint it:
-  `claude mcp remove atuin -s user`, then
-  `claude mcp add -s user atuin -- ~/.local/share/mise/shims/atuin mcp`.
 - History rewrites for the leaked files (`mise/dotfiles.md`, open).

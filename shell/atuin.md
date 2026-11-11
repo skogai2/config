@@ -50,7 +50,7 @@ agreement changes — not derived from any single dotfiles file.
 - Two atuins: pacman's `/usr/bin/atuin` (18.24.1) and mise's (18.24.2,
   which runs the daemon and the shell). The user-scope MCP entry pins
   `/usr/bin/atuin`, so the thread tools fail against the newer daemon.
-  Repoint it to `~/.local/share/mise/shims/atuin mcp` (skogix runs it).
+  The MCP setup changed on 2026-11-11; recheck which atuin it runs.
 
 ## Caution: secrets
 

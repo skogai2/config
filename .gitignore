@@ -3,5 +3,3 @@
 /.skogai/logs/
 /.skogai/tmp/
 /.skogai/worktrees/
-# tool caches
-/graft/.cache
