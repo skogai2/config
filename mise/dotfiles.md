@@ -9,17 +9,28 @@ How `mise dotfiles` (`mise dot`) versions the config on this machine. To
 change a dotfile through the origin repo instead of on the machine, see
 `dotfiles-upstream.md`.
 
-## state (2026-11-05)
+## state (2026-11-11)
 
-- `[dotfiles]` in `~/.config/mise/config.toml`: 54 `mode = "track"`
-  entries, 176 files, checkpoint 950.
+- `[dotfiles]` in `~/.config/mise/config.toml`: 84 entries, 342 files,
+  checkpoint 1406. All `mode = "track"` except one: `~/.config/atuin/config.toml = {}`
+  is a symlink entry, linked to `~/.dotfiles/.config/atuin/config.toml`
+  (an untracked path in that clone, so neither history has it). Open:
+  intended?
 - Origin `github.com/skogai2/.dotfiles` (private), branch `main`, mode
   `sync`, declared in `config.local.toml` (untracked). The watcher
   (`dev.mise.mise-history`, declared as
   `[bootstrap.services.mise-history] builtin = "history-watch"`) saves
   and publishes on its own.
-- `~/.dotfiles` is the mise history checkout of the origin, not an old
-  stow repo. Read it with `mise dot history`, never raw git.
+- mise's history is the bare store `~/.local/state/mise/history/repo.git`
+  (`refs/heads/main` = checkpoints, `refs/remotes/origin/setup` = last
+  fetch). Read it with `mise dot history`, never raw git.
+- `~/.dotfiles` is **not** that store (corrected 2026-11-11): it's a plain
+  `git clone` of the origin (`home/.config/...`, `config/`), plus a
+  `dotbot` submodule, an `.envrc` that runs `git pull`, and an untracked
+  `.config/`. mise doesn't use it, except through the atuin symlink.
+  Open: what it's for (upstream edits, `dotfiles-upstream.md`?).
+- How a fresh machine goes from this history to a bootstrapped machine:
+  `adopt.md`.
 - Not tracked: `~/.config/skogai` and `~/.config/containers/systemd`
   (their own repos, see `bootstrap.md` repos).
 
@@ -94,7 +105,10 @@ mise history is the versioning for `~/.config`. Deploy modes
   goes `installed, differs`; `mise bootstrap services apply` rewrites it.
 - **`mise/config.toml` is throttled** to one save per 24h because it
   changes often. After an edit that matters: `mise dot save -d <text>`.
-  Candidate fix: `--no-autosave` plus explicit saves.
+  It's the general churn backoff, not a rule for that file
+  (`history.watch.max_interval`, `adopt.md` §4). Candidate fixes:
+  `autosave = false` on that entry plus explicit saves, or find what keeps
+  rewriting it.
 - Runtime noise lives in `[history].exclude`: `**/*.bak`, `**/*.bak.*`,
   `**/*.lock`, `**/*.log`, `**/Singleton*` (Electron), generated themes,
   per-machine trust files (`worktrunk/approvals.toml`,

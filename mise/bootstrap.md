@@ -19,7 +19,7 @@ the `bootstrap` task run on every apply, so they must be safe to repeat.
 | accounts | group `skogai` (system); skogix in it (`groups = ["skogai", "wheel"]`, fish) |
 | packages | `pacman:` podman, podman-docker, podman-compose, podlet, fish, zsh present; docker-compose, docker-buildx, ufw-docker absent |
 | services | `mise-history` (built-in `history-watch`, user); `cloudflared` commented out (2026-11-11: still running + enabled, just not declared) |
-| repos | `~/.config/skogai`, `~/.config/containers/systemd`, `~/Work` (current); `~/skogai`, `~/skogix` (missing, 2026-11-11); `~/.skogai` and `/skogai` commented out |
+| repos | `~/.config/skogai`, `~/.config/containers/systemd`, `~/skogai`, `~/skogix`, `~/Work` (all current, 2026-11-11); `~/.skogai` and `/skogai` commented out |
 | shell | `mise_shell_activate = { fish = true }` |
 | tools | `[tools]`, run by `mise install` |
 | task | `[tasks.bootstrap]`: Omarchy's sshd/Tailscale flows, guarded |
@@ -35,6 +35,8 @@ for when they come back.
 
 accounts/plugins → files/packages → services/firewall/compose →
 repos/dotfiles → shell → systemd units/user → tools → task/final hook.
+The `dotfiles` step is a no-op for track entries; history is written by
+`--adopt` or the watcher, never by bootstrap (`adopt.md`).
 
 ## commands
 
@@ -151,11 +153,14 @@ update` fast-forwards. mise never deletes a checkout or touches local
 work: a dirty checkout or a mismatched origin fails apply
 (`--skip-dirty` skips instead).
 
-- Declared: `~/.config/skogai`, `~/.config/containers/systemd`.
+- Declared: `~/.config/skogai`, `~/.config/containers/systemd`, and
+  (2026-11-11) `~/skogai`, `~/skogix`, `~/Work`.
 - Commented out until they're set up again: `~/.skogai` (dot-skogai; not
   a git checkout any more) and `/skogai` (dash-skogai; its origin is
   `skogai2/skogix` now).
-- Unverified: whether mise clones submodules.
+- Submodules: only with `submodules = true` on the entry (default
+  false). A mismatched origin fails the step with no override; ssh and
+  https forms of the same url count as a match (source, `adopt.md` §3).
 
 ### shell (2026-10-14)
 

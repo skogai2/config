@@ -13,6 +13,7 @@ replaces none of it.
 
 - bootstrap.md - declared machine state: what's declared, per-part decisions, gotchas
 - dotfiles.md - `~/.config` tracked in place: rules, excludes, watcher, history of fixes
+- adopt.md - how `mise dot` history becomes a bootstrapped machine (`--adopt`, step order, what gets saved, watcher timing), read from the mise source
 - dotfiles-upstream.md - read before changing a dotfile through the origin repo. Never commit secrets there.
 - coverage.md - every `~/.config` entry tracked or decided; checked by ../bin/check-coverage
 - coverage-triage.md - checklist of the undecided entries, in batches with proposals, to go through with skogix
@@ -75,8 +76,8 @@ aliases (`../shell/atuin.md`); who owns what is walkthrough item 3.
   `mise bootstrap plan` (the watcher unit drifts on upgrades).
 - `mise bootstrap plan`: 13 unchanged, 0 to do. `repos status`: both
   declared repos `current`. 2026-11-11: 12 unchanged (cloudflared
-  service commented out); 5 repos declared, `~/skogai` and `~/skogix`
-  `missing`.
+  service commented out); 5 repos declared, all `current`. `mise dot
+  status`: 84 entries, 342 files, checkpoint 1406. mise 2026.11.5.
 - `mise dot status`: 54 entries, 174 files, up to date, published.
   2026-11-05: 176 files (checkpoint 950), after excluding
   `spotifast/milkdrop/**`; `bootstrap plan` still 13 unchanged.
