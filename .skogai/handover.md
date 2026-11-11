@@ -2,7 +2,7 @@
 
 ## where we are
 
-- `bin/health`: 18 checks across 7 groups, run hourly by the
+- `bin/health`: 19 checks across 7 groups, run hourly by the
   `skogai-health` timer (`machine/SKOGAI.md`). 2026-11-11: one real
   failure left, `failed-units: app-bitwarden@autostart.service`. Run
   from an agent's zsh tool shell, `herdr-binary` also fails; that's the
@@ -18,7 +18,8 @@
 
 - Test environment (container / test user) for bootstrap and adopt
   runs before touching this machine (PROJECT.md §1, `mise/adopt.md`).
-- `app-bitwarden@autostart.service` failing: look at why.
+- `app-bitwarden@autostart.service`: running again; its failures were
+  crashes (SIGILL at logout, an OOM kill 2026-11-11 06:03), not config.
 - mise wins over pacman for mise and atuin (skogix, 2026-11-11): find
   what still names `/usr/bin/mise` or `/usr/bin/atuin`, then remove the
   pacman packages (confirm first).

@@ -28,6 +28,7 @@ gets a row or a track entry. Only skogix's decisions go in the table.
 | opera | owner | browser profile (PROJECT.md section 2) |
 | microsoft-edge | owner | browser profile ("edge" in PROJECT.md section 2) |
 | Bitwarden | owner | Electron app (PROJECT.md section 2) |
+| xyz.block.buzz.app | owner | Buzz app window state only (2026-11-11) |
 | Claude | owner | Electron app (PROJECT.md section 2) |
 | Signal | owner | Electron app (PROJECT.md section 2) |
 | Slack | owner | Electron app (PROJECT.md section 2) |

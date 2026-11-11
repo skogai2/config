@@ -125,8 +125,9 @@ track, then trim the noise within the hour (decided 2026-10-30).
   `Claude`, `Signal`, `Slack`, `discordcanary`, ...), `go`, `yay`,
   `procps`, `mpv` (empty)
 - leftovers to delete or merge: `nvim.backup.*`, `*.bak`, and
-  `.todo/dotfiles-old` (the old stow repo: merge what's still wanted,
-  then remove). `~/.dotfiles` is not one: it's the mise history
+  the old rcm repo, now `~/.local/src/old-skogai/dotfiles` (gone from
+  this repo 2026-11-11): gone through, verdicts in `mise/old-dotfiles.md`;
+  zsh, `.editorconfig`, `.inputrc` left to bring back. `~/.dotfiles` is not one: it's the mise history
   checkout of `skogai2/.dotfiles`.
 - [ ] outside `~/.config`: tracked in place too, same path rules
   (decided 2026-10-30). Candidates: `.bashrc` (+ 7 backups to clean), `.bash_profile`,

@@ -15,9 +15,10 @@ replaces none of it.
 - dotfiles.md - `~/.config` tracked in place: rules, excludes, watcher, history of fixes
 - adopt.md - how `mise dot` history becomes a bootstrapped machine (`--adopt`, step order, what gets saved, watcher timing), read from the mise source
 - dotfiles-upstream.md - read before changing a dotfile through the origin repo. Never commit secrets there.
+- old-dotfiles.md - the old rcm repo (`~/.local/src/old-skogai/dotfiles`): what's merged, what's worth bringing back, what isn't
 - coverage.md - every `~/.config` entry tracked or decided; checked by ../bin/check-coverage
 - coverage-triage.md - checklist of the undecided entries, in batches with proposals, to go through with skogix
-- health - `doctor`, `bootstrap-plan`, `dot-capture`, `dot-sync`, `dot-modes`, `coverage`. All checks: ../bin/health
+- health - `doctor`, `bootstrap-plan`, `dot-capture`, `dot-sync`, `dot-modes`, `dot-links`, `coverage`. All checks: ../bin/health
 - secrets.md - how secret values reach mise (`[bootstrap.secrets]`, fnox); keys are in ../secrets/fnox.md
 
 </routes>

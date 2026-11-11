@@ -2,13 +2,14 @@
 # Health checks for mise: `doctor` problems, `bootstrap-plan` drift,
 # `dot-capture` (the dotfile watcher) and `dot-sync` (any ✗ line in
 # `mise dot status`, e.g. a failing publish), `dot-modes` (every [dotfiles]
-# entry tracked in place, never a symlink/copy/template deploy) and `coverage`
+# entry tracked in place, never a symlink/copy/template deploy), `dot-links`
+# (no tracked path is a symlink to nothing) and `coverage`
 # (every ~/.config entry tracked or decided, ../bin/check-coverage).
 # Contract: bin/health.
 # Only problem lines and the Plan: summary are ever printed; never mise env.
 set -u
 
-checks=(doctor bootstrap-plan dot-capture dot-sync dot-modes coverage)
+checks=(doctor bootstrap-plan dot-capture dot-sync dot-modes dot-links coverage)
 here=$(cd "$(dirname "$0")/.." && pwd)
 failed=0
 
@@ -111,6 +112,34 @@ dot_modes() {
   fi
 }
 
+# dot-links: history saves a symlink as a link, so a tracked link whose
+# target is gone is saved, synced and restored as nothing. Six were found
+# on 2026-11-11 (aichat, autostart), pointing into the old ~/.dotfiles.
+# Dangling links under each entry, kept only if mise says they're tracked.
+dot_links() {
+  local out rc=0 p l bad=()
+  out=$(mise dot paths --json 2>/dev/null) || rc=$?
+  if ! out=$(jq -r '.entries[].path' <<<"$out" 2>/dev/null); then
+    report "FAIL dot-links: no JSON from mise dot paths (exit $rc)"
+    return
+  fi
+  while IFS= read -r p; do
+    p=${p/#\~/$HOME}
+    [[ -n $p && ( -e $p || -L $p ) ]] || continue
+    while IFS= read -r l; do
+      [[ -n $l ]] || continue
+      if [[ $(mise dot files -J "$l" 2>/dev/null | jq -r '.[0].status' 2>/dev/null) == tracked ]]; then
+        bad+=("${l/#$HOME/\~}")
+      fi
+    done < <(find "$p" -xtype l 2>/dev/null)
+  done <<<"$out"
+  if ((${#bad[@]})); then
+    report "FAIL dot-links: tracked links to nothing: $(IFS=,; echo "${bad[*]}" | sed 's/,/, /g')"
+  else
+    report "ok dot-links"
+  fi
+}
+
 # coverage: bin/check-coverage's summary; on a miss, the names it flagged.
 coverage() {
   local out rc=0 summary names
@@ -139,6 +168,7 @@ main() {
   dot_capture
   dot_sync
   dot_modes
+  dot_links
   coverage
   return "$failed"
 }

@@ -95,6 +95,10 @@ case "$1 ${2:-}" in
   "dot status") sub=dot ;;
   "dot paths") sub=paths ;;
   "bootstrap status") sub=bstatus ;;
+  "dot files")
+    # tracked unless its name contains "excluded"
+    f=${@: -1}; case $f in *excluded*) st=excluded ;; *) st=tracked ;; esac
+    echo "[{\"path\": \"$f\", \"status\": \"$st\"}]"; exit 0 ;;
   *) exit 99 ;;
 esac
 [[ $sub == paths && ! -e $STUB/paths.out ]] && echo "{\"entries\": []}"
@@ -131,7 +135,7 @@ test_mise() {
   mise_case "settings\n\n$warn" 0 "x\n$plan_ok" 0 "$dot_ok" 0
   expect "mise: all ok, warnings are not failures" 0 \
     "ok doctor" "ok bootstrap-plan: Plan: 0 create, 0 update, 13 unchanged, 0 remove, 0 unknown" \
-    "ok dot-capture" "ok dot-sync" "ok dot-modes" "ok coverage: 0 tracked, 0 decided, 0 undecided, 0 conflicts"
+    "ok dot-capture" "ok dot-sync" "ok dot-modes" "ok dot-links" "ok coverage: 0 tracked, 0 decided, 0 undecided, 0 conflicts"
   local cwds
   cwds=$(cat "$mise_dir/doctor.cwd" "$mise_dir/plan.cwd" "$mise_dir/dot.cwd" | sort -u)
   if [[ $cwds == "$mise_dir/home" ]]; then pass "mise: runs from \$HOME"; else
@@ -164,6 +168,18 @@ test_mise() {
   expect "mise: a deploy entry fails dot-modes" 1 \
     "FAIL dot-modes: not tracked in place: ~/.config/b/c.toml (symlink), ~/.x (copy)"
 
+  local h=$mise_dir/home
+  mkdir -p "$h/.config/app"
+  ln -s "$h/nowhere" "$h/.config/app/gone"
+  ln -s "$h/nowhere" "$h/.config/app/excluded-lock"
+  ln -s "$h/.config/app" "$h/.config/app/fine"
+  printf '{"entries": [{"path": "~/.config/app", "mode": "track"}]}\n' >"$mise_dir/paths.out"
+  rm "$mise_dir/bstatus.out"
+  mise_run "$mise_dir"
+  expect "mise: a tracked dangling link fails dot-links" 1 \
+    "FAIL dot-links: tracked links to nothing: ~/.config/app/gone" "ok dot-modes"
+  rm "$mise_dir/paths.out"
+
   echo "not json" >"$mise_dir/bstatus.out"; echo 2 >"$mise_dir/bstatus.rc"
   mise_run "$mise_dir"
   expect "mise: bootstrap status error" 1 \
@@ -173,7 +189,8 @@ test_mise() {
   expect "mise: mise not on PATH" 1 \
     "FAIL doctor: mise not found" "FAIL bootstrap-plan: mise not found" \
     "FAIL dot-capture: mise not found" "FAIL dot-sync: mise not found" \
-    "FAIL dot-modes: mise not found" "FAIL coverage: mise not found"
+    "FAIL dot-modes: mise not found" "FAIL dot-links: mise not found" \
+    "FAIL coverage: mise not found"
 }
 
 # coverage: bin/check-coverage as a mise check, against a stub HOME/.config.
