@@ -19,7 +19,7 @@ the `bootstrap` task run on every apply, so they must be safe to repeat.
 | accounts | group `skogai` (system); skogix in it (`groups = ["skogai", "wheel"]`, fish) |
 | packages | `pacman:` podman, podman-docker, podman-compose, podlet, fish, zsh present; docker-compose, docker-buildx, ufw-docker absent |
 | services | `mise-history` (built-in `history-watch`, user); `cloudflared` commented out (2026-11-11: still running + enabled, just not declared) |
-| repos | `~/.config/skogai`, `~/.config/containers/systemd`, `~/skogai`, `~/skogix`, `~/Work` (all current, 2026-11-11); `~/.skogai` and `/skogai` commented out |
+| repos | `~/.config/skogai`, `~/codex`, `~/.config/nvim`, `~/.config/containers/systemd`, `~/skogai`, `~/skogix`, `~/Work` (all current, 2026-11-13); `~/.skogai` and `/skogai` commented out |
 | shell | `mise_shell_activate = { fish = true }` |
 | tools | `[tools]`, run by `mise install` |
 | task | `[tasks.bootstrap]`: Omarchy's sshd/Tailscale flows, guarded |

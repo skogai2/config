@@ -62,6 +62,7 @@ gets a row or a track entry. Only skogix's decisions go in the table.
 | pulse | exclude | PulseAudio auth cookie; in history checkpoints 45-655 (2026-10-18..26), removed (triage batch 2) |
 | captains-deck-web | exclude | `vapid.json`, a web-push private key; never in history (triage batch 2) |
 | containers | owner | `systemd/` is its own repo, declared in `[bootstrap.repos]` (skogai/podman); `nodocker` is an empty marker (triage batch 4) |
+| nvim | owner | its own repo since 2026-11-13, declared in `[bootstrap.repos]` (skogai/nvim-omarchy, private); `desktop/nvim.md` |
 | skogai | owner | this repo, declared in `[bootstrap.repos]` (skogai2/config) (triage batch 4) |
 | Moonlight Game Streaming Project | owner | pairing state: `Moonlight.conf` holds the client certificate and private key (tracked by mistake in checkpoint 984, never published; untracked 2026-11-06) |
 | chromium-flags.conf | exclude | holds `--oauth2-client-secret`; track with `encrypt = true` once fnox/age is set up (untracked 2026-11-06) |
