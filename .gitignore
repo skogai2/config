@@ -3,3 +3,4 @@
 /.skogai/logs/
 /.skogai/tmp/
 /.skogai/worktrees/
+/.claude/worktrees
