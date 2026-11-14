@@ -30,9 +30,10 @@ agreement changes — not derived from any single dotfiles file.
 - Package: `atuin` (Arch `extra` repo).
 - Shell integration: the login shell is fish, which runs
   `atuin init fish | source` from `~/.config/fish/conf.d/00_atuin_init.fish`.
-  bash keeps `eval "$(atuin init bash --disable-up-arrow --disable-ctrl-r)"`
-  in `~/.bashrc`. zsh is installed but not set up yet; it will need its own
-  `atuin init zsh`.
+  bash runs `atuin init --disable-up-arrow --disable-ctrl-r --bind-ai-resume bash`
+  and `atuin gen-completion --shell bash` from `~/.bashrc` (`bash.md`).
+  zsh is installed but not set up yet; it will need its own
+  `atuin init zsh` (`zsh.md`).
 - Login: `atuin login -u skogix`, encryption key at
   `~/.ssh/atuin.key.encrypted`.
 - Sync also runs via the background daemon (`[daemon] enabled = true` in
