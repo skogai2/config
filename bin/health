@@ -17,6 +17,16 @@ here=$(cd "$(dirname "$0")/.." && pwd)
 root=${SKOGAI_HEALTH_ROOT:-$here}
 limit=${HEALTH_TIMEOUT:-120}
 
+# Agent shells may omit the login environment. Use this user's existing
+# runtime directory and bus when available; preserve explicit overrides.
+runtime=/run/user/$(id -u)
+if [[ -z ${XDG_RUNTIME_DIR:-} && -d $runtime && -O $runtime ]]; then
+  export XDG_RUNTIME_DIR=$runtime
+fi
+if [[ -z ${DBUS_SESSION_BUS_ADDRESS:-} && -n ${XDG_RUNTIME_DIR:-} && -S $XDG_RUNTIME_DIR/bus && -O $XDG_RUNTIME_DIR/bus ]]; then
+  export DBUS_SESSION_BUS_ADDRESS=unix:path=$XDG_RUNTIME_DIR/bus
+fi
+
 # run_group <group> <script>: run one concern script, print its prefixed lines.
 run_group() {
   local group=$1 script=$2 tmp lines rc=0

@@ -26,8 +26,8 @@ has "notify: critical desktop notification" skogai-health-notify.service \
   "ExecStart=/usr/bin/notify-send -u critical -a skogai-health \"skogai-health failed\" \
 \"journalctl --user -u skogai-health -n 50\""
 
-has "timer: hourly after startup, enabled by timers.target" skogai-health.timer \
-  "OnStartupSec=10min" "OnUnitActiveSec=1h" "[Install]" "WantedBy=timers.target"
+has "timer: daily, enabled by timers.target" skogai-health.timer \
+  "OnCalendar=daily" "[Install]" "WantedBy=timers.target"
 
 verify() {
   local need

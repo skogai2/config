@@ -11,11 +11,16 @@ Machine-wide state that no other concern owns. Declared machine state
 <routes>
 
 - health - `failed-units`: failed systemd user units. Run all checks with ../bin/health
-- units/skogai-health.timer - runs ../bin/health hourly; `skogai-health-notify` sends a critical desktop notification when it fails
+- units/skogai-health.timer - runs ../bin/health daily at midnight local time; `skogai-health-notify` sends a critical desktop notification when it fails
 
 </routes>
 
 ## health timer
+
+`bin/health` fills missing user-session environment variables from the
+current user's existing `/run/user/<uid>` directory and bus socket. This
+lets agent shells inspect user services; explicit environment values
+are preserved. A sandbox must still permit access to the user bus.
 
 The same pattern as `quadlet-health`. Installed 2026-11-09, and declared:
 `[tasks.bootstrap]` in `~/.config/mise/config.toml` links the three
@@ -50,6 +55,6 @@ shell is zsh, where mise isn't activated, so `/usr/bin` comes first
 there and `agents/health` reports a false `herdr-binary` failure; the
 timer and fish get it right.
 
-Every failing check notifies once an hour, so fix (or knowingly accept)
+Every failing check notifies once a day, so fix (or knowingly accept)
 failures quickly. `containers` failures notify twice: once from
 `quadlet-health`'s own timer, once from this one.

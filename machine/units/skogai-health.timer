@@ -1,10 +1,8 @@
 [Unit]
-Description=Run skogai-health hourly
+Description=Run skogai-health daily
 
 [Timer]
-# Give boot units and the mise watcher time to come up before the first check.
-OnStartupSec=10min
-OnUnitActiveSec=1h
+OnCalendar=daily
 
 [Install]
 WantedBy=timers.target
