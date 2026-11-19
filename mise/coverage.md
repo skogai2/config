@@ -90,3 +90,4 @@ gets a row or a track entry. Only skogix's decisions go in the table.
 | ponytail | exclude | for now (skogix, 2026-11-11) |
 | git-town | owner | per-repo run state only (`<repo>/runlog.json`); git-town config lives in each repo's git config (2026-11-14) |
 | carapace | exclude | only an empty `overlays/`; track it once overlays are written (2026-11-14) |
+| LM Studio | exclude | for now | 
