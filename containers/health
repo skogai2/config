@@ -3,7 +3,14 @@
 # Contract: bin/health. QUADLET_HEALTH overrides the script's path.
 set -u
 
-qh=${QUADLET_HEALTH:-$HOME/.config/containers/systemd/bin/quadlet-health}
+# The stack is workstation-only (podman.md, 2026-11-20): a host without the
+# checkout has nothing to check. QUADLET_DIR overrides the checkout path.
+dir=${QUADLET_DIR:-$HOME/.config/containers/systemd}
+if [[ -z ${QUADLET_HEALTH:-} && ! -d $dir ]]; then
+  echo "ok quadlet-health: no quadlet stack on this host"
+  exit 0
+fi
+qh=${QUADLET_HEALTH:-$dir/bin/quadlet-health}
 if [[ ! -f $qh || ! -x $qh ]]; then
   echo "FAIL quadlet-health: $qh not found"
   exit 1

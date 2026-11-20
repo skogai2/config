@@ -48,3 +48,10 @@ note. If it's about working in this repo, it goes below.
 - A timed-out script's children (e.g. `sleep`) keep a pipe open: capture
   output to a temp file, not `$(...)`, or the caller still waits.
 - `jq paths(scalars)` skips nulls: scan raw files for key names instead.
+- The tool shell can inherit a revoked `GITHUB_TOKEN` (e.g. after the
+  monorepo's `github:auth` refresh), and it beats gh's keyring login:
+  git over HTTPS fails with `Invalid username or token`. Run it as
+  `env -u GITHUB_TOKEN git ...`.
+- Project `[env]` isn't loaded in the zsh tool shell: run a project's
+  tools as `mise exec -- <cmd>` from its directory (e.g. `cf` in the
+  quadlet repo needs its `CLOUDFLARE_ACCOUNT_ID`).

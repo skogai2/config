@@ -102,6 +102,44 @@ Outstanding: final confirmation that the gptme stack
 `~/tmp` stack (termix + guacd) no longer exists. As of 2026-10-14 both run
 as quadlets (`termix.service`, `termix-guacd.service`).
 
+## hosts: the quadlet stack is workstation-only (skogix, 2026-11-20)
+
+Don't clone `skogai/podman` (`~/.config/containers/systemd`) to other
+hosts for now. Other machines join skognet as termix hosts
+(`termix/hosts-config/hosts.yaml` in that repo, served from
+`termix.skogai.se` on the workstation), not by running the stack.
+
+- The `[bootstrap.repos]` entry moved out of the shared
+  `~/.config/mise/config.toml` into the workstation's untracked
+  `config.local.toml` (bootstrap reads repos from it, tested
+  2026-11-20). **Open:** add it there on the workstation:
+  `[bootstrap.repos."~/.config/containers/systemd"]`, `url =
+  "https://github.com/skogai/podman.git"`.
+- `containers/health` prints `ok ... no quadlet stack on this host` when
+  the checkout is absent.
+- skogix-laptop still had a checkout (cloned before this decision). Its
+  units are generated from it, so they start at every boot until the
+  checkout is gone: stop them, then move the checkout aside (it holds the
+  untracked `.env` files; don't delete it unread).
+- Why not a second connector on tunnel `skognet-cloudflare`: ingress
+  rules live in Cloudflare and apply to every connector, and Cloudflare
+  spreads requests across connectors without checking the origin. A
+  connector without termix/mcphub behind it returns 502 for its share of
+  requests; one with its own copies serves different data.
+
+## gotchas (2026-11-20, seen on skogix-laptop)
+
+- A changed `.network` file doesn't change an existing network: podman
+  keeps the subnet it created (here `10.89.2.0/24` from 2026-11-07, while
+  the file pinned `10.89.7.0/24`), and `<name>-network.service` succeeds
+  because the name exists. A container asking for a fixed `ip=` then
+  fails `requested static ip ... not in any subnet` (exit 126) until the
+  network is removed and recreated with its containers stopped.
+- `systemctl --user link` alone doesn't start a timer at boot: the
+  `pg-backup` and `quadlet-health` timers were `linked`, never `enabled`,
+  so nothing ran after a reboot and `quadlet-health` failed on missing
+  dumps. The repo's install steps (`enable --now`) are the fix.
+
 ## Later: the quadlet stack
 
 `~/.config/containers/systemd/` is its own git repo (`skogai/podman` on

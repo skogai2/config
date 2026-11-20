@@ -5,8 +5,7 @@
 - `bin/health`: 19 checks across 7 groups, run hourly by the
   `skogai-health` timer (`machine/SKOGAI.md`). 2026-11-11: one real
   failure left, `failed-units: app-bitwarden@autostart.service`.
-  2026-11-20: `skognet-cloudflare.service` and `quadlet-health` fail
-  (below); `herdr-binary` passes from every shell now.
+  2026-11-20: `herdr-binary` passes from every shell now.
 - Coverage: every `~/.config` entry decided (`mise/coverage.md`;
   `ponytail` excluded for now, 2026-11-11).
 - 2026-11-11: the vv-harness was retired (plugin no longer installed;
@@ -23,9 +22,15 @@
 - Done 2026-11-20: mise over pacman. Pacman's mise, herdr, podlet,
   termix-bin, fzf, lazygit, ripgrep, starship, zoxide removed and
   declared `absent`; what's kept and why in `mise/bootstrap.md`.
-- `skognet-cloudflare.service` failed (exit 126, start-limit-hit, since
-  2026-11-20 10:01, before the removals); `quadlet-health` fails with it.
-  Not looked at yet.
+- 2026-11-20: the quadlet stack is workstation-only
+  (`containers/podman.md`, hosts). Open: on the laptop, stop its units and
+  move `~/.config/containers/systemd` aside; on the workstation, add the
+  repo to `config.local.toml`, check its network subnets and enable the
+  `pg-backup`/`quadlet-health` timers (gotchas there).
+- termix (`hosts.yaml`, skogai/podman `066892a`): every host declared,
+  claude's share on `skogix-hosts`. Open: after the workstation pulls,
+  copy host 4's docker setting to 1633, then delete hand-made hosts 1-4
+  (needs `termix login`).
 - 2026-11-20: lockfiles decided (`mise/lock.md`): no global one, project
   ones committed. skogai/monorepo#111 (python 3.14) open for merge.
 - zsh: activate mise, so the agent tool shell matches fish (PROJECT.md §4).

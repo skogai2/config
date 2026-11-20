@@ -83,6 +83,11 @@ test_containers() {
   expect "containers: nonzero exit fails" 1 "FAIL quadlet-health: exit 2, see quadlet-health"
   run env QUADLET_HEALTH="$s/nope" "$repo/containers/health"
   expect "containers: missing script" 1 "FAIL quadlet-health: $s/nope not found"
+  run env -u QUADLET_HEALTH QUADLET_DIR="$s/no-stack" "$repo/containers/health"
+  expect "containers: no stack on this host" 0 "ok quadlet-health: no quadlet stack on this host"
+  mkdir -p "$s/stack"
+  run env -u QUADLET_HEALTH QUADLET_DIR="$s/stack" "$repo/containers/health"
+  expect "containers: stack without script" 1 "FAIL quadlet-health: $s/stack/bin/quadlet-health not found"
 }
 
 # A stub mise answering doctor / bootstrap plan / dot status from files in $STUB.
