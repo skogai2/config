@@ -22,7 +22,11 @@ Herdr itself shipped. So the sources are listed here.
 - agenttrail is read-only: GETs to `127.0.0.1:5330-5344` (`/panel`,
   `/board-lite`) only, runs `git rev-parse`, and on **Start Map here**
   `npx -y agenttrail@0.4.1 <repo> --no-open` in a tab (the one step that
-  reaches npm). Needs that Map running to show anything.
+  reaches npm). Needs that Map running to show anything. In `~/Work`,
+  `mise run agenttrail:up | :status | :stop | :start` run the
+  mise-installed Map instead (`~/Work/mise.toml`, 2026-11-20). There's no
+  `--help`: an unknown argument becomes the repo path and starts a board
+  for it.
 
 - herdr-nvim's installer downloads the latest *release* (runtime in
   `~/.local/share/herdr-nvim/app/<stamp>/`, not tracked) and patches the
