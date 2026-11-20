@@ -15,8 +15,14 @@ Herdr itself shipped. So the sources are listed here.
 |---|---|---|
 | layout `lazyvim` + mods `lazyvim*`, theme `lazyvim` | github.com/EmmanuelVernet/herdr-neovim | copy `layouts/`, `mods/`, `themes/` in; merge its `keys.json` (`layout:lazyvim`) |
 | mods `herdr-nvim`, `herdr-nvim-header` | github.com/ChmaraX/herdr-nvim (`herdr-app/`), release v1.3.1 | with `lazyvim` on screen: `curl -fsSL https://raw.githubusercontent.com/ChmaraX/herdr-nvim/main/install.sh \| sh -s -- --app` |
-| layout + mod `world-of-codecraft` | unknown | only copy is the dotfiles history |
+| layout `World-of-Codecraft` + mod `world-of-codecraft`, theme `World-of-Codecraft` | github.com/kevinpardo/world-of-codecraft | copy `layouts/`, `mods/`, `themes/` in; merge `mods/world-of-codecraft/KEYS.json`. Local edit: `place.js:40` runs `codex --no-daemon`. Its layout carries herdr-nvim's patch |
+| mod `agenttrail` (2026-11-20) | github.com/sodiumsun/agenttrail (`herdr/agenttrail/`) | copy `mods/agenttrail/` in; docks right in an own layout, else `herdr-app do pane.split --direction right --mod agenttrail` |
 | `skogix-prefix`, `*-edited` | own | tracked |
+
+- agenttrail is read-only: GETs to `127.0.0.1:5330-5344` (`/panel`,
+  `/board-lite`) only, runs `git rev-parse`, and on **Start Map here**
+  `npx -y agenttrail@0.4.1 <repo> --no-open` in a tab (the one step that
+  reaches npm). Needs that Map running to show anything.
 
 - herdr-nvim's installer downloads the latest *release* (runtime in
   `~/.local/share/herdr-nvim/app/<stamp>/`, not tracked) and patches the
@@ -29,8 +35,8 @@ Herdr itself shipped. So the sources are listed here.
 
 ## tracking (mise dotfiles)
 
-Tracked: `keys.json`, `settings.json`, `layouts/`, `mods/`, `themes/`
-(`~/.config/mise/config.toml`). Excluded in `[history] exclude`
+Tracked: `keys.json`, `settings.json`, `layouts/`, `mods/`, `themes/`,
+and `SKOGAI.md` (a route back to this page) (`~/.config/mise/config.toml`). Excluded in `[history] exclude`
 (2026-11-20, skogix: "trim the noise"):
 
 - app-written: `gpui-kit.d.ts`, `jsconfig.json`, `layouts/.state/`
