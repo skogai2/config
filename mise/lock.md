@@ -61,3 +61,8 @@ written: a tool only in the user config writes only the user lockfile.
 - pipx/pypi tools that need a source build (pyyaml has no wheel for
   Python 3.15: `pipx:gptme`, `ansible`, `ansible-core`, `awsebcli`) get a
   version-only entry with a WARN; not an error.
+- `mise install` locks too (`lockfile_mode = "generate"`), and retries
+  version-only entries every run: in `~/Work`, `mise i` prints uv's
+  `pyyaml==6.0.3 ... --no-build` error for `code-review-graph` and still
+  exits 0. Goes away when PyYAML ships cp315 wheels, or with `python =
+  "3.14"` in the project.
