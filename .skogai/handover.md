@@ -22,7 +22,11 @@
   crashes (SIGILL at logout, an OOM kill 2026-11-11 06:03), not config.
 - mise wins over pacman for mise and atuin (skogix, 2026-11-11): find
   what still names `/usr/bin/mise` or `/usr/bin/atuin`, then remove the
-  pacman packages (confirm first).
+  pacman packages (confirm first). 2026-11-20: the mise command
+  wrappers pointed at `/usr/bin/mise`, repointed (`mise/SKOGAI.md`, two
+  binaries); no other config names it. atuin not checked yet.
+- 2026-11-20: lockfiles decided (`mise/lock.md`): no global one, project
+  ones committed. skogai/monorepo#111 (python 3.14) open for merge.
 - zsh: activate mise, so the agent tool shell matches fish (PROJECT.md §4).
 - PROJECT.md §2: config outside `~/.config`, then packages.
 

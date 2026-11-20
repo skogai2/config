@@ -61,6 +61,23 @@ The global config and `files/` are versioned by the dotfile history; the
 `SKOGAI_CLAUDE_CODE_DOCS_DIR`. atuin dotfiles vars also set env vars and
 aliases (`../shell/atuin.md`); who owns what is walkthrough item 3.
 
+## two binaries (2026-11-20)
+
+`~/.local/bin/mise` (current, the shims point at it) and pacman's
+`/usr/bin/mise` (2026.10.17, self-update disabled). Decided: the
+`~/.local/bin` one wins (skogix, 2026-11-11).
+
+- mise's command wrappers (`~/.local/share/mise/command-wrappers/bin/`:
+  `claude`, `codex`, `grok` from Omarchy's `[wrappers.*]`, `cargo` from
+  ours) are symlinks to the mise binary that created them. Made on
+  2026-11-07 by `/usr/bin/mise`, so starting `claude` ran the old mise,
+  which warns `unsupported lockfile version 4` in `~/Work`. `mise
+  reshim` doesn't touch them; repointed by hand with `ln -sfn
+  ~/.local/bin/mise <name>` (2026-11-20). Check them after any mise
+  reinstall.
+- Removing the pacman package (`sudo pacman -R mise`) is still open:
+  confirm with skogix first.
+
 ## MCP server
 
 `skogai-mise` runs `mise mcp`.

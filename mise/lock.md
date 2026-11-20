@@ -64,5 +64,10 @@ written: a tool only in the user config writes only the user lockfile.
 - `mise install` locks too (`lockfile_mode = "generate"`), and retries
   version-only entries every run: in `~/Work`, `mise i` prints uv's
   `pyyaml==6.0.3 ... --no-build` error for `code-review-graph` and still
-  exits 0. Goes away when PyYAML ships cp315 wheels, or with `python =
-  "3.14"` in the project.
+  exits 0. Fixed with `python = "3.14"` (skogai/monorepo#111); 3.14
+  must be installed before `mise lock`, or uv falls back to
+  `python/latest`. Back to `latest` once PyYAML ships cp315 wheels.
+- `unsupported lockfile version 4; this mise supports up to version 3`:
+  an older mise is reading the lockfile. Here it was pacman's
+  `/usr/bin/mise` (2026.10.17), reached through the command wrappers
+  (`SKOGAI.md`, two binaries).
