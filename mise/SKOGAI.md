@@ -65,7 +65,8 @@ aliases (`../shell/atuin.md`); who owns what is walkthrough item 3.
 
 `~/.local/bin/mise` (current, the shims point at it) and pacman's
 `/usr/bin/mise` (2026.10.17, self-update disabled). Decided: the
-`~/.local/bin` one wins (skogix, 2026-11-11).
+`~/.local/bin` one wins (skogix, 2026-11-11). Pacman's was removed
+2026-11-20 and is declared `absent` (`bootstrap.md`, mise over pacman).
 
 - mise's command wrappers (`~/.local/share/mise/command-wrappers/bin/`:
   `claude`, `codex`, `grok` from Omarchy's `[wrappers.*]`, `cargo` from
@@ -75,8 +76,6 @@ aliases (`../shell/atuin.md`); who owns what is walkthrough item 3.
   reshim` doesn't touch them; repointed by hand with `ln -sfn
   ~/.local/bin/mise <name>` (2026-11-20). Check them after any mise
   reinstall.
-- Removing the pacman package (`sudo pacman -R mise`) is still open:
-  confirm with skogix first.
 
 ## MCP server
 

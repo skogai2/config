@@ -17,7 +17,7 @@ the `bootstrap` task run on every apply, so they must be safe to repeat.
 | part | declared |
 |---|---|
 | accounts | group `skogai` (system); skogix in it (`groups = ["skogai", "wheel"]`, fish) |
-| packages | `pacman:` podman, podman-docker, podman-compose, podlet, fish, zsh present; docker-compose, docker-buildx, ufw-docker absent |
+| packages | `pacman:` podman, podman-docker, podman-compose, fish, zsh present; docker-compose, docker-buildx, ufw-docker absent; mise-owned tools absent (mise over pacman, 2026-11-20) |
 | services | `mise-history` (built-in `history-watch`, user); `cloudflared` commented out (2026-11-11: still running + enabled, just not declared) |
 | repos | `~/.config/skogai`, `~/codex`, `~/.config/nvim`, `~/.config/containers/systemd`, `~/skogai`, `~/skogix`, `~/Work` (all current, 2026-11-13); `~/.skogai` and `/skogai` commented out |
 | shell | `mise_shell_activate = { fish = true }` |
@@ -71,8 +71,35 @@ actively chooses or rejects.
 - On pacman/AUR, `"latest"` only means installed (no version pins);
   upgrades stay with `pacman -Syu`. `prune`/`import` are Homebrew-only.
   `aur:` is a built-in manager like `pacman:`.
-- Open: go through `pacman -Qqe` for the other choices (atuin, herdr,
-  bitwarden, tailscale, the AUR packages).
+- Open: go through `pacman -Qqe` for the other choices (bitwarden,
+  tailscale, the AUR packages).
+
+#### mise over pacman (skogix, 2026-11-11; done 2026-11-20)
+
+When mise manages a tool, the pacman copy goes, unless something needs
+it. Removed and declared `absent`: `mise`, `herdr`, `podlet`,
+`termix-bin`, `fzf`, `lazygit`, `ripgrep`, `starship`, `zoxide`.
+`atuin` was already gone. The session PATH puts mise's shims and
+installs before `/usr/bin` (`systemctl --user show-environment`), so
+Omarchy's scripts get mise's copies in the session; root, TTY logins
+without mise, and system units don't see them at all.
+
+Kept, with the reason:
+
+| package | why |
+|---|---|
+| `cloudflared` | the root system unit and its update unit run `/usr/bin/cloudflared` |
+| `python` | kitty, uwsm, ufw, libreoffice and ~40 more depend on it |
+| `nodejs-lts-jod` | bitwarden-cli, yt-dlp |
+| `lua` | hyprland, wireplumber |
+| `jq`, `gum` | required by `omarchy` |
+| `podman` | podman-compose, podman-docker; declared present |
+| `ruby`, `rubygems` | tobi-try |
+| `dotnet-host` | dotnet-runtime |
+| `luarocks` | mise's comes from `lua` in `~/Work` only; nvim needs one everywhere |
+
+To find new duplicates: for each name in `~/.local/share/mise/shims`,
+`pacman -Qqo /usr/bin/<name>`, then `pacman -Qi` for `Required By`.
 
 ### services (2026-10-14)
 
