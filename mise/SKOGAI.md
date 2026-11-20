@@ -19,6 +19,7 @@ replaces none of it.
 - coverage.md - every `~/.config` entry tracked or decided; checked by ../bin/check-coverage
 - coverage-triage.md - checklist of the undecided entries, in batches with proposals, to go through with skogix
 - health - `doctor`, `bootstrap-plan`, `dot-capture`, `dot-sync`, `dot-modes`, `dot-links`, `coverage`. All checks: ../bin/health
+- lock.md - lockfiles: no global one (why `mise lock --global` fails on Omarchy), project ones committed
 - secrets.md - how secret values reach mise (`[bootstrap.secrets]`, fnox); keys are in ../secrets/fnox.md
 
 </routes>
@@ -105,8 +106,8 @@ this repo's gitignored `tmp/`. It's gone; re-clone to follow them.
 - [~] 4. secrets: `secrets.md`
 - [ ] 5. extras: `tasks`/`run`/`watch`, `daemons` (pitchfork; a
   `pitchfork.service` user unit exists), `oci`, `deps` (`[deps] npm`
-  is set), `skills`, `generate`, maintenance (`lock`, `outdated`,
-  `upgrade`, `prune`, `doctor`).
+  is set), `skills`, `generate`, maintenance (`lock`: decided,
+  `lock.md`; `outdated`, `upgrade`, `prune`, `doctor`).
 
 ## open
 
