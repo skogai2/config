@@ -7,7 +7,7 @@ type: router
 
 - @.skogai/TODO.md
 - @README.md - what this repo is, for any agent
-- @PROJECT.md
+- PROJECT.md - project plan and status (read when planning)
 - mise/SKOGAI.md - mise: bootstrap, dotfiles (live or upstream in the origin), secrets. Read before changing any of them.
 - secrets/SKOGAI.md - keys, who can decrypt what (fnox + age), and how secrets reach mise
 - shell/SKOGAI.md - shell history, env vars and aliases (atuin)
