@@ -1,4 +1,4 @@
-# handover (2026-11-11)
+# handover (2026-11-21)
 
 ## where we are
 
@@ -15,6 +15,12 @@
 
 ## next
 
+- herdr-app (`agents/herdr-app.md`): mods and layouts inventoried with
+  sources 2026-11-20; lazyvim reinstalled by hand 2026-11-21 after
+  checkpoint 2327 deleted it (cause not found), now guarded by
+  `herdr-app-layout` in `agents/health`. Open: agenttrail panel not back
+  in the lazyvim layout; the panel's "Start Map here" button unexplained
+  (Map runs via `mise run agenttrail:*` in `~/Work`).
 - Test environment (container / test user) for bootstrap and adopt
   runs before touching this machine (PROJECT.md §1, `mise/adopt.md`).
 - `app-bitwarden@autostart.service`: running again; its failures were

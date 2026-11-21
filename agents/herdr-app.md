@@ -23,10 +23,13 @@ Herdr itself shipped. So the sources are listed here.
   `/board-lite`) only, runs `git rev-parse`, and on **Start Map here**
   `npx -y agenttrail@0.4.1 <repo> --no-open` in a tab (the one step that
   reaches npm). Needs that Map running to show anything. In `~/Work`,
-  `mise run agenttrail:up | :status | :stop | :start` run the
-  mise-installed Map instead (`~/Work/mise.toml`, 2026-11-20). There's no
-  `--help`: an unknown argument becomes the repo path and starts a board
-  for it.
+  `mise run agenttrail:start` runs this repo's Map in the foreground (its
+  first run saves it in `~/.agenttrail/`), `:up` starts every saved Map
+  that isn't running (`agenttrail up`), `:status` lists them, `:stop`
+  stops this repo's (`~/Work/mise.toml`). There's no `--help`: an
+  unknown argument becomes the repo path and starts a board for it.
+- The lazyvim layout has no agenttrail block upstream; it was added by
+  hand on 2026-11-20 and not re-added after the 2026-11-21 reinstall.
 
 - herdr-nvim's installer downloads the latest *release* (runtime in
   `~/.local/share/herdr-nvim/app/<stamp>/`, not tracked) and patches the
@@ -58,5 +61,12 @@ and `SKOGAI.md` (a route back to this page) (`~/.config/mise/config.toml`). Excl
   `worktree-edited` blocks, and without `"toast": "lazyvim-notify"`. Which
   machine wrote it isn't recorded. Fixed 2026-11-20 by restoring upstream's
   file (checkpoint 2125) and rerunning the herdr-nvim installer.
+- 2026-11-21 08:00, checkpoint 2327 (machine `git`): `layouts/lazyvim.json`
+  deleted and every `layout:*` section plus herdr-nvim's and
+  `skogix-prefix`'s global keys dropped from `keys.json`, in the same minute
+  Herdr's shipped mods were rewritten. Cause not found. Reinstalled by hand
+  the same day: upstream layout, keys restored from before 2327
+  (`keys.json.before-restore-20261121` kept), herdr-nvim installer rerun.
+  `agents/health` now checks this (`herdr-app-layout`).
 - `herdr-app do <cmd>` takes `--arg value`: `herdr-app do layout.switch
   --name lazyvim`, not `layout.switch lazyvim`.

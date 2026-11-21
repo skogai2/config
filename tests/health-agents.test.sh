@@ -21,6 +21,10 @@ herdr_case() {
   mkdir -p "$d/home/.config/herdr" "$d/stock/herdr"
   echo personal >"$d/home/.config/herdr/config.toml"
   echo stock >"$d/stock/herdr/config.toml"
+  mkdir -p "$d/home/.config/herdr-app/layouts"
+  echo '{"root":{"children":[{"id":"herdr-nvim-sync","type":"block"}]}}' \
+    >"$d/home/.config/herdr-app/layouts/lazyvim.json"
+  echo '{"global":{},"layout:lazyvim":{}}' >"$d/home/.config/herdr-app/keys.json"
   # shellcheck disable=SC2016 # the body is a script; it expands when the stub runs
   stub "$d/home/.local/bin" herdr '
 [[ "$*" == "integration status" ]] || exit 99
@@ -64,7 +68,28 @@ test_integrations() {
     "FAIL herdr-config: matches Omarchy stock, personal changes lost (see agents/herdr.md)"
 }
 
+test_layout() {
+  local app
+  herdr_case "$statuses" 0
+  expect "herdr-app: lazyvim ok" 0 "ok herdr-app-layout: lazyvim"
+  app=$hd/home/.config/herdr-app
+  rerun() {
+    run env STUB="$hd" HOME="$hd/home" OMARCHY_CONFIG="$hd/stock" \
+      PATH="$hd/home/.local/bin:$(toolbox)" "$repo/agents/health"
+  }
+  echo '{"global":{}}' >"$app/keys.json"
+  echo '{"root":{"children":[]}}' >"$app/layouts/lazyvim.json"
+  rerun
+  expect "herdr-app: patch and keys missing" 1 "FAIL herdr-app-layout: lazyvim lacks \
+herdr-nvim patch (rerun its installer), layout:lazyvim keys (agents/herdr-app.md)"
+  rm "$app/layouts/lazyvim.json"
+  rerun
+  expect "herdr-app: layout missing" 1 "FAIL herdr-app-layout: \
+~/.config/herdr-app/layouts/lazyvim.json not found (reinstall: agents/herdr-app.md)"
+}
+
 test_ok
+test_layout
 test_binary
 test_integrations
 

@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Health checks for agents (herdr.md): `herdr-config` not reset to stock,
 # `herdr-binary` is mise's (not Omarchy's /usr/bin/herdr), and
-# `herdr-integrations` has none broken. HERDR_OMARCHY_BIN overrides the path.
+# `herdr-integrations` has none broken, and `herdr-app-layout` (herdr-app.md)
+# still has lazyvim with its herdr-nvim patch and keys. HERDR_OMARCHY_BIN and
+# HERDR_APP_HOME override the paths.
 set -u
 
 # shellcheck source=bin/health-lib.sh
@@ -42,7 +44,27 @@ herdr_integrations() {
   fi
 }
 
+# The lazyvim layout, its herdr-nvim patch and its keys (herdr-app.md): a sync
+# from origin or a herdr-app change has removed them before.
+herdr_app_layout() {
+  local dir=${HERDR_APP_HOME:-$HOME/.config/herdr-app} missing=()
+  local layout=$dir/layouts/lazyvim.json keys=$dir/keys.json
+  if [[ ! -f $layout ]]; then
+    report "FAIL herdr-app-layout: $(tilde "$layout") not found (reinstall: agents/herdr-app.md)"
+    return
+  fi
+  jq -e '[.. | objects | select(.id? == "herdr-nvim-sync")] | length > 0' "$layout" >/dev/null 2>&1 ||
+    missing+=("herdr-nvim patch (rerun its installer)")
+  jq -e 'has("layout:lazyvim")' "$keys" >/dev/null 2>&1 || missing+=("layout:lazyvim keys")
+  if ((${#missing[@]})); then
+    report "FAIL herdr-app-layout: lazyvim lacks $(join ', ' "${missing[@]}") (agents/herdr-app.md)"
+  else
+    report "ok herdr-app-layout: lazyvim"
+  fi
+}
+
 stock_check herdr-config herdr/config.toml agents/herdr.md
+if need herdr-app-layout jq; then herdr_app_layout; fi
 if need herdr-binary herdr; then herdr_binary; fi
 if need herdr-integrations herdr; then herdr_integrations; fi
 exit "$failed"
