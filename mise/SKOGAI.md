@@ -18,6 +18,7 @@ replaces none of it.
 - old-dotfiles.md - the old rcm repo (`~/.local/src/old-skogai/dotfiles`): inventory against the live machine, no decisions
 - coverage.md - every `~/.config` entry tracked or decided; checked by ../bin/check-coverage
 - coverage-triage.md - checklist of the undecided entries, in batches with proposals, to go through with skogix
+- dotfiles-prune.md - checklist of borderline tracked dotfiles to review (keep vs bloat, 2026-11-20 audit)
 - health - `doctor`, `bootstrap-plan`, `dot-capture`, `dot-sync`, `dot-modes`, `dot-links`, `coverage`. All checks: ../bin/health
 - lock.md - lockfiles: no global one (why `mise lock --global` fails on Omarchy), project ones committed
 - secrets.md - how secret values reach mise (`[bootstrap.secrets]`, fnox); keys are in ../secrets/fnox.md

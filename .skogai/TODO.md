@@ -7,3 +7,4 @@
   - [x] mise; bundled into mise/ (2026-10-31)
   - [ ] mise; env
 - [x] coverage; every `~/.config` entry decided, 2026-11-09 (mise/coverage.md)
+- [ ] mise; prune borderline tracked dotfiles — review whether needed or bloat (`mise/dotfiles-prune.md`)
