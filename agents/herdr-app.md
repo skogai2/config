@@ -34,8 +34,10 @@ local changes listed below.
   that isn't running (`agenttrail up`), `:status` lists them, `:stop`
   stops this repo's (`~/Work/mise.toml`). There's no `--help`: an
   unknown argument becomes the repo path and starts a board for it.
-- The lazyvim layout has no agenttrail block upstream; it was added by
-  hand on 2026-11-20 and not re-added after the 2026-11-21 reinstall.
+- The lazyvim layout has no agenttrail block upstream. Ours adds one
+  (2026-11-21): id `agenttrail`, last child of `body`, 340px, hidden by
+  default; `ctrl-space m` (`skogix-prefix`, `layout.toggle {id}`) shows or
+  hides it. Re-add it after reinstalling the layout from upstream.
 
 Install in this order: herdr-nvim patches the layout that's on screen, so
 lazyvim has to be installed and shown first.
