@@ -98,6 +98,14 @@ Kept, with the reason:
 | `dotnet-host` | dotnet-runtime |
 | `luarocks` | mise's comes from `lua` in `~/Work` only; nvim needs one everywhere |
 
+Not pacman, same rule: Claude Code comes from mise only (skogix,
+2026-11-21). It's declared `latest` by Omarchy's
+`/etc/mise/conf.d/omarchy-tools.toml`, not by us. The native installer's
+copy (`~/.local/bin/claude` → `~/.local/share/claude/versions/`, 1 GB,
+2.1.325 while mise had 2.1.330) was removed. Gotcha: `installMethod` in
+`~/.claude.json` still says `native`; update with `mise up claude`,
+not `claude update`.
+
 To find new duplicates: for each name in `~/.local/share/mise/shims`,
 `pacman -Qqo /usr/bin/<name>`, then `pacman -Qi` for `Required By`.
 
