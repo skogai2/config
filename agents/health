@@ -2,7 +2,8 @@
 # Health checks for agents (herdr.md): `herdr-config` not reset to stock,
 # `herdr-binary` is mise's (not Omarchy's /usr/bin/herdr), and
 # `herdr-integrations` has none broken, and `herdr-app-layout` (herdr-app.md)
-# still has lazyvim with its herdr-nvim patch and keys. HERDR_OMARCHY_BIN and
+# still has lazyvim with its herdr-nvim patch, agenttrail block, keys and
+# herdr-nvim runtime. HERDR_OMARCHY_BIN and
 # HERDR_APP_HOME override the paths.
 set -u
 
@@ -48,14 +49,26 @@ herdr_integrations() {
 # from origin or a herdr-app change has removed them before.
 herdr_app_layout() {
   local dir=${HERDR_APP_HOME:-$HOME/.config/herdr-app} missing=()
-  local layout=$dir/layouts/lazyvim.json keys=$dir/keys.json
+  local layout=$dir/layouts/lazyvim.json keys=$dir/keys.json runtime
+  local launcher=$dir/mods/herdr-nvim/bin/herdr-nvim
   if [[ ! -f $layout ]]; then
     report "FAIL herdr-app-layout: $(tilde "$layout") not found (reinstall: agents/herdr-app.md)"
     return
   fi
   jq -e '[.. | objects | select(.id? == "herdr-nvim-sync")] | length > 0' "$layout" >/dev/null 2>&1 ||
     missing+=("herdr-nvim patch (rerun its installer)")
+  jq -e '[.. | objects | select(.id? == "agenttrail")] | length > 0' "$layout" >/dev/null 2>&1 ||
+    missing+=("agenttrail block")
   jq -e 'has("layout:lazyvim")' "$keys" >/dev/null 2>&1 || missing+=("layout:lazyvim keys")
+  # The mod's launcher execs a runtime outside the mod folder; `herdr-app check`
+  # passes without it, but cmd-e can't start.
+  if [[ -f $launcher ]]; then
+    runtime=$(sed -n "s#^exec '\([^']*\)'.*#\1#p" "$launcher")
+    [[ -n $runtime && -x $runtime ]] ||
+      missing+=("herdr-nvim runtime $(tilde "${runtime:-?}") (rerun its installer)")
+  else
+    missing+=("herdr-nvim launcher (rerun its installer)")
+  fi
   if ((${#missing[@]})); then
     report "FAIL herdr-app-layout: lazyvim lacks $(join ', ' "${missing[@]}") (agents/herdr-app.md)"
   else

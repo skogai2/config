@@ -22,8 +22,13 @@ herdr_case() {
   echo personal >"$d/home/.config/herdr/config.toml"
   echo stock >"$d/stock/herdr/config.toml"
   mkdir -p "$d/home/.config/herdr-app/layouts"
-  echo '{"root":{"children":[{"id":"herdr-nvim-sync","type":"block"}]}}' \
+  echo '{"root":{"children":[{"id":"agenttrail"},{"id":"herdr-nvim-sync","type":"block"}]}}' \
     >"$d/home/.config/herdr-app/layouts/lazyvim.json"
+  mkdir -p "$d/home/.config/herdr-app/mods/herdr-nvim/bin" "$d/home/.local/share/herdr-nvim/bin"
+  printf '#!/bin/sh\nexec '"'"'%s'"'"' "$@"\n' "$d/home/.local/share/herdr-nvim/bin/herdr-nvim" \
+    >"$d/home/.config/herdr-app/mods/herdr-nvim/bin/herdr-nvim"
+  printf '#!/bin/sh\n' >"$d/home/.local/share/herdr-nvim/bin/herdr-nvim"
+  chmod +x "$d/home/.local/share/herdr-nvim/bin/herdr-nvim"
   echo '{"global":{},"layout:lazyvim":{}}' >"$d/home/.config/herdr-app/keys.json"
   # shellcheck disable=SC2016 # the body is a script; it expands when the stub runs
   stub "$d/home/.local/bin" herdr '
@@ -80,8 +85,15 @@ test_layout() {
   echo '{"global":{}}' >"$app/keys.json"
   echo '{"root":{"children":[]}}' >"$app/layouts/lazyvim.json"
   rerun
-  expect "herdr-app: patch and keys missing" 1 "FAIL herdr-app-layout: lazyvim lacks \
-herdr-nvim patch (rerun its installer), layout:lazyvim keys (agents/herdr-app.md)"
+  expect "herdr-app: patch, agenttrail and keys missing" 1 "FAIL herdr-app-layout: lazyvim lacks \
+herdr-nvim patch (rerun its installer), agenttrail block, layout:lazyvim keys (agents/herdr-app.md)"
+  echo '{"root":{"children":[{"id":"agenttrail"},{"id":"herdr-nvim-sync"}]}}' \
+    >"$app/layouts/lazyvim.json"
+  echo '{"layout:lazyvim":{}}' >"$app/keys.json"
+  rm -r "$hd/home/.local/share/herdr-nvim"
+  rerun
+  expect "herdr-app: runtime missing" 1 "FAIL herdr-app-layout: lazyvim lacks \
+herdr-nvim runtime ~/.local/share/herdr-nvim/bin/herdr-nvim (rerun its installer) (agents/herdr-app.md)"
   rm "$app/layouts/lazyvim.json"
   rerun
   expect "herdr-app: layout missing" 1 "FAIL herdr-app-layout: \

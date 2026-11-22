@@ -159,5 +159,11 @@ Herdr's shipped files excluded.
   the same day: upstream layout, keys restored from before 2327
   (`keys.json.before-restore-20261121` kept), herdr-nvim installer rerun.
   `agents/health` now checks this (`herdr-app-layout`).
+- 2026-11-22: a session on another machine (not the workstation) found
+  `~/.local/share/herdr-nvim/` and lazyvim's agenttrail block gone, with
+  files back at older dates (cause not found, same kind of loss as 2327).
+  The workstation was intact. `herdr-app check` passes without the runtime,
+  so `herdr-app-layout` now also checks the agenttrail block and that the
+  launcher's `exec` target in `mods/herdr-nvim/bin/herdr-nvim` exists.
 - `herdr-app do <cmd>` takes `--arg value`: `herdr-app do layout.switch
   --name lazyvim`, not `layout.switch lazyvim`.
