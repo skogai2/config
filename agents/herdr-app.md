@@ -95,6 +95,26 @@ lazyvim has to be installed and shown first.
   - There's no `--help`: an unknown argument becomes the repo path and
     starts a board for it.
 
+### 5. mod `herdr-customize`: why: one screen for themes, keys, mods, layouts, core and app settings, popups, programs (added 2026-11-23)
+- Source: https://github.com/wapenshaw/herdr-customize (`app/`). Our fork
+  https://github.com/skogai/herdr-customize, checked out (with `upstream`
+  remote) at `~/.config/herdr-app/herdr-customize/`, not the default
+  `~/.local/share/herdr-customize`.
+- Not a copy-the-files mod: the screen runs the program, so the recipe sets
+  up the program. In the checkout:
+  `sh scripts/fetch-or-build.sh && target/release/herdr-customize app install`
+  (downloads the release binary for the checkout's version, SHA-256 checked,
+  else `cargo build`). `app install` writes `mods/herdr-customize/` with
+  `BIN` pointing at the checkout, 26 palettes in `themes/`, and binds
+  `ctrl-shift-y` `mod.open:herdr-customize` in `keys.json` global (never
+  replaces a key; `app install <key>` picks another). Rerun both after
+  `git pull`.
+- What it reaches: searches GitHub, clones repos you Review, writes
+  `themes/`, `keys.json`, `mods/`, `layouts/`, `programs.json`,
+  `settings.json` and herdr-core's `config.toml`. Changes made through it
+  to tracked files (keys, settings) land in mise like hand edits.
+- Pre-install keys: `keys.json.before-customize-20261123`.
+
 ### ours
 - `keys.json`: Herdr's defaults plus vim-style pane keys (`alt-hjkl` go,
   `alt-shift-hjkl` swap), `alt-[`/`alt-]` tabs, the herdr-nvim keys, the
@@ -122,7 +142,7 @@ lazyvim has to be installed and shown first.
 1. Install herdr-app and herdr-core, and start the app once so it writes
    `AGENTS.md` and the shipped files.
 2. `mise apply` restores ours (keys, settings, `skogix-prefix`, `SKOGAI.md`).
-3. Run the prompts above in order (1 → 4). Switch to `lazyvim`
+3. Run the prompts above in order (1 → 4), then step 5's commands. Switch to `lazyvim`
    (`herdr-app do layout.switch --name lazyvim`) before step 2.
 4. Reapply the "our changes" items. Then `herdr-app check` each mod and
    `herdr-app status` for errors.
