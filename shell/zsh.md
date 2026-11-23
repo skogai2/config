@@ -5,29 +5,35 @@ type: reference
 
 # zsh
 
-zsh 5.9.2. Rebuilt from scratch 2026-11-14, step 1: one plain file, no
-framework. Not the login shell (fish is); used by typing `zsh`.
+zsh 5.9.2. Rebuilt 2026-11-23 as the basics: oh-my-zsh + mise + atuin
+(skogix). Not the login shell (fish is); used by typing `zsh`.
 
 ## files
 
 - `~/.zshenv`: only `export ZDOTDIR="$HOME/.config/zsh"`.
 - `~/.config/zsh/.zshrc`: everything else. History in
-  `$ZDOTDIR/.zsh_history`, compdump in `~/.cache/zsh/zcompdump`.
+  `$ZDOTDIR/.zsh_history`, omz cache and compdump in `~/.cache/oh-my-zsh/`.
 - Both tracked by mise dotfiles (`~/.config/mise/conf.d/dotfiles-tracking.toml`),
   `.zsh_history` excluded.
 
 ## ~/.config/zsh/.zshrc, in order
 
-1. options, history, `bindkey -v` + `^X^E` edit-command-line: taken
-   from the skogansible `roles/zsh` (deduplicated).
-2. `compinit`, menu select, case-insensitive matching.
-3. `mise activate zsh`, `usage g completion-init zsh`,
-   `atuin init --disable-up-arrow --disable-ctrl-r zsh`.
-4. argc-completions, same checkout as bash (`bash.md`): ~1000 commands.
-   `mise` keeps its own `_mise` from `/usr/share/zsh/site-functions`.
-5. `starship init zsh`: the same prompt as fish.
+1. oh-my-zsh from the AUR package `oh-my-zsh-git` (`/usr/share/oh-my-zsh`),
+   declared as `aur:oh-my-zsh-git` in `[bootstrap].packages`. Stock
+   `robbyrussell` theme, `plugins=(git)`. `DISABLE_AUTO_UPDATE`: yay
+   updates it. `ZSH_CACHE_DIR` must be set, `/usr/share` isn't writable.
+   omz brings the options, history settings, compinit and keybindings.
+2. `mise activate zsh`, then `atuin init --disable-up-arrow
+   --disable-ctrl-r zsh` (same flags as `~/.bashrc`: atuin records,
+   omz's ctrl-r/up stay).
 
-Startup ~90ms (`zsh -ic exit`, 2026-11-14).
+Startup ~185ms (`zsh -ic exit`, 2026-11-23).
+
+## dropped 2026-11-23
+
+The step-1 file (2026-11-14: hand-set options, `bindkey -v`, argc-completions,
+`usage` completion, starship) is in the mise dotfiles history. Starship
+skipped by skogix; argc/usage left out to keep it basic.
 
 ## replaced (2026-11-14)
 

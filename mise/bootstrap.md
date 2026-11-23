@@ -71,6 +71,7 @@ actively chooses or rejects.
 - On pacman/AUR, `"latest"` only means installed (no version pins);
   upgrades stay with `pacman -Syu`. `prune`/`import` are Homebrew-only.
   `aur:` is a built-in manager like `pacman:`.
+  `aur:oh-my-zsh-git` declared 2026-11-23 for zsh (`../shell/zsh.md`).
 - Open: go through `pacman -Qqe` for the other choices (bitwarden,
   tailscale, the AUR packages).
 
