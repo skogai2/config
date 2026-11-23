@@ -39,6 +39,12 @@ replaces none of it.
 - `mise doctor` exits 1 when it has problems, and its output includes
   env and settings: parse only the `N problem(s) found:` block, never
   print the rest.
+- Don't save `~/.config/mise/config.toml` with `mise edit` (2026-11-23).
+  Its editor (`crates/mise-interactive-config`) nests one level only:
+  values inside inline tables are saved as strings (`allow_builds =
+  "[a, b]"`, `"{ state = absent }"`, which bootstrap reads as `unknown`)
+  and `[a.b]` sub-tables collapse into inline tables. Edit by hand or with
+  `mise settings set`, then check `mise bootstrap plan` shows `0 unknown`.
 
 ## config layers (2026-10-31)
 
