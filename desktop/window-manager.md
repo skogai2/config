@@ -125,6 +125,19 @@ held the key — those got relocated rather than dropped:
   menu) and `Mod+Ctrl+l` (was: lock screen); lock stays reachable via
   Omarchy's system menu (`Mod+Escape`).
 
+- Always tiling (2026-11-25): every workspace uses `dwindle` (the bar and
+  popup call it "Tiling"). Omarchy 4.5's `Mod+Alt+L` toggle cycles dwindle →
+  scrolling → floating and saves the choice per workspace in
+  `~/.local/state/omarchy/workspace-layouts/<n>.lua`; only `default.lua`
+  (dwindle) should exist there. Check: `omarchy hyprland workspace layout
+  current <n>`.
+- Gotcha (2026-11-22 11:36): an Omarchy update/refresh rewrote every
+  `~/.config/hypr/*.lua` from templates (left `*.bak.17953437xx`), dropping
+  `movefocus_cycles_groupfirst` and setting an invalid `layout = "tiling"` in
+  `looknfeel.lua`. Restored 2026-11-25 from `mise dotfiles history diff 2509
+  <latest> --path ~/.config/hypr -p`. After an Omarchy update, diff hypr
+  against the checkpoint before it.
+
 ### (future machines/WMs go here)
 
 When setting up a new machine, diff its default WM bindings against the
