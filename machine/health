@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Health check for the machine: `failed-units`, the failed systemd user units.
-# Contract: bin/health.
+# Contract: bin/health. FAILED_UNITS_IGNORE: space-separated units that notify
+# on their own (skogai-health.service sets it), reported but not failed.
 set -u
 
 if ! command -v systemctl >/dev/null; then
@@ -14,9 +15,17 @@ if ((rc != 0)); then
   echo "FAIL failed-units: systemctl exited $rc"
   exit 1
 fi
-units=$(awk 'NF { s = s (s == "" ? "" : ", ") $1 } END { print s }' <<<"$out")
+units="" ignored=""
+while read -r unit _; do
+  [[ -n $unit ]] || continue
+  if [[ " ${FAILED_UNITS_IGNORE:-} " == *" $unit "* ]]; then
+    ignored+=${ignored:+, }$unit
+  else
+    units+=${units:+, }$unit
+  fi
+done <<<"$out"
 if [[ -n $units ]]; then
   echo "FAIL failed-units: $units"
   exit 1
 fi
-echo "ok failed-units"
+echo "ok failed-units${ignored:+: ignored $ignored}"

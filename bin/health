@@ -10,6 +10,9 @@
 # Usage: bin/health
 #   SKOGAI_HEALTH_ROOT  repo root to scan (default: the repo this script is in)
 #   HEALTH_TIMEOUT      seconds before a concern script is killed (default 120)
+#   SKOGAI_HEALTH_SKIP  space-separated groups not to run (each prints one
+#                       `<group> ok health: skipped` line), e.g. a group with
+#                       its own timer and notifier
 # Exit 0 all checks ok, 1 any check failed, 2 the root is not a directory.
 set -u
 
@@ -73,7 +76,9 @@ main() {
   local group report total failed
   report=$(
     while read -r group; do
-      if [[ $group == skogai ]]; then
+      if [[ " ${SKOGAI_HEALTH_SKIP:-} " == *" $group "* ]]; then
+        echo "$group ok health: skipped (SKOGAI_HEALTH_SKIP)"
+      elif [[ $group == skogai ]]; then
         routes_check
       else
         run_group "$group" "$root/$group/health"

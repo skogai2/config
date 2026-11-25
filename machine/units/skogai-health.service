@@ -7,4 +7,8 @@ Type=oneshot
 # mise, atuin, herdr and jq come from mise; the user manager's PATH has no shims.
 # ~/.local/bin first: the mise there is the one the shell uses, not /usr/bin/mise.
 Environment=PATH=%h/.local/bin:%h/.local/share/mise/shims:/usr/local/bin:/usr/bin:/bin
+# containers (quadlet-health) and these units have their own timer and
+# notifier; repeating them here only doubled the popups (machine/SKOGAI.md).
+Environment=SKOGAI_HEALTH_SKIP=containers
+Environment="FAILED_UNITS_IGNORE=quadlet-health.service pg-backup.service"
 ExecStart=%h/.config/skogai/bin/health

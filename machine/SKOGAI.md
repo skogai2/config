@@ -54,8 +54,11 @@ herdr and other mise-owned tools are gone and declared `absent`
 `herdr-binary` stays as a guard against Omarchy bringing its herdr back.
 
 Every failing check notifies once a day, so fix (or knowingly accept)
-failures quickly. `containers` failures notify twice: once from
-`quadlet-health`'s own timer, once from this one. `quadlet-health` runs
+failures quickly. The timer doesn't repeat what notifies on its own
+(2026-11-25): the unit sets `SKOGAI_HEALTH_SKIP=containers` (bin/health
+prints `containers ok health: skipped`) and `FAILED_UNITS_IGNORE=
+quadlet-health.service pg-backup.service` (shown as `ignored`, not a
+failure). A run of `bin/health` by hand still checks both. `quadlet-health` runs
 hourly but notifies only when its set of failing checks changes or
 recovers (`bin/notify-on-change` in the podman repo, 2026-11-25): before
 that, one stale backup gave a critical popup every hour (31 in a week).

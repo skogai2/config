@@ -39,6 +39,17 @@ test_routes() {
     "skogai FAIL routes: 2 missing" "1 of 1 checks failed"
 }
 
+test_skip() {
+  local r
+  r=$(newroot)
+  concern "$r" loud 'echo "FAIL noisy: own notifier"; exit 1'
+  concern "$r" calm 'echo "ok fine"'
+  run env SKOGAI_HEALTH_SKIP="other loud" SKOGAI_HEALTH_ROOT="$r" "$repo/bin/health"
+  expect "skip: listed group not run, still counted ok" 0 \
+    "loud ok health: skipped (SKOGAI_HEALTH_SKIP)" "calm ok fine" "all 3 checks ok"
+  refute "skip: skipped script output absent" "noisy"
+}
+
 test_script_failures() {
   local r
   r=$(newroot)
@@ -235,6 +246,10 @@ echo "bar.timer   loaded failed failed Bar"'
   expect "machine: no failed units" 0 "ok failed-units"
   run env PATH="$d/two:$(toolbox)" "$repo/machine/health"
   expect "machine: failed units listed" 1 "FAIL failed-units: foo.service, bar.timer"
+  run env PATH="$d/two:$(toolbox)" FAILED_UNITS_IGNORE="foo.service" "$repo/machine/health"
+  expect "machine: ignored unit left out of the failure" 1 "FAIL failed-units: bar.timer"
+  run env PATH="$d/two:$(toolbox)" FAILED_UNITS_IGNORE="bar.timer foo.service" "$repo/machine/health"
+  expect "machine: only ignored units fail" 0 "ok failed-units: ignored foo.service, bar.timer"
   run env PATH="$d/err:$(toolbox)" "$repo/machine/health"
   expect "machine: systemctl error" 1 "FAIL failed-units: systemctl exited 1"
   run env PATH="$(toolbox)" "$repo/machine/health"
@@ -243,6 +258,7 @@ echo "bar.timer   loaded failed failed Bar"'
 
 test_runner
 test_routes
+test_skip
 test_script_failures
 test_timeout
 test_bad_root
