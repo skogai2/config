@@ -131,8 +131,13 @@ held the key — those got relocated rather than dropped:
   `~/.local/state/omarchy/workspace-layouts/<n>.lua`; only `default.lua`
   (dwindle) should exist there. Check: `omarchy hyprland workspace layout
   current <n>`.
-- Gotcha (2026-11-22 11:36): an Omarchy update/refresh rewrote every
-  `~/.config/hypr/*.lua` from templates (left `*.bak.17953437xx`), dropping
+- `Mod+Alt+L` unbound (2026-11-25), so the layout can't be cycled by
+  accident. Before that it fired two binds at once: ours (toggle forward)
+  and Omarchy's default (cycle back).
+- Gotcha (2026-11-22 11:36): `omarchy refresh hyprland` (likely from the
+  Omarchy menu; not in shell history) rewrote every `~/.config/hypr/*.lua`
+  from templates (left `*.bak.17953437xx`; `omarchy-refresh-config` names
+  backups `.bak.$(date +%s)`). Never run it here. It dropped
   `movefocus_cycles_groupfirst` and setting an invalid `layout = "tiling"` in
   `looknfeel.lua`. Restored 2026-11-25 from `mise dotfiles history diff 2509
   <latest> --path ~/.config/hypr -p`. After an Omarchy update, diff hypr
