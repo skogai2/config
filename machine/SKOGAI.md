@@ -55,4 +55,7 @@ herdr and other mise-owned tools are gone and declared `absent`
 
 Every failing check notifies once a day, so fix (or knowingly accept)
 failures quickly. `containers` failures notify twice: once from
-`quadlet-health`'s own timer, once from this one.
+`quadlet-health`'s own timer, once from this one. `quadlet-health` runs
+hourly but notifies only when its set of failing checks changes or
+recovers (`bin/notify-on-change` in the podman repo, 2026-11-25): before
+that, one stale backup gave a critical popup every hour (31 in a week).
