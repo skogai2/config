@@ -142,6 +142,8 @@ held the key — those got relocated rather than dropped:
   `looknfeel.lua`. Restored 2026-11-25 from `mise dotfiles history diff 2509
   <latest> --path ~/.config/hypr -p`. After an Omarchy update, diff hypr
   against the checkpoint before it.
+  It also reset `monitors.lua` (60Hz, scale 1.25); fixed 2026-11-25 and
+  made per machine (`mise/dotfiles.md`).
 
 ### (future machines/WMs go here)
 

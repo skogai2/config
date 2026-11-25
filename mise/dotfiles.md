@@ -148,12 +148,19 @@ mise history is the versioning for `~/.config`. Deploy modes
   808-811 and removed again in 825. Treat them as burned; only the history
   rewrite is open.
 
+## machine-specific files
+
+- `mise dot track <path> --machine` keeps a separate version per machine
+  (declared as `variants = [{ machine = true }]` in `config.toml`); it is
+  never applied on another machine. `mise dot paths` shows the stream, e.g.
+  `track (machine-skogix-workstation-…)`.
+- `hypr/monitors.lua`: per machine since 2026-11-25. The workstation's is
+  DP-2 (Acer XB240H) at 1920x1080@144, scale 1.0.
+
 ## open
 
 - `fcitx5` (9 files) is still tracked while `fcitx` was dropped as noise.
 - 6 `systemd/user` links, `fish/completions/gptme.fish` and an nvim
   `theme.lua` point outside tracked paths (`containers` is the main
   hole).
-- `hypr/monitors.lua` is machine-specific and wants a `machine` variant
-  once there's a second machine.
 - History rewrite for the 10-19 and 10-29 leaks and the Obsidian cookies.
