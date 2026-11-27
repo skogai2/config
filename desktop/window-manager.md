@@ -144,6 +144,20 @@ held the key — those got relocated rather than dropped:
   against the checkpoint before it.
   It also reset `monitors.lua` (60Hz, scale 1.25); fixed 2026-11-25 and
   made per machine (`mise/dotfiles.md`).
+- 2026-11-27 22:19: an update on the **rc** channel installed `omarchy
+  4.6.0rc1` (from 4.5.0) plus about 560 packages from `rc-mirror.omarchy.org`.
+  At 23:00 the channel was switched to stable, but `omarchy-channel-set` only
+  re-points `pacman.conf`/mirrorlist; it doesn't downgrade, so the rc versions
+  stay and pacman warns "local is newer than core/extra" until stable's mirror
+  snapshot catches up. Never `pacman -Syuu` out of it: that downgrades glibc,
+  openssl 4→3, systemd and the kernel in place. To get the old version back,
+  restore the pre-update snapshot (`omarchy snapshot list|restore N`).
+  The update's migrations reset `herdr-app/keys.json` (all layout keys),
+  `mimeapps.list` (zen→chromium, nvim→omarchy-launch-editor) and
+  `omarchy/shell.json` (t3code widget, Nautilus→folio in the dock), and
+  `~/.claude/skills` lost its link to skillshare. Restored from checkpoint
+  2731/2741 (`mise dot rollback --to N <path>`). The hypr files survived;
+  `monitors.lua` got the new template but kept DP-2@144.
 
 ### (future machines/WMs go here)
 
