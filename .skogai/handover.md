@@ -1,4 +1,4 @@
-# handover (2026-11-21)
+# handover (2026-11-28)
 
 ## where we are
 
@@ -15,6 +15,8 @@
 
 ## next
 
+- Forgejo (`~/.config/containers/systemd/forgejo/README.md`, 2026-11-28): running, public at `git.skogai.se`, tailnet :8445 web and :2222 ssh, nightly `forgejo dump`. `skogai/podman` leaked publicly ~12:20-17:05 (fixed; check that the cf OAuth login from `1f8da86` is revoked). Open, for skogix: agents out of the Owners team, the two git tokens out of plaintext `~/.config/mise/config.toml` (fnox, then rotate `claude`'s), pin `forgejo-mcp`.
+- mise `podman = "latest"` installs only the remote client (6.2.1), which shadows pacman's `/usr/bin/podman` (6.1.4): `podman unshare` fails. Decide which owns `podman` (`mise/bootstrap.md`).
 - herdr-app (`agents/herdr-app.md`): mods and layouts inventoried with
   sources 2026-11-20; lazyvim reinstalled by hand 2026-11-21 after
   checkpoint 2327 deleted it (cause not found), now guarded by
